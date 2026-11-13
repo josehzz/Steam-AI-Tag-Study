@@ -1,6 +1,7 @@
 /* ==========================================================================
    Apple Dark Mode Design System — Steam AI Disclosure Tag Study
    Clean, refined, human-centric aesthetic inspired by macOS / iOS HIG
+   Copyright (c) 2026 Jose Hernandez (josehzz) — MIT License (see LICENSE)
    ========================================================================== */
 
 :root {
@@ -2858,6 +2859,12 @@ h1, h2, h3, h4, .q-title, .tetris-title {
   font-size: 0.74rem;
   color: var(--text-muted);
   letter-spacing: 0.01em;
+}
+
+.license-note {
+  margin-top: 10px;
+  font-size: 0.74rem;
+  color: var(--text-muted);
 }
 
 /* ==========================================================================

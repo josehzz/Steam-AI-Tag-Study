@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2026 Jose Hernandez (josehzz)
+ * Licensed under the MIT License. See LICENSE for full terms.
+ */
 window.STUDY_DATA_EXTENDED = {
   "similarity": {
     "rows": [

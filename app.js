@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2026 Jose Hernandez (josehzz)
+ * Licensed under the MIT License. See LICENSE for full terms.
+ */
 // Exact aggregated dataset from steam_games_ai_tagged.csv (63,798 games released Jan 1, 2024 – Nov 2, 2026)
 const INTRO_QUESTIONS = [
   {
