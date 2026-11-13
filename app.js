@@ -294,11 +294,36 @@ const fmtInt = (n) => Number(n).toLocaleString("en-US");
 const fmtPct = (n) => `${n.toFixed(2)}%`;
 
 /* =========================================================
-   1. TOPBAR NAVIGATION
+   1. TOPBAR NAVIGATION + UNFOLDING SUBNAV BAR
    ========================================================= */
+function updateTopbarSubnavDrawer(sectionName) {
+  const drawer = document.getElementById("topbar-subnav-drawer");
+  if (!drawer) return;
+
+  const subnavs = drawer.querySelectorAll(".section-subnav");
+  let hasSubnav = false;
+
+  subnavs.forEach((nav) => {
+    const isMatch = nav.getAttribute("data-for-section") === sectionName;
+    nav.classList.toggle("active", isMatch);
+    if (isMatch) {
+      hasSubnav = true;
+      nav.classList.remove("is-animating");
+      void nav.offsetWidth;
+      nav.classList.add("is-animating");
+    }
+  });
+
+  drawer.classList.toggle("is-open", hasSubnav);
+  drawer.setAttribute("aria-hidden", hasSubnav ? "false" : "true");
+}
+
 function initTopbarNavigation() {
   const navButtons = document.querySelectorAll(".topbar-nav .nav-btn");
   const sections = document.querySelectorAll(".tab-section");
+
+  const initialBtn = document.querySelector(".topbar-nav .nav-btn.active");
+  updateTopbarSubnavDrawer(initialBtn ? initialBtn.getAttribute("data-section") : "intro");
 
   navButtons.forEach((btn) => {
     btn.addEventListener("click", () => {
@@ -308,6 +333,12 @@ function initTopbarNavigation() {
       sections.forEach((sec) => {
         sec.classList.toggle("active", sec.id === `section-${target}`);
       });
+
+      updateTopbarSubnavDrawer(target);
+
+      if (window.scrollY > 40) {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
 
       if (target === "intro") {
         selectIntroQuestion(0, false); // Don't trigger drop when merely switching tabs
@@ -438,10 +469,10 @@ function renderDataTabStats() {
 }
 
 /* =========================================================
-   4B. BOTTOM BAR NAVIGATION INSIDE "DATA"
+   4B. SECOND-BAR NAVIGATION INSIDE "DATA"
    ========================================================= */
 function initDataSubnav() {
-  const subBtns = document.querySelectorAll("#section-data .bottom-subnav .subnav-btn");
+  const subBtns = document.querySelectorAll('#topbar-subnav-drawer .section-subnav[data-for-section="data"] .subnav-btn');
   const subviews = document.querySelectorAll("#section-data .data-subview");
 
   subBtns.forEach((btn) => {
@@ -455,15 +486,16 @@ function initDataSubnav() {
       subviews.forEach((sv) => {
         sv.classList.toggle("active", sv.id === `subview-${target}`);
       });
+      if (window.scrollY > 40) window.scrollTo({ top: 0, behavior: "smooth" });
     });
   });
 }
 
 /* =========================================================
-   5. BOTTOM BAR NAVIGATION INSIDE "IS IT RELEVANT?"
+   5. SECOND-BAR NAVIGATION INSIDE "IS IT RELEVANT?"
    ========================================================= */
 function initRelevantSubnav() {
-  const subBtns = document.querySelectorAll("#section-relevant .bottom-subnav .subnav-btn");
+  const subBtns = document.querySelectorAll('#topbar-subnav-drawer .section-subnav[data-for-section="relevant"] .subnav-btn');
   const subviews = document.querySelectorAll("#section-relevant .relevant-subview");
 
   subBtns.forEach((btn) => {
@@ -477,6 +509,7 @@ function initRelevantSubnav() {
       subviews.forEach((sv) => {
         sv.classList.toggle("active", sv.id === `subview-${target}`);
       });
+      if (window.scrollY > 40) window.scrollTo({ top: 0, behavior: "smooth" });
 
       if (target === "review-count") renderStackedBarChart();
       else if (target === "review-velocity") renderReviewVelocity();
@@ -493,6 +526,7 @@ function initRelevantSubnav() {
 function renderStackedBarChart() {
   const container = document.getElementById("stacked-bar-chart");
   const yAxis = document.getElementById("y-axis-labels");
+  const yUnit = document.getElementById("stacked-y-unit");
   if (!container || !yAxis) return;
 
   const activeTotals = STUDY_DATA.tiers.map((tier) => {
@@ -504,6 +538,10 @@ function renderStackedBarChart() {
   });
   const maxCount = Math.max(...activeTotals, 1);
   const niceMaxCount = Math.ceil(maxCount / 5000) * 5000;
+
+  if (yUnit) {
+    yUnit.textContent = chartMode === "percentage" ? "Share (%)" : "Games (#)";
+  }
 
   if (chartMode === "percentage") {
     yAxis.innerHTML = `
@@ -544,23 +582,27 @@ function renderStackedBarChart() {
     col.className = `bar-column${selectedTierId === tier.id ? " selected" : ""}`;
     col.setAttribute("data-tier", tier.id);
 
+    const clampedH = visTotal > 0 ? Math.max(stackHeightPct, 2) : 0;
     const topLabelText =
       chartMode === "percentage"
         ? visibleSeries.TRUE && visTotal > 0
-          ? `${((tVal / visTotal) * 100).toFixed(1)}% AI`
+          ? `${tPct.toFixed(1)}% AI`
           : `${fmtInt(visTotal)}`
-        : fmtInt(visTotal);
+        : `${fmtInt(visTotal)}`;
+
+    const showTrueInline = tPct > 11 && clampedH > 18;
+    const showFalseInline = fPct > 16 && clampedH > 22;
 
     col.innerHTML = `
-      <div class="bar-top-value">${topLabelText}</div>
-      <div class="bar-stack" style="height: ${Math.max(stackHeightPct, 2)}%;">
-        <div class="bar-segment seg-false" style="height: ${fPct}%;">
-          ${fPct > 14 ? `<span class="seg-inline-label">${chartMode === "percentage" ? `${fPct.toFixed(0)}%` : ""}</span>` : ""}
-        </div>
+      <div class="bar-top-value" style="bottom: calc(${clampedH.toFixed(2)}% + 6px);">${topLabelText}</div>
+      <div class="bar-stack" style="height: ${clampedH.toFixed(2)}%;">
         <div class="bar-segment seg-true" style="height: ${tPct}%;">
-          ${tPct > 11 ? `<span class="seg-inline-label">${chartMode === "percentage" ? `${tPct.toFixed(1)}%` : ""}</span>` : ""}
+          ${showTrueInline ? `<span class="seg-inline-label" style="color:#111318;">${tPct.toFixed(1)}%</span>` : ""}
         </div>
         <div class="bar-segment seg-maybe" style="height: ${mPct}%;"></div>
+        <div class="bar-segment seg-false" style="height: ${fPct}%;">
+          ${showFalseInline && chartMode === "percentage" ? `<span class="seg-inline-label">${fPct.toFixed(0)}%</span>` : ""}
+        </div>
       </div>
       <div class="bar-x-label">${tier.shortLabel}</div>
     `;
@@ -623,6 +665,8 @@ function moveTooltip(event) {
   if (y + rect.height > window.innerHeight - 12) {
     y = event.clientY - rect.height - pad;
   }
+  x = Math.max(12, Math.min(x, window.innerWidth - rect.width - 12));
+  y = Math.max(12, Math.min(y, window.innerHeight - rect.height - 12));
   tooltip.style.left = `${x}px`;
   tooltip.style.top = `${y}px`;
 }
@@ -637,7 +681,6 @@ function renderInspector() {
     ? STUDY_DATA.tiers.find((t) => t.id === selectedTierId)
     : null;
 
-  const eyebrow = document.getElementById("inspector-eyebrow");
   const title = document.getElementById("inspector-title");
   const resetBtn = document.getElementById("reset-tier-btn");
   const insight = document.getElementById("inspector-insight");
@@ -653,13 +696,11 @@ function renderInspector() {
   const mCnt = source.counts.MAYBE;
 
   if (tier) {
-    eyebrow.textContent = `TIER INSPECTOR • ${tier.shortLabel} REVIEWS`;
     title.textContent = `${tier.fullLabel} — ${fmtInt(tot)} Games`;
     resetBtn.classList.remove("hidden");
     insight.textContent = tier.insight;
     tagCaption.textContent = `Within ${tier.shortLabel} review tier`;
   } else {
-    eyebrow.textContent = "OVERALL STUDY SUMMARY • ALL TIERS";
     title.textContent = "All Games Overview (63,798 Games)";
     resetBtn.classList.add("hidden");
     insight.innerHTML =
@@ -735,7 +776,7 @@ function renderInspector() {
 }
 
 function initChartControls() {
-  const modeBtns = document.querySelectorAll(".mode-toggle .mode-btn");
+  const modeBtns = document.querySelectorAll("#review-count-mode-toggle .mode-btn");
   modeBtns.forEach((btn) => {
     btn.addEventListener("click", () => {
       chartMode = btn.getAttribute("data-mode");
@@ -778,36 +819,49 @@ function initChartControls() {
 /* =========================================================
    7. REVIEW VELOCITY SUBVIEW (Time vs Milestone Achievement)
    ========================================================= */
-let velAiFilter = "ALL";
-let velMilestoneFilter = "all";
+let velAiFilter = "VS";
+let velMilestoneFilter = "10";
 
 function initReviewVelocityView() {
   const aiPills = document.querySelectorAll("#vel-ai-filter .mini-pill");
+  const mPills = document.querySelectorAll("#vel-milestone-pills .milestone-pill");
+
+  const syncPills = () => {
+    aiPills.forEach((p) => p.classList.toggle("active", p.getAttribute("data-ai") === velAiFilter));
+    mPills.forEach((p) => p.classList.toggle("active", p.getAttribute("data-milestone") === velMilestoneFilter));
+  };
+
   aiPills.forEach((pill) => {
     pill.addEventListener("click", () => {
       velAiFilter = pill.getAttribute("data-ai");
-      aiPills.forEach((p) => p.classList.toggle("active", p === pill));
+      if (velAiFilter === "VS" && velMilestoneFilter === "all") {
+        velMilestoneFilter = "10";
+      }
+      syncPills();
       renderReviewVelocity();
     });
   });
 
-  const mPills = document.querySelectorAll("#vel-milestone-pills .milestone-pill");
   mPills.forEach((pill) => {
     pill.addEventListener("click", () => {
       velMilestoneFilter = pill.getAttribute("data-milestone");
-      mPills.forEach((p) => p.classList.toggle("active", p === pill));
+      if (velMilestoneFilter === "all" && velAiFilter === "VS") {
+        velAiFilter = "ALL";
+      }
+      syncPills();
       renderReviewVelocity();
     });
   });
 
+  syncPills();
   renderReviewVelocity();
 }
 
 function renderReviewVelocity() {
   const container = document.getElementById("velocity-chart-container");
+  const legendEl = document.getElementById("vel-chart-legend");
   if (!container || !window.STUDY_DATA_EXTENDED) return;
 
-  const velData = window.STUDY_DATA_EXTENDED.velocity[velAiFilter] || [];
   const milestones = [
     { id: 1, label: "1 Review", color: "#64d2ff" },
     { id: 10, label: "10 Reviews", color: "#30d158" },
@@ -816,77 +870,150 @@ function renderReviewVelocity() {
     { id: 1000, label: "1,000 Reviews", color: "#bf5af2" }
   ];
 
-  const activeMilestones = milestones.filter(
-    (m) => velMilestoneFilter === "all" || velMilestoneFilter == m.id
-  );
+  const isCompare = velAiFilter === "VS";
+  const scrapeDateMs = Date.UTC(2026, 10, 2); // Nov 2, 2026
+
+  let seriesList = [];
+  let baseData = [];
+
+  if (isCompare) {
+    const mId = velMilestoneFilter === "all" ? "10" : velMilestoneFilter;
+    const mObj = milestones.find((m) => String(m.id) === String(mId)) || milestones[1];
+    const falseData = window.STUDY_DATA_EXTENDED.velocity.FALSE || [];
+    const trueData = window.STUDY_DATA_EXTENDED.velocity.TRUE || [];
+    baseData = falseData;
+    seriesList = [
+      { key: "FALSE", label: `Non-AI (FALSE) — ${mObj.label}`, color: "#0a84ff", rows: falseData, m: mObj },
+      { key: "TRUE", label: `In-Game AI (TRUE) — ${mObj.label}`, color: "#ff9f0a", rows: trueData, m: mObj }
+    ];
+  } else {
+    baseData = window.STUDY_DATA_EXTENDED.velocity[velAiFilter] || [];
+    const activeMilestones = milestones.filter(
+      (m) => velMilestoneFilter === "all" || velMilestoneFilter == m.id
+    );
+    seriesList = activeMilestones.map((m) => ({
+      key: m.id,
+      label: m.label,
+      color: m.color,
+      rows: baseData,
+      m
+    }));
+  }
+
+  if (legendEl) {
+    const swatches = seriesList
+      .map((s) => `<span class="legend-item active" style="cursor:default;padding:4px 10px;"><span class="legend-swatch" style="background:${s.color};"></span><span class="legend-label">${s.label}</span></span>`)
+      .join("");
+    legendEl.innerHTML = `${swatches}<span class="legend-item active" style="cursor:default;padding:4px 10px;"><span class="evt-line-swatch" style="border-top-color:rgba(235,235,245,0.45);"></span><span class="legend-label">Max Age at Scrape (Nov '26) &mdash; newer cohorts have less time elapsed</span></span>`;
+  }
 
   const w = 760;
-  const h = 340;
-  const padL = 55;
-  const padR = 25;
-  const padT = 25;
-  const padB = 45;
+  const h = 360;
+  const padL = 64;
+  const padR = 26;
+  const padT = 26;
+  const padB = 48;
   const plotW = w - padL - padR;
   const plotH = h - padT - padB;
 
-  let maxDays = 500;
-  velData.forEach((row) => {
-    activeMilestones.forEach((m) => {
-      const val = row[`m${m.id}_days`];
+  let maxDays = 400;
+  seriesList.forEach((s) => {
+    s.rows.forEach((row) => {
+      const val = row[`m${s.m.id}_days`];
       if (val && val > maxDays) maxDays = val;
     });
   });
   maxDays = Math.ceil(maxDays / 100) * 100;
 
-  const numPoints = velData.length;
+  const numPoints = baseData.length;
   const xStep = numPoints > 1 ? plotW / (numPoints - 1) : plotW;
 
-  let svg = `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">`;
+  let svg = `<svg viewBox="0 0 ${w} ${h}">`;
   svg += `<defs>
     <filter id="neon-glow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="2" stdDeviation="2.5" flood-opacity="0.3"/>
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.28"/>
     </filter>
+    <clipPath id="vel-plot-clip">
+      <rect x="${padL}" y="${padT}" width="${plotW}" height="${plotH}" />
+    </clipPath>
   </defs>`;
+
+  // Y Axis Title
+  svg += `<text x="16" y="${padT + plotH / 2}" fill="rgba(235,235,245,0.72)" font-family="-apple-system, sans-serif" font-size="11" font-weight="600" text-anchor="middle" transform="rotate(-90 16 ${padT + plotH / 2})">Avg Days Since Release</text>`;
 
   // Y Gridlines and labels
   const yTicks = 5;
   for (let i = 0; i <= yTicks; i++) {
     const val = Math.round((maxDays / yTicks) * i);
     const yPos = padT + plotH - (val / maxDays) * plotH;
-    svg += `<line x1="${padL}" y1="${yPos}" x2="${w - padR}" y2="${yPos}" stroke="rgba(255,255,255,0.06)" stroke-dasharray="3,3" />`;
-    svg += `<text x="${padL - 8}" y="${yPos + 4}" fill="rgba(235,235,245,0.4)" font-family="ui-monospace, monospace" font-size="10" text-anchor="end">${val}d</text>`;
+    svg += `<line x1="${padL}" y1="${yPos}" x2="${w - padR}" y2="${yPos}" stroke="rgba(255,255,255,0.09)" stroke-dasharray="3,3" />`;
+    svg += `<text x="${padL - 8}" y="${yPos + 4}" fill="rgba(235,235,245,0.72)" font-family="ui-monospace, monospace" font-size="11" text-anchor="end">${val}d</text>`;
   }
 
-  // X Axis Labels
-  velData.forEach((row, idx) => {
+  // X Axis Baseline & Labels
+  svg += `<line x1="${padL}" y1="${padT + plotH}" x2="${w - padR}" y2="${padT + plotH}" stroke="rgba(255,255,255,0.2)" />`;
+  baseData.forEach((row, idx) => {
     if (idx % 6 === 0 || idx === numPoints - 1) {
       const xPos = padL + idx * xStep;
       const label = row.month.slice(2);
-      svg += `<text x="${xPos}" y="${h - 15}" fill="rgba(235,235,245,0.4)" font-family="ui-monospace, monospace" font-size="10" text-anchor="middle">${label}</text>`;
-      svg += `<line x1="${xPos}" y1="${padT + plotH}" x2="${xPos}" y2="${padT + plotH + 5}" stroke="rgba(255,255,255,0.12)" />`;
+      svg += `<text x="${xPos}" y="${h - 14}" fill="rgba(235,235,245,0.72)" font-family="ui-monospace, monospace" font-size="11" text-anchor="middle">${label}</text>`;
+      svg += `<line x1="${xPos}" y1="${padT + plotH}" x2="${xPos}" y2="${padT + plotH + 5}" stroke="rgba(255,255,255,0.2)" />`;
     }
   });
 
-  // Milestone Paths
-  activeMilestones.forEach((m) => {
+  // Observation window reference line (max possible age at Nov 2, 2026)
+  const capPts = baseData.map((row, idx) => {
+    const [yr, mo] = row.month.split("-").map(Number);
+    const midMs = Date.UTC(yr, mo - 1, 1);
+    const maxAgeDays = Math.max(2, (scrapeDateMs - midMs) / 86400000);
+    const x = padL + idx * xStep;
+    const y = padT + plotH - (maxAgeDays / maxDays) * plotH;
+    return { x, y };
+  });
+  const capD = capPts.reduce((acc, pt, i) => `${acc} ${i === 0 ? "M" : "L"} ${pt.x.toFixed(1)} ${pt.y.toFixed(1)}`, "");
+  svg += `<path d="${capD}" fill="none" stroke="rgba(235,235,245,0.32)" stroke-width="1.5" stroke-dasharray="5,4" clip-path="url(#vel-plot-clip)" />`;
+
+  // Shaded area between Non-AI and AI in Compare mode
+  if (isCompare && seriesList.length === 2) {
+    const r0 = seriesList[0].rows;
+    const r1 = seriesList[1].rows;
+    const mId = seriesList[0].m.id;
+    const topPts = [];
+    const botPts = [];
+    baseData.forEach((_, idx) => {
+      const d0 = r0[idx] && r0[idx][`m${mId}_days`];
+      const d1 = r1[idx] && r1[idx][`m${mId}_days`];
+      if (d0 != null && d1 != null) {
+        const x = padL + idx * xStep;
+        topPts.push({ x, y: padT + plotH - (d0 / maxDays) * plotH });
+        botPts.unshift({ x, y: padT + plotH - (d1 / maxDays) * plotH });
+      }
+    });
+    if (topPts.length > 1) {
+      const polyPts = [...topPts, ...botPts].map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
+      svg += `<polygon points="${polyPts}" fill="rgba(255, 159, 10, 0.1)" />`;
+    }
+  }
+
+  // Curves
+  seriesList.forEach((s) => {
     const pts = [];
-    velData.forEach((row, idx) => {
-      const days = row[`m${m.id}_days`];
+    s.rows.forEach((row, idx) => {
+      const days = row[`m${s.m.id}_days`];
       if (days !== null && days !== undefined) {
         const x = padL + idx * xStep;
         const y = padT + plotH - (days / maxDays) * plotH;
-        pts.push({ x, y, days, count: row[`m${m.id}_count`], month: row.month, m });
+        pts.push({ x, y, days, count: row[`m${s.m.id}_count`], month: row.month, seriesLabel: s.label, m: s.m });
       }
     });
 
     if (pts.length > 1) {
       const pathD = pts.reduce((acc, pt, i) => `${acc} ${i === 0 ? "M" : "L"} ${pt.x.toFixed(1)} ${pt.y.toFixed(1)}`, "");
-      svg += `<path d="${pathD}" fill="none" stroke="${m.color}" stroke-width="2.5" filter="url(#neon-glow)" />`;
+      svg += `<path d="${pathD}" fill="none" stroke="${s.color}" stroke-width="2.6" filter="url(#neon-glow)" />`;
     }
 
-    // Circles
     pts.forEach((pt) => {
-      svg += `<circle cx="${pt.x.toFixed(1)}" cy="${pt.y.toFixed(1)}" r="4" fill="${m.color}" stroke="#1c1c1e" stroke-width="1.5" class="vel-node" data-month="${pt.month}" data-milestone="${pt.m.label}" data-days="${pt.days}" data-count="${pt.count}" />`;
+      svg += `<circle cx="${pt.x.toFixed(1)}" cy="${pt.y.toFixed(1)}" r="3.8" fill="${s.color}" stroke="#1c1c1e" stroke-width="1.5" class="vel-node" data-month="${pt.month}" data-milestone="${pt.seriesLabel}" data-num="${pt.m.id}" data-days="${pt.days}" data-count="${pt.count}" />`;
     });
   });
 
@@ -900,7 +1027,7 @@ function renderReviewVelocity() {
       const milestone = node.getAttribute("data-milestone");
       const days = node.getAttribute("data-days");
       const count = node.getAttribute("data-count");
-      const numM = parseInt(milestone, 10) || 10;
+      const numM = parseInt(node.getAttribute("data-num"), 10) || 10;
       const rate = (numM / parseFloat(days)).toFixed(2);
 
       const tooltip = document.getElementById("chart-tooltip");
@@ -908,7 +1035,7 @@ function renderReviewVelocity() {
       tooltip.innerHTML = `
         <div class="tooltip-title">${month} &bull; ${milestone}</div>
         <div class="tooltip-row">
-          <span>Avg Days to Reach:</span>
+          <span>Avg Age / Days to Reach:</span>
           <strong style="color:var(--apple-blue, #0a84ff);">${days} days</strong>
         </div>
         <div class="tooltip-row">
@@ -1012,32 +1139,37 @@ function initSimilarityView() {
   if (!tableBody || !window.STUDY_DATA_EXTENDED) return;
 
   const rows = window.STUDY_DATA_EXTENDED.similarity.rows;
+  const top10RevSet = new Set(rows.map((r) => r.revTag));
+  const top10AiSet = new Set(rows.map((r) => r.aiTag));
 
   tableBody.innerHTML = rows
     .map((r) => {
       const revTagDiff = r.rank - r.revTagAiRank;
       let diffBadge = "";
       if (revTagDiff === 0) {
-        diffBadge = `<span class="diff-badge diff-zero">Exact Match (0)</span>`;
+        diffBadge = `<span class="diff-badge diff-zero">Exact (#${r.rank} = #${r.revTagAiRank})</span>`;
       } else if (revTagDiff > 0) {
-        diffBadge = `<span class="diff-badge diff-pos">+${revTagDiff} (AI #${r.revTagAiRank})</span>`;
+        diffBadge = `<span class="diff-badge diff-pos">#${r.rank} &rarr; #${r.revTagAiRank} (+${revTagDiff})</span>`;
       } else {
         const valStr = r.revTagAiRank > 100 ? ">#100" : `#${r.revTagAiRank}`;
-        diffBadge = `<span class="diff-badge diff-neg">${revTagDiff} (AI ${valStr})</span>`;
+        diffBadge = `<span class="diff-badge diff-neg">#${r.rank} &rarr; ${valStr}</span>`;
       }
 
+      const revInBoth = top10AiSet.has(r.revTag);
+      const aiInBoth = top10RevSet.has(r.aiTag);
+
       return `
-        <tr>
+        <tr class="${revInBoth || aiInBoth ? "sim-row-overlap" : ""}">
           <td class="rank-badge-cell">${String(r.rank).padStart(2, "0")}</td>
           <td>
             <div class="tag-name-cell">
-              <span>${r.revTag}</span>
+              <span>${revInBoth ? `<span class="sim-overlap-dot" title="In both Top 10 lists"></span>` : ""}${r.revTag}</span>
               <span class="tag-count-sub">${fmtInt(r.revCount)} rev</span>
             </div>
           </td>
           <td>
             <div class="tag-name-cell">
-              <span style="color: var(--tetris-orange);">${r.aiTag}</span>
+              <span style="color: var(--tetris-orange);">${aiInBoth ? `<span class="sim-overlap-dot" title="In both Top 10 lists"></span>` : ""}${r.aiTag}</span>
               <span class="tag-count-sub">${fmtInt(r.aiCount)} games</span>
             </div>
           </td>
@@ -1081,6 +1213,7 @@ function initSimilarityView() {
    ========================================================= */
 let timeAiFilter = "ALL";
 let timeMode = "volume"; // "volume" | "rate"
+let showOverTimeEvents = true;
 
 function initOverTimeView() {
   const aiPills = document.querySelectorAll("#time-ai-filter .mini-pill");
@@ -1101,21 +1234,72 @@ function initOverTimeView() {
     });
   });
 
+  const evtBtn = document.getElementById("time-events-toggle");
+  if (evtBtn) {
+    evtBtn.addEventListener("click", () => {
+      showOverTimeEvents = !showOverTimeEvents;
+      evtBtn.classList.toggle("active", showOverTimeEvents);
+      evtBtn.setAttribute("aria-pressed", showOverTimeEvents ? "true" : "false");
+      renderOverTimeChart();
+    });
+  }
+
   renderOverTimeChart();
+}
+
+function getShortModelTag(model) {
+  const map = {
+    "Claude 3": "C3",
+    "GPT-4o": "4o",
+    "Claude 3.5 Sonnet": "C3.5",
+    "OpenAI o1": "o1",
+    "Claude 3.7 Sonnet": "C3.7",
+    "Claude 4": "C4",
+    "GPT-5": "GPT-5",
+    "Claude 4.5": "C4.5",
+    "Claude 4.6": "C4.6",
+    "Claude 5": "C5",
+    "GPT-6": "GPT-6",
+    "Claude Opus 5.5": "Op5.5"
+  };
+  return map[model] || model;
 }
 
 function renderOverTimeChart() {
   const container = document.getElementById("time-chart-container");
+  const keyBarsEl = document.getElementById("time-series-key-bars");
+  const keyLineEl = document.getElementById("time-series-key-line");
   if (!container || !window.STUDY_DATA_EXTENDED) return;
 
   const data = window.STUDY_DATA_EXTENDED.overTime;
   const events = window.STUDY_DATA_EXTENDED.overTimeEvents || [];
-  const w = 760;
-  const h = 340;
-  const padL = 55;
-  const padR = 45;
-  const padT = 50;
-  const padB = 45;
+
+  if (keyBarsEl) {
+    if (timeMode === "rate") {
+      keyBarsEl.style.display = "none";
+    } else {
+      keyBarsEl.style.display = "inline-flex";
+      if (timeAiFilter === "ALL") {
+        keyBarsEl.innerHTML = `<span class="legend-swatch swatch-true"></span> AI Games &nbsp;<span class="legend-swatch swatch-false"></span> Non-AI Games`;
+      } else if (timeAiFilter === "TRUE") {
+        keyBarsEl.innerHTML = `<span class="legend-swatch swatch-true"></span> In-Game AI (TRUE)`;
+      } else if (timeAiFilter === "FALSE") {
+        keyBarsEl.innerHTML = `<span class="legend-swatch swatch-false"></span> Non-AI (FALSE)`;
+      } else {
+        keyBarsEl.innerHTML = `<span class="legend-swatch swatch-maybe"></span> Prototyping (MAYBE)`;
+      }
+    }
+  }
+  if (keyLineEl) {
+    keyLineEl.style.display = (timeMode === "rate" || timeAiFilter === "ALL" || timeAiFilter === "TRUE") ? "inline-flex" : "none";
+  }
+
+  const w = 780;
+  const h = 380;
+  const padL = 64;
+  const padR = 56;
+  const padT = showOverTimeEvents ? 72 : 28;
+  const padB = 46;
   const plotW = w - padL - padR;
   const plotH = h - padT - padB;
 
@@ -1127,70 +1311,93 @@ function renderOverTimeChart() {
     const val = timeAiFilter === "ALL" ? d.all : d[timeAiFilter.toLowerCase()] || 0;
     if (val > maxCount) maxCount = val;
   });
-  maxCount = Math.ceil(maxCount / 500) * 500;
+  const stepUnit = maxCount > 1000 ? 500 : maxCount > 100 ? 50 : 5;
+  maxCount = Math.ceil(maxCount / stepUnit) * stepUnit;
 
-  let svg = `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">`;
+  let svg = `<svg viewBox="0 0 ${w} ${h}">`;
   svg += `<defs>
     <linearGradient id="timeBarGrad" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#0a84ff" stop-opacity="0.85"/>
-      <stop offset="100%" stop-color="#0a84ff" stop-opacity="0.25"/>
+      <stop offset="0%" stop-color="#0a84ff" stop-opacity="0.88"/>
+      <stop offset="100%" stop-color="#0a84ff" stop-opacity="0.35"/>
     </linearGradient>
     <linearGradient id="aiBarGrad" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#ff9f0a" stop-opacity="0.9"/>
-      <stop offset="100%" stop-color="#ff9f0a" stop-opacity="0.25"/>
+      <stop offset="0%" stop-color="#ff9f0a" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="#ff9f0a" stop-opacity="0.45"/>
     </linearGradient>
+    <pattern id="partialHatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="rgba(255,255,255,0.35)" stroke-width="2" />
+    </pattern>
   </defs>`;
 
   if (timeMode === "volume") {
-    // Left Y Axis (Volume)
+    // Left Y Axis Title & Grid
+    svg += `<text x="15" y="${padT + plotH / 2}" fill="rgba(235,235,245,0.75)" font-family="-apple-system, sans-serif" font-size="11" font-weight="600" text-anchor="middle" transform="rotate(-90 15 ${padT + plotH / 2})">Monthly Releases</text>`;
+
     const yTicks = 4;
     for (let i = 0; i <= yTicks; i++) {
       const val = Math.round((maxCount / yTicks) * i);
       const yPos = padT + plotH - (val / maxCount) * plotH;
-      svg += `<line x1="${padL}" y1="${yPos}" x2="${w - padR}" y2="${yPos}" stroke="rgba(255,255,255,0.06)" stroke-dasharray="3,3" />`;
-      svg += `<text x="${padL - 8}" y="${yPos + 4}" fill="rgba(235,235,245,0.4)" font-family="ui-monospace, monospace" font-size="10" text-anchor="end">${fmtInt(val)}</text>`;
+      svg += `<line x1="${padL}" y1="${yPos}" x2="${w - padR}" y2="${yPos}" stroke="rgba(255,255,255,0.09)" stroke-dasharray="3,3" />`;
+      svg += `<text x="${padL - 8}" y="${yPos + 4}" fill="rgba(235,235,245,0.72)" font-family="ui-monospace, monospace" font-size="11" text-anchor="end">${fmtInt(val)}</text>`;
     }
 
-    // Right Y Axis (Adoption %)
-    for (let p = 0; p <= 50; p += 25) {
-      const yPos = padT + plotH - (p / 50) * plotH;
-      svg += `<text x="${w - padR + 8}" y="${yPos + 4}" fill="var(--apple-orange, #ff9f0a)" font-family="ui-monospace, monospace" font-size="10">${p}%</text>`;
+    const showRateOverlay = timeAiFilter === "ALL" || timeAiFilter === "TRUE";
+    if (showRateOverlay) {
+      svg += `<text x="${w - 14}" y="${padT + plotH / 2}" fill="#ffd60a" font-family="-apple-system, sans-serif" font-size="11" font-weight="600" text-anchor="middle" transform="rotate(90 ${w - 14} ${padT + plotH / 2})">AI Share (%)</text>`;
+      for (let p = 0; p <= 50; p += 25) {
+        const yPos = padT + plotH - (p / 50) * plotH;
+        svg += `<text x="${w - padR + 8}" y="${yPos + 4}" fill="#ffd60a" font-family="ui-monospace, monospace" font-size="11">${p}%</text>`;
+      }
     }
 
     // Bars
     data.forEach((d, idx) => {
       const x = padL + idx * colW + 2;
       const barWidth = Math.max(2, colW - 4);
+      const isPartial = d.month === "2026-11";
       const val = timeAiFilter === "ALL" ? d.all : d[timeAiFilter.toLowerCase()] || 0;
-      const barH = (val / maxCount) * plotH;
-      const y = padT + plotH - barH;
+      const totalH = (val / maxCount) * plotH;
+      const topY = padT + plotH - totalH;
 
-      const grad = timeAiFilter === "TRUE" ? "url(#aiBarGrad)" : "url(#timeBarGrad)";
+      if (timeAiFilter === "ALL") {
+        const aiH = (d.true / maxCount) * plotH;
+        const nonAiH = Math.max(0, totalH - aiH);
+        // Non-AI top segment
+        svg += `<rect x="${x.toFixed(1)}" y="${topY.toFixed(1)}" width="${barWidth.toFixed(1)}" height="${nonAiH.toFixed(1)}" fill="url(#timeBarGrad)" rx="2" class="time-bar" data-month="${d.month}" data-all="${d.all}" data-false="${d.false}" data-true="${d.true}" data-maybe="${d.maybe}" data-pct="${d.truePct}" data-partial="${isPartial}" />`;
+        // AI bottom segment
+        svg += `<rect x="${x.toFixed(1)}" y="${(padT + plotH - aiH).toFixed(1)}" width="${barWidth.toFixed(1)}" height="${aiH.toFixed(1)}" fill="url(#aiBarGrad)" rx="2" class="time-bar" data-month="${d.month}" data-all="${d.all}" data-false="${d.false}" data-true="${d.true}" data-maybe="${d.maybe}" data-pct="${d.truePct}" data-partial="${isPartial}" />`;
+      } else {
+        const fillCol = timeAiFilter === "TRUE" ? "url(#aiBarGrad)" : timeAiFilter === "MAYBE" ? "#ffd60a" : "url(#timeBarGrad)";
+        svg += `<rect x="${x.toFixed(1)}" y="${topY.toFixed(1)}" width="${barWidth.toFixed(1)}" height="${totalH.toFixed(1)}" fill="${fillCol}" rx="3" class="time-bar" data-month="${d.month}" data-all="${d.all}" data-false="${d.false}" data-true="${d.true}" data-maybe="${d.maybe}" data-pct="${d.truePct}" data-partial="${isPartial}" />`;
+      }
 
-      svg += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barWidth.toFixed(1)}" height="${barH.toFixed(1)}" fill="${grad}" rx="4" class="time-bar" data-month="${d.month}" data-all="${d.all}" data-true="${d.true}" data-pct="${d.truePct}" />`;
+      if (isPartial) {
+        svg += `<rect x="${x.toFixed(1)}" y="${topY.toFixed(1)}" width="${barWidth.toFixed(1)}" height="${totalH.toFixed(1)}" fill="url(#partialHatch)" stroke="rgba(255,255,255,0.65)" stroke-dasharray="2,2" rx="2" style="pointer-events:none;" />`;
+        svg += `<text x="${(x + barWidth / 2).toFixed(1)}" y="${(topY - 8).toFixed(1)}" fill="rgba(235,235,245,0.75)" font-family="ui-monospace, monospace" font-size="9" text-anchor="end">Partial (to Nov 2)</text>`;
+      }
     });
 
-    // Overlaid Adoption % Line
-    const pts = data.map((d, idx) => {
-      const x = padL + idx * colW + colW * 0.5;
-      const y = padT + plotH - (d.truePct / 50) * plotH;
-      return { x, y, d };
-    });
-
-    const lineD = pts.reduce((acc, pt, i) => `${acc} ${i === 0 ? "M" : "L"} ${pt.x.toFixed(1)} ${pt.y.toFixed(1)}`, "");
-    svg += `<path d="${lineD}" fill="none" stroke="#ff9f0a" stroke-width="2.5" filter="url(#neon-glow)" />`;
-
-    pts.forEach((pt) => {
-      svg += `<circle cx="${pt.x.toFixed(1)}" cy="${pt.y.toFixed(1)}" r="3.5" fill="#ffd60a" stroke="#1c1c1e" stroke-width="1" class="time-node" data-month="${pt.d.month}" data-pct="${pt.d.truePct}" />`;
-    });
+    if (showRateOverlay) {
+      const pts = data.map((d, idx) => {
+        const x = padL + idx * colW + colW * 0.5;
+        const y = padT + plotH - (d.truePct / 50) * plotH;
+        return { x, y, d };
+      });
+      const lineD = pts.reduce((acc, pt, i) => `${acc} ${i === 0 ? "M" : "L"} ${pt.x.toFixed(1)} ${pt.y.toFixed(1)}`, "");
+      svg += `<path d="${lineD}" fill="none" stroke="#ffd60a" stroke-width="2.4" />`;
+      pts.forEach((pt) => {
+        svg += `<circle cx="${pt.x.toFixed(1)}" cy="${pt.y.toFixed(1)}" r="3.4" fill="#ffd60a" stroke="#1c1c1e" stroke-width="1" class="time-node" data-month="${pt.d.month}" data-all="${pt.d.all}" data-false="${pt.d.false}" data-true="${pt.d.true}" data-maybe="${pt.d.maybe}" data-pct="${pt.d.truePct}" data-partial="${pt.d.month === "2026-11"}" />`;
+      });
+    }
   } else {
-    // Mode: Rate (%)
+    // Mode: Adoption %
+    svg += `<text x="15" y="${padT + plotH / 2}" fill="#ff9f0a" font-family="-apple-system, sans-serif" font-size="11" font-weight="600" text-anchor="middle" transform="rotate(-90 15 ${padT + plotH / 2})">In-Game AI Share (%)</text>`;
     const yTicks = 5;
     for (let i = 0; i <= yTicks; i++) {
       const p = i * 10;
       const yPos = padT + plotH - (p / 50) * plotH;
-      svg += `<line x1="${padL}" y1="${yPos}" x2="${w - padR}" y2="${yPos}" stroke="rgba(255,255,255,0.06)" stroke-dasharray="3,3" />`;
-      svg += `<text x="${padL - 8}" y="${yPos + 4}" fill="var(--apple-orange, #ff9f0a)" font-family="ui-monospace, monospace" font-size="10" text-anchor="end">${p}%</text>`;
+      svg += `<line x1="${padL}" y1="${yPos}" x2="${w - padR}" y2="${yPos}" stroke="rgba(255,255,255,0.09)" stroke-dasharray="3,3" />`;
+      svg += `<text x="${padL - 8}" y="${yPos + 4}" fill="#ff9f0a" font-family="ui-monospace, monospace" font-size="11" text-anchor="end">${p}%</text>`;
     }
 
     const pts = data.map((d, idx) => {
@@ -1200,57 +1407,69 @@ function renderOverTimeChart() {
     });
 
     const areaD = `${pts.reduce((acc, pt, i) => `${acc} ${i === 0 ? "M" : "L"} ${pt.x.toFixed(1)} ${pt.y.toFixed(1)}`, "")} L ${pts[pts.length - 1].x.toFixed(1)} ${padT + plotH} L ${pts[0].x.toFixed(1)} ${padT + plotH} Z`;
-    svg += `<path d="${areaD}" fill="rgba(255, 159, 10, 0.15)" />`;
+    svg += `<path d="${areaD}" fill="rgba(255, 159, 10, 0.16)" />`;
 
     const lineD = pts.reduce((acc, pt, i) => `${acc} ${i === 0 ? "M" : "L"} ${pt.x.toFixed(1)} ${pt.y.toFixed(1)}`, "");
-    svg += `<path d="${lineD}" fill="none" stroke="#ff9f0a" stroke-width="2.5" filter="url(#neon-glow)" />`;
+    svg += `<path d="${lineD}" fill="none" stroke="#ff9f0a" stroke-width="2.6" />`;
 
     pts.forEach((pt) => {
-      svg += `<circle cx="${pt.x.toFixed(1)}" cy="${pt.y.toFixed(1)}" r="4" fill="#30d158" stroke="#1c1c1e" stroke-width="1.5" class="time-node" data-month="${pt.d.month}" data-pct="${pt.d.truePct}" />`;
+      svg += `<circle cx="${pt.x.toFixed(1)}" cy="${pt.y.toFixed(1)}" r="3.8" fill="#ffd60a" stroke="#1c1c1e" stroke-width="1.4" class="time-node" data-month="${pt.d.month}" data-all="${pt.d.all}" data-false="${pt.d.false}" data-true="${pt.d.true}" data-maybe="${pt.d.maybe}" data-pct="${pt.d.truePct}" data-partial="${pt.d.month === "2026-11"}" />`;
     });
   }
 
-  // X Axis Labels
+  // X Axis Baseline & Labels
+  svg += `<line x1="${padL}" y1="${padT + plotH}" x2="${w - padR}" y2="${padT + plotH}" stroke="rgba(255,255,255,0.2)" />`;
   data.forEach((d, idx) => {
     if (idx % 6 === 0 || idx === numPoints - 1) {
       const xPos = padL + idx * colW + colW * 0.5;
       const label = d.month.slice(2);
-      svg += `<text x="${xPos}" y="${h - 15}" fill="rgba(235,235,245,0.4)" font-family="ui-monospace, monospace" font-size="10" text-anchor="middle">${label}</text>`;
+      svg += `<text x="${xPos}" y="${h - 14}" fill="rgba(235,235,245,0.72)" font-family="ui-monospace, monospace" font-size="11" text-anchor="middle">${label}</text>`;
+      svg += `<line x1="${xPos}" y1="${padT + plotH}" x2="${xPos}" y2="${padT + plotH + 5}" stroke="rgba(255,255,255,0.2)" />`;
     }
   });
 
-  // Landmark Claude & GPT Release Vertical Lines
-  const monthIdxMap = {};
-  data.forEach((d, idx) => {
-    monthIdxMap[d.month] = idx;
-  });
+  // Landmark Claude & GPT Release Vertical Lines (Collision-Free Pill Badges)
+  if (showOverTimeEvents) {
+    const monthIdxMap = {};
+    data.forEach((d, idx) => {
+      monthIdxMap[d.month] = idx;
+    });
 
-  const labelSlots = [];
-  events.forEach((evt) => {
-    const idx = monthIdxMap[evt.month];
-    if (idx === undefined) return;
-    const dayRatio = evt.day ? Math.min(Math.max(evt.day / 30, 0.14), 0.86) : 0.5;
-    const xPos = padL + idx * colW + colW * dayRatio;
-    const strokeCol = evt.family === "claude" ? "#bf5af2" : "#30d158";
+    const labelSlots = [];
+    events.forEach((evt) => {
+      const idx = monthIdxMap[evt.month];
+      if (idx === undefined) return;
+      const dayRatio = evt.day ? Math.min(Math.max(evt.day / 30, 0.16), 0.84) : 0.5;
+      const xPos = padL + idx * colW + colW * dayRatio;
+      const strokeCol = evt.family === "claude" ? "#bf5af2" : "#30d158";
+      const shortTag = getShortModelTag(evt.model);
+      const pillW = Math.max(24, shortTag.length * 6.5 + 10);
 
-    // Pick vertical tier (0, 1, 2, 3) to prevent label collisions on same/adjacent months
-    let tier = 0;
-    for (let t = 0; t < 4; t++) {
-      const collides = labelSlots.some((s) => s.tier === t && Math.abs(s.x - xPos) < 76);
-      if (!collides) {
-        tier = t;
-        break;
+      let tier = 0;
+      let placed = false;
+      for (let t = 0; t < 4; t++) {
+        const collides = labelSlots.some(
+          (s) => s.tier === t && Math.abs(s.x - xPos) < (s.w + pillW) * 0.55 + 6
+        );
+        if (!collides) {
+          tier = t;
+          placed = true;
+          break;
+        }
       }
-    }
-    labelSlots.push({ x: xPos, tier });
-    const labelY = padT - 7 - tier * 12;
-    const anchor = xPos > w - padR - 65 ? "end" : xPos < padL + 45 ? "start" : "middle";
+      if (!placed) tier = labelSlots.length % 4;
 
-    svg += `<line x1="${xPos.toFixed(1)}" y1="${labelY + 3}" x2="${xPos.toFixed(1)}" y2="${padT + plotH}" stroke="${strokeCol}" stroke-width="1.5" stroke-dasharray="4,3" stroke-opacity="0.78" />`;
-    svg += `<circle cx="${xPos.toFixed(1)}" cy="${padT + plotH}" r="3" fill="${strokeCol}" />`;
-    svg += `<text x="${xPos.toFixed(1)}" y="${labelY}" fill="${strokeCol}" font-family="ui-monospace, monospace" font-size="9" font-weight="600" text-anchor="${anchor}">${evt.model}</text>`;
-    svg += `<line x1="${xPos.toFixed(1)}" y1="${labelY - 8}" x2="${xPos.toFixed(1)}" y2="${padT + plotH}" stroke="transparent" stroke-width="10" class="time-evt-hit" data-model="${evt.model}" data-date="${evt.date}" data-family="${evt.family === "claude" ? "Anthropic Claude" : "OpenAI GPT"}" data-note="${evt.note}" data-month="${evt.month}" />`;
-  });
+      const pillCenterX = Math.max(padL + pillW / 2, Math.min(xPos, w - padR - pillW / 2));
+      labelSlots.push({ x: pillCenterX, tier, w: pillW });
+
+      const badgeY = padT - 18 - tier * 17;
+      svg += `<line x1="${xPos.toFixed(1)}" y1="${badgeY + 13}" x2="${xPos.toFixed(1)}" y2="${padT + plotH}" stroke="${strokeCol}" stroke-width="1.4" stroke-dasharray="4,3" stroke-opacity="0.7" />`;
+      svg += `<circle cx="${xPos.toFixed(1)}" cy="${padT + plotH}" r="2.8" fill="${strokeCol}" />`;
+      svg += `<rect x="${(pillCenterX - pillW / 2).toFixed(1)}" y="${badgeY}" width="${pillW}" height="14" rx="4" fill="#14151c" stroke="${strokeCol}" stroke-width="1" />`;
+      svg += `<text x="${pillCenterX.toFixed(1)}" y="${badgeY + 10}" fill="${strokeCol}" font-family="ui-monospace, monospace" font-size="8.5" font-weight="700" text-anchor="middle">${shortTag}</text>`;
+      svg += `<line x1="${xPos.toFixed(1)}" y1="${badgeY}" x2="${xPos.toFixed(1)}" y2="${padT + plotH}" stroke="transparent" stroke-width="12" class="time-evt-hit" data-model="${evt.model}" data-date="${evt.date}" data-family="${evt.family === "claude" ? "Anthropic Claude" : "OpenAI GPT"}" data-note="${evt.note}" data-month="${evt.month}" />`;
+    });
+  }
 
   svg += `</svg>`;
   container.innerHTML = svg;
@@ -1281,21 +1500,25 @@ function renderOverTimeChart() {
     el.addEventListener("mouseleave", () => hideTooltip());
   });
 
-  // Tooltip
+  // Tooltip for bars/nodes
   container.querySelectorAll(".time-bar, .time-node").forEach((el) => {
     el.addEventListener("mouseenter", (e) => {
       const month = el.getAttribute("data-month");
       const all = el.getAttribute("data-all");
+      const f = el.getAttribute("data-false");
       const t = el.getAttribute("data-true");
+      const m = el.getAttribute("data-maybe");
       const pct = el.getAttribute("data-pct");
+      const isPartial = el.getAttribute("data-partial") === "true";
 
       const tooltip = document.getElementById("chart-tooltip");
       if (!tooltip) return;
       tooltip.innerHTML = `
-        <div class="tooltip-title">${month} Telemetry</div>
-        ${all ? `<div class="tooltip-row"><span>Total Releases:</span><strong>${fmtInt(all)}</strong></div>` : ""}
-        ${t ? `<div class="tooltip-row" style="color:#ff8800;"><span>AI Used (TRUE):</span><strong>${fmtInt(t)}</strong></div>` : ""}
-        <div class="tooltip-row" style="color:#00ff66;"><span>AI Share:</span><strong>${pct}%</strong></div>
+        <div class="tooltip-title">${month}${isPartial ? " (Partial: to Nov 2)" : ""}</div>
+        <div class="tooltip-row"><span>Total Releases:</span><strong>${fmtInt(all)}</strong></div>
+        <div class="tooltip-row" style="color:#ff9f0a;"><span>AI Used (TRUE):</span><strong>${fmtInt(t)} (${pct}%)</strong></div>
+        <div class="tooltip-row" style="color:#64d2ff;"><span>Non-AI (FALSE):</span><strong>${fmtInt(f)}</strong></div>
+        ${Number(m) > 0 ? `<div class="tooltip-row" style="color:#ffd60a;"><span>Prototyping (MAYBE):</span><strong>${fmtInt(m)}</strong></div>` : ""}
       `;
       tooltip.classList.remove("hidden");
       moveTooltip(e);
@@ -1345,7 +1568,7 @@ let tagScoreThreshold = 80;
 let tagMinGames = 15;
 
 function initMoreInfoSubnav() {
-  const subBtns = document.querySelectorAll(".more-bottom-subnav .subnav-btn");
+  const subBtns = document.querySelectorAll('#topbar-subnav-drawer .section-subnav[data-for-section="more-info"] .subnav-btn');
   const subviews = document.querySelectorAll(".more-subview");
 
   subBtns.forEach((btn) => {
@@ -1359,6 +1582,7 @@ function initMoreInfoSubnav() {
       subviews.forEach((sv) => {
         sv.classList.toggle("active", sv.id === `subview-${target}`);
       });
+      if (window.scrollY > 40) window.scrollTo({ top: 0, behavior: "smooth" });
 
       if (target === "more-best-ai") renderBestAiGames();
       else if (target === "more-vis-aud") renderFunVisAud();
@@ -1578,6 +1802,7 @@ function renderAiUsagePie() {
   const pieData = window.STUDY_DATA_EXTENDED.aiUsagePie;
   const slices = pieData.slices;
   const total = pieData.totalDisclosures;
+  const maxSliceCount = Math.max(...slices.map((s) => s.count), 1);
 
   const palette = [
     "#64d2ff", // Visual (Apple Teal)
@@ -1592,11 +1817,11 @@ function renderAiUsagePie() {
     "#8e8e93"  // Declares_No_Ai (Apple Gray)
   ];
 
-  let currentAngle = 0;
+  let currentAngle = -Math.PI / 2; // Start cleanly at 12 o'clock
   const cx = 160;
   const cy = 160;
-  const r = 125;
-  const innerR = 65;
+  const r = 122;
+  const innerR = 66;
 
   let svg = `<svg viewBox="0 0 320 320" style="overflow: visible;">`;
 
@@ -1605,49 +1830,58 @@ function renderAiUsagePie() {
     const angle = fraction * 2 * Math.PI;
     const startAngle = currentAngle;
     const endAngle = currentAngle + angle;
+    const midAngle = startAngle + angle / 2;
     currentAngle = endAngle;
 
-    const x1 = cx + r * Math.cos(startAngle);
-    const y1 = cy + r * Math.sin(startAngle);
-    const x2 = cx + r * Math.cos(endAngle);
-    const y2 = cy + r * Math.sin(endAngle);
+    const isAct = sl.ai_tag === activeAiUsageSlice;
+    const pop = isAct ? 6 : 0;
+    const scx = cx + pop * Math.cos(midAngle);
+    const scy = cy + pop * Math.sin(midAngle);
 
-    const ix1 = cx + innerR * Math.cos(endAngle);
-    const iy1 = cy + innerR * Math.sin(endAngle);
-    const ix2 = cx + innerR * Math.cos(startAngle);
-    const iy2 = cy + innerR * Math.sin(startAngle);
+    const x1 = scx + r * Math.cos(startAngle);
+    const y1 = scy + r * Math.sin(startAngle);
+    const x2 = scx + r * Math.cos(endAngle);
+    const y2 = scy + r * Math.sin(endAngle);
+
+    const ix1 = scx + innerR * Math.cos(endAngle);
+    const iy1 = scy + innerR * Math.sin(endAngle);
+    const ix2 = scx + innerR * Math.cos(startAngle);
+    const iy2 = scy + innerR * Math.sin(startAngle);
 
     const largeArc = angle > Math.PI ? 1 : 0;
-    const pathD = `M ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2} L ${ix1} ${iy1} A ${innerR} ${innerR} 0 ${largeArc} 0 ${ix2} ${iy2} Z`;
+    const pathD = `M ${x1.toFixed(2)} ${y1.toFixed(2)} A ${r} ${r} 0 ${largeArc} 1 ${x2.toFixed(2)} ${y2.toFixed(2)} L ${ix1.toFixed(2)} ${iy1.toFixed(2)} A ${innerR} ${innerR} 0 ${largeArc} 0 ${ix2.toFixed(2)} ${iy2.toFixed(2)} Z`;
 
     const color = palette[idx % palette.length];
-    const isAct = sl.ai_tag === activeAiUsageSlice;
 
-    svg += `<path d="${pathD}" fill="${color}" fill-opacity="${isAct ? "0.95" : "0.75"}" stroke="${isAct ? "#ffffff" : "#05070e"}" stroke-width="${isAct ? "2.5" : "1"}" class="pie-slice ${isAct ? "active" : ""}" data-tag="${sl.ai_tag}" data-count="${sl.count}" data-pct="${sl.pct}" />`;
+    svg += `<path d="${pathD}" fill="${color}" fill-opacity="${isAct ? "1" : "0.8"}" stroke="${isAct ? "#ffffff" : "#0b0d14"}" stroke-width="${isAct ? "2.4" : "1.2"}" class="pie-slice ${isAct ? "active" : ""}" data-tag="${sl.ai_tag}" data-count="${sl.count}" data-pct="${sl.pct}" />`;
   });
 
   // Center Text in Donut
   const activeObj = slices.find((s) => s.ai_tag === activeAiUsageSlice) || slices[0];
   svg += `
-    <text x="${cx}" y="${cy - 8}" fill="#f5f5f7" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif" font-size="13" font-weight="600" text-anchor="middle">${activeObj.ai_tag}</text>
-    <text x="${cx}" y="${cy + 12}" fill="var(--apple-blue, #0a84ff)" font-family="ui-monospace, monospace" font-size="12" font-weight="600" text-anchor="middle">${activeObj.pct}%</text>
-    <text x="${cx}" y="${cy + 26}" fill="rgba(235,235,245,0.45)" font-family="ui-monospace, monospace" font-size="9" text-anchor="middle">${fmtInt(activeObj.count)} games</text>
+    <text x="${cx}" y="${cy - 10}" fill="#f5f5f7" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif" font-size="13" font-weight="700" text-anchor="middle">${activeObj.ai_tag}</text>
+    <text x="${cx}" y="${cy + 10}" fill="#64d2ff" font-family="ui-monospace, monospace" font-size="14" font-weight="700" text-anchor="middle">${activeObj.pct}%</text>
+    <text x="${cx}" y="${cy + 26}" fill="rgba(235,235,245,0.68)" font-family="ui-monospace, monospace" font-size="10" text-anchor="middle">${fmtInt(activeObj.count)} games</text>
   `;
 
   svg += `</svg>`;
   container.innerHTML = svg;
 
-  // Legend
+  // Ranked Interactive Bar-Legend (makes even 0.4% slices effortless to inspect & click)
   if (legend) {
     legend.innerHTML = slices
       .map((sl, idx) => {
         const color = palette[idx % palette.length];
         const isAct = sl.ai_tag === activeAiUsageSlice;
+        const barW = Math.max(2, (sl.count / maxSliceCount) * 100);
         return `
           <div class="pie-legend-item ${isAct ? "active" : ""}" data-tag="${sl.ai_tag}">
             <span class="pie-swatch" style="background: ${color};"></span>
-            <span style="font-weight: 700; color: #ffffff;">${sl.ai_tag}</span>
-            <span style="margin-left: auto; color: var(--text-muted); font-family: ui-monospace, SFMono-Regular, monospace; font-size: 0.85em;">${sl.pct}%</span>
+            <span style="font-weight: 600; color: #ffffff;">${sl.ai_tag}</span>
+            <div class="pie-legend-bar-track">
+              <div class="pie-legend-bar-fill" style="width: ${barW.toFixed(1)}%; background: ${color};"></div>
+            </div>
+            <span style="color: rgba(235,235,245,0.78); font-family: ui-monospace, SFMono-Regular, monospace; font-size: 0.78em; white-space: nowrap;">${fmtInt(sl.count)} (${sl.pct}%)</span>
           </div>
         `;
       })
@@ -1661,7 +1895,7 @@ function renderAiUsagePie() {
     });
   }
 
-  // Slice click events
+  // Slice click & hover events
   container.querySelectorAll(".pie-slice").forEach((slice) => {
     slice.addEventListener("click", () => {
       activeAiUsageSlice = slice.getAttribute("data-tag");
@@ -1677,8 +1911,8 @@ function renderAiUsagePie() {
       if (!tooltip) return;
       tooltip.innerHTML = `
         <div class="tooltip-title">${tag} AI Disclosure</div>
-        <div class="tooltip-row"><span>Total Games:</span><strong>${fmtInt(count)}</strong></div>
-        <div class="tooltip-row" style="color:#00f0ff;"><span>Share of Disclosures:</span><strong>${pct}%</strong></div>
+        <div class="tooltip-row"><span>Games Disclosing:</span><strong>${fmtInt(count)}</strong></div>
+        <div class="tooltip-row" style="color:#64d2ff;"><span>Share of Tag Mentions:</span><strong>${pct}%</strong></div>
       `;
       tooltip.classList.remove("hidden");
       moveTooltip(e);
@@ -1889,7 +2123,7 @@ let boringTrendingSort = "growth";
 let boringCostViewMode = "buckets";
 
 function initFunSubnav() {
-  const subBtns = document.querySelectorAll("#section-for-fun .bottom-subnav .subnav-btn");
+  const subBtns = document.querySelectorAll('#topbar-subnav-drawer .section-subnav[data-for-section="for-fun"] .subnav-btn');
   const subviews = document.querySelectorAll("#section-for-fun .fun-subview");
 
   subBtns.forEach((btn) => {
@@ -1903,6 +2137,7 @@ function initFunSubnav() {
       subviews.forEach((sv) => {
         sv.classList.toggle("active", sv.id === `subview-${target}`);
       });
+      if (window.scrollY > 40) window.scrollTo({ top: 0, behavior: "smooth" });
 
       if (target === "fun-foot") renderFunFoot();
       else if (target === "fun-word-ai") renderFunWordAi();
@@ -2129,54 +2364,66 @@ function renderFunWordAi() {
 
   const series = window.STUDY_DATA_EXTENDED.funWordAi.monthly || [];
   const w = 760;
-  const h = 340;
-  const padL = 50;
-  const padR = 45;
-  const padT = 25;
-  const padB = 45;
+  const h = 350;
+  const padL = 58;
+  const padR = 58;
+  const padT = 26;
+  const padB = 46;
   const plotW = w - padL - padR;
   const plotH = h - padT - padB;
 
   const numPoints = series.length;
   const colW = plotW / numPoints;
   const maxMonthly = 12;
-  const maxCumulative = 90;
+  const maxCumulative = 100;
 
-  let svg = `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">`;
+  let svg = `<svg viewBox="0 0 ${w} ${h}">`;
   svg += `<defs>
     <linearGradient id="aiWordGrad" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#ff9f0a" stop-opacity="0.9"/>
-      <stop offset="100%" stop-color="#ff9f0a" stop-opacity="0.25"/>
+      <stop offset="0%" stop-color="#ff9f0a" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="#ff9f0a" stop-opacity="0.4"/>
     </linearGradient>
   </defs>`;
 
-  // Left Y-Axis (Monthly releases)
+  // Left Y-Axis Title & Ticks (Monthly releases)
+  svg += `<text x="15" y="${padT + plotH / 2}" fill="#ff9f0a" font-family="-apple-system, sans-serif" font-size="11" font-weight="600" text-anchor="middle" transform="rotate(-90 15 ${padT + plotH / 2})">Monthly Releases</text>`;
   for (let i = 0; i <= 4; i++) {
     const val = Math.round((maxMonthly / 4) * i);
     const yPos = padT + plotH - (val / maxMonthly) * plotH;
-    svg += `<line x1="${padL}" y1="${yPos}" x2="${w - padR}" y2="${yPos}" stroke="rgba(255,255,255,0.06)" stroke-dasharray="3,3" />`;
-    svg += `<text x="${padL - 8}" y="${yPos + 4}" fill="rgba(235,235,245,0.4)" font-family="ui-monospace, monospace" font-size="10" text-anchor="end">${val}</text>`;
+    svg += `<line x1="${padL}" y1="${yPos}" x2="${w - padR}" y2="${yPos}" stroke="rgba(255,255,255,0.09)" stroke-dasharray="3,3" />`;
+    svg += `<text x="${padL - 8}" y="${yPos + 4}" fill="rgba(235,235,245,0.72)" font-family="ui-monospace, monospace" font-size="11" text-anchor="end">${val}</text>`;
   }
 
-  // Right Y-Axis (Cumulative titles)
+  // Right Y-Axis Title & Ticks (Cumulative titles)
+  svg += `<text x="${w - 14}" y="${padT + plotH / 2}" fill="#0a84ff" font-family="-apple-system, sans-serif" font-size="11" font-weight="600" text-anchor="middle" transform="rotate(90 ${w - 14} ${padT + plotH / 2})">Cumulative Titles</text>`;
   for (let i = 0; i <= 4; i++) {
-    const val = Math.round((maxCumulative / 4) * i);
+    const val = i * 25;
     const yPos = padT + plotH - (val / maxCumulative) * plotH;
-    svg += `<text x="${w - padR + 8}" y="${yPos + 4}" fill="var(--apple-blue, #0a84ff)" font-family="ui-monospace, monospace" font-size="10" text-anchor="start">${val}</text>`;
+    svg += `<text x="${w - padR + 8}" y="${yPos + 4}" fill="#64d2ff" font-family="ui-monospace, monospace" font-size="11" text-anchor="start">${val}</text>`;
   }
 
-  // Bars (Monthly releases)
+  svg += `<line x1="${padL}" y1="${padT + plotH}" x2="${w - padR}" y2="${padT + plotH}" stroke="rgba(255,255,255,0.2)" />`;
+
+  // Stacked Bars (Orange = AI TRUE at bottom, Slate = Sci-Fi Theme Only FALSE on top)
   series.forEach((d, idx) => {
     const x = padL + idx * colW + 2;
     const barWidth = Math.max(2, colW - 4);
-    const barH = (d.count / maxMonthly) * plotH;
-    const y = padT + plotH - barH;
+    const trueH = (d.ai_true / maxMonthly) * plotH;
+    const falseH = (d.ai_false / maxMonthly) * plotH;
+    const totalH = trueH + falseH;
+    const topY = padT + plotH - totalH;
 
-    svg += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barWidth.toFixed(1)}" height="${barH.toFixed(1)}" fill="url(#aiWordGrad)" rx="3" class="time-bar" data-month="${d.month}" data-count="${d.count}" data-cum="${d.cumulative}" data-true="${d.ai_true}" data-false="${d.ai_false}" />`;
+    if (d.ai_false > 0) {
+      svg += `<rect x="${x.toFixed(1)}" y="${topY.toFixed(1)}" width="${barWidth.toFixed(1)}" height="${falseH.toFixed(1)}" fill="#64748b" rx="2" class="time-bar" data-month="${d.month}" data-count="${d.count}" data-cum="${d.cumulative}" data-true="${d.ai_true}" data-false="${d.ai_false}" />`;
+    }
+    if (d.ai_true > 0) {
+      svg += `<rect x="${x.toFixed(1)}" y="${(padT + plotH - trueH).toFixed(1)}" width="${barWidth.toFixed(1)}" height="${trueH.toFixed(1)}" fill="url(#aiWordGrad)" rx="2" class="time-bar" data-month="${d.month}" data-count="${d.count}" data-cum="${d.cumulative}" data-true="${d.ai_true}" data-false="${d.ai_false}" />`;
+    }
 
     if (idx % 6 === 0 || idx === numPoints - 1) {
       const label = d.month.slice(2);
-      svg += `<text x="${x + barWidth / 2}" y="${h - 15}" fill="rgba(235,235,245,0.4)" font-family="ui-monospace, monospace" font-size="10" text-anchor="middle">${label}</text>`;
+      svg += `<text x="${x + barWidth / 2}" y="${h - 14}" fill="rgba(235,235,245,0.72)" font-family="ui-monospace, monospace" font-size="11" text-anchor="middle">${label}</text>`;
+      svg += `<line x1="${x + barWidth / 2}" y1="${padT + plotH}" x2="${x + barWidth / 2}" y2="${padT + plotH + 5}" stroke="rgba(255,255,255,0.2)" />`;
     }
   });
 
@@ -2188,10 +2435,10 @@ function renderFunWordAi() {
   });
 
   const lineD = pts.reduce((acc, pt, i) => `${acc} ${i === 0 ? "M" : "L"} ${pt.x.toFixed(1)} ${pt.y.toFixed(1)}`, "");
-  svg += `<path d="${lineD}" fill="none" stroke="#0a84ff" stroke-width="2.5" filter="url(#neon-glow)" />`;
+  svg += `<path d="${lineD}" fill="none" stroke="#0a84ff" stroke-width="2.6" />`;
 
   pts.forEach((pt) => {
-    svg += `<circle cx="${pt.x.toFixed(1)}" cy="${pt.y.toFixed(1)}" r="3.5" fill="#0a84ff" stroke="#1c1c1e" stroke-width="1.5" class="time-node" data-month="${pt.d.month}" data-count="${pt.d.count}" data-cum="${pt.d.cumulative}" data-true="${pt.d.ai_true}" data-false="${pt.d.ai_false}" />`;
+    svg += `<circle cx="${pt.x.toFixed(1)}" cy="${pt.y.toFixed(1)}" r="3.6" fill="#64d2ff" stroke="#1c1c1e" stroke-width="1.4" class="time-node" data-month="${pt.d.month}" data-count="${pt.d.count}" data-cum="${pt.d.cumulative}" data-true="${pt.d.ai_true}" data-false="${pt.d.ai_false}" />`;
   });
 
   svg += `</svg>`;
@@ -2209,7 +2456,7 @@ function renderFunWordAi() {
       const tooltip = document.getElementById("chart-tooltip");
       if (!tooltip) return;
       tooltip.innerHTML = `
-        <div class="tooltip-title">${month} &bull; "AI" in Title</div>
+        <div class="tooltip-title">${month} &bull; "AI" in Title${month === "2026-11" ? " (Partial)" : ""}</div>
         <div class="tooltip-row">
           <span>Monthly Releases:</span>
           <strong style="color: var(--tetris-orange);">${count} games</strong>
@@ -2219,8 +2466,8 @@ function renderFunWordAi() {
           <strong style="color: var(--tetris-cyan);">${cum} titles</strong>
         </div>
         <div class="tooltip-row">
-          <span>Declared AI Used:</span>
-          <strong>${t} TRUE &bull; ${f} FALSE</strong>
+          <span>Breakdown:</span>
+          <strong>${t} AI Used &bull; ${f} Sci-Fi Only</strong>
         </div>
       `;
       tooltip.classList.remove("hidden");
@@ -2343,6 +2590,16 @@ function renderFunCostVs() {
     deltaBadgeEl.style.color = diff <= 0 ? "var(--tetris-green)" : "var(--tetris-red)";
   }
 
+  const maxBarPrice = Math.max(avgAi, avgNoAi, 0.01);
+  const barAiEl = document.getElementById("vs-bar-ai");
+  const barNoAiEl = document.getElementById("vs-bar-nonai");
+  const barAiLbl = document.getElementById("vs-bar-ai-lbl");
+  const barNoAiLbl = document.getElementById("vs-bar-nonai-lbl");
+  if (barAiEl) barAiEl.style.width = `${((avgAi / maxBarPrice) * 100).toFixed(1)}%`;
+  if (barNoAiEl) barNoAiEl.style.width = `${((avgNoAi / maxBarPrice) * 100).toFixed(1)}%`;
+  if (barAiLbl) barAiLbl.textContent = `$${avgAi.toFixed(2)}`;
+  if (barNoAiLbl) barNoAiLbl.textContent = `$${avgNoAi.toFixed(2)}`;
+
   const tableBody = document.getElementById("vs-breakdown-table-body");
   if (tableBody) {
     tableBody.innerHTML = selectedList
@@ -2405,6 +2662,7 @@ function formatPriceStratVal(val, metric) {
 
 function renderPriceStratified() {
   const container = document.getElementById("price-stratified-chart-container");
+  const axisNoteEl = document.getElementById("price-strat-axis-note");
   if (!container || !window.STUDY_DATA_EXTENDED || !window.STUDY_DATA_EXTENDED.priceStratified) return;
 
   const root = window.STUDY_DATA_EXTENDED.priceStratified;
@@ -2419,31 +2677,50 @@ function renderPriceStratified() {
   }
 
   const w = 740;
-  const h = 340;
-  const padL = 56;
+  const h = 360;
+  const padL = 62;
   const padR = 24;
-  const padT = 32;
+  const padT = 38;
   const padB = 56;
   const plotW = w - padL - padR;
   const plotH = h - padT - padB;
 
   const values = tiers.flatMap((t) => [t.FALSE[priceStratMetric], t.TRUE[priceStratMetric]]);
+  let minY = 0;
   let maxY = 100;
   let ticks = [0, 25, 50, 75, 100];
   let yFmt = (v) => `${v}%`;
+  let yAxisTitle = "Share (%)";
 
   if (priceStratMetric === "avgScore") {
-    maxY = 100;
-    ticks = [0, 25, 50, 75, 100];
+    const minVal = Math.min(...values);
+    const maxVal = Math.max(...values);
+    minY = Math.min(50, Math.floor((minVal - 5) / 10) * 10);
+    maxY = Math.max(90, Math.ceil((maxVal + 3) / 5) * 5);
+    ticks = [];
+    for (let v = minY; v <= maxY; v += 10) ticks.push(v);
+    yAxisTitle = "Avg Score (%)";
+    if (axisNoteEl) {
+      axisNoteEl.style.display = "inline-flex";
+      axisNoteEl.innerHTML = `<span class="legend-label" style="color: var(--text-secondary);">Y-axis zoomed (${minY}%&ndash;${maxY}%) to highlight within-tier score gap</span>`;
+    }
   } else if (priceStratMetric === "pct10Plus") {
+    minY = 0;
     maxY = 100;
     ticks = [0, 25, 50, 75, 100];
+    yAxisTitle = "10+ Reviews (%)";
+    if (axisNoteEl) axisNoteEl.style.display = "none";
   } else {
+    minY = 0;
     const rawMax = Math.max(...values, 10);
     maxY = Math.ceil(rawMax / 20) * 20;
     ticks = [0, 0.25, 0.5, 0.75, 1].map((f) => Math.round(f * maxY));
     yFmt = (v) => fmtInt(v);
+    yAxisTitle = "Median Reviews";
+    if (axisNoteEl) axisNoteEl.style.display = "none";
   }
+
+  const yRange = Math.max(maxY - minY, 1);
 
   let svg = `<svg viewBox="0 0 ${w} ${h}">`;
   svg += `<defs>
@@ -2457,10 +2734,13 @@ function renderPriceStratified() {
     </linearGradient>
   </defs>`;
 
+  // Y Axis Title
+  svg += `<text x="15" y="${padT + plotH / 2}" fill="rgba(235,235,245,0.75)" font-family="-apple-system, sans-serif" font-size="11" font-weight="600" text-anchor="middle" transform="rotate(-90 15 ${padT + plotH / 2})">${yAxisTitle}</text>`;
+
   ticks.forEach((tickVal) => {
-    const yPos = padT + plotH - (tickVal / maxY) * plotH;
-    svg += `<line x1="${padL}" y1="${yPos.toFixed(1)}" x2="${w - padR}" y2="${yPos.toFixed(1)}" stroke="rgba(255,255,255,0.07)" stroke-dasharray="3,3" />`;
-    svg += `<text x="${padL - 10}" y="${(yPos + 4).toFixed(1)}" fill="rgba(235,235,245,0.55)" font-family="ui-monospace, monospace" font-size="10.5" text-anchor="end">${yFmt(tickVal)}</text>`;
+    const yPos = padT + plotH - ((tickVal - minY) / yRange) * plotH;
+    svg += `<line x1="${padL}" y1="${yPos.toFixed(1)}" x2="${w - padR}" y2="${yPos.toFixed(1)}" stroke="rgba(255,255,255,0.09)" stroke-dasharray="3,3" />`;
+    svg += `<text x="${padL - 10}" y="${(yPos + 4).toFixed(1)}" fill="rgba(235,235,245,0.72)" font-family="ui-monospace, monospace" font-size="11" text-anchor="end">${yFmt(tickVal)}</text>`;
   });
 
   svg += `<line x1="${padL}" y1="${padT + plotH}" x2="${w - padR}" y2="${padT + plotH}" stroke="rgba(255,255,255,0.22)" stroke-width="1.5" />`;
@@ -2476,8 +2756,8 @@ function renderPriceStratified() {
 
     const valF = tier.FALSE[priceStratMetric];
     const valT = tier.TRUE[priceStratMetric];
-    const hF = Math.max(2, (valF / maxY) * plotH);
-    const hT = Math.max(2, (valT / maxY) * plotH);
+    const hF = Math.max(4, ((valF - minY) / yRange) * plotH);
+    const hT = Math.max(4, ((valT - minY) / yRange) * plotH);
     const xF = cx - innerGap / 2 - barW;
     const xT = cx + innerGap / 2;
     const yF = padT + plotH - hF;
@@ -2486,17 +2766,31 @@ function renderPriceStratified() {
     const bgOpacity = isSelected ? 0.1 : 0.0;
     const strokeCol = isSelected ? "rgba(100, 210, 255, 0.45)" : "transparent";
 
+    // Within-tier delta pill above taller bar
+    let deltaTag = "";
+    if (priceStratMetric === "avgScore") {
+      deltaTag = `${(valT - valF).toFixed(1)} pts`;
+    } else if (priceStratMetric === "pct10Plus") {
+      deltaTag = `${(valT - valF).toFixed(1)} pp`;
+    } else {
+      const ratio = valT > 0 ? (valF / valT).toFixed(1) : "—";
+      deltaTag = `${ratio}× lower`;
+    }
+    const topBarY = Math.min(yF, yT);
+
     svg += `<g class="price-strat-tier-group" data-tier-key="${tier.key}" style="cursor: pointer; opacity: ${dimOther ? 0.45 : 1}; transition: opacity 0.18s ease;">`;
-    svg += `<rect x="${(cx - groupW * 0.44).toFixed(1)}" y="${padT - 6}" width="${(groupW * 0.88).toFixed(1)}" height="${plotH + 10}" rx="8" fill="rgba(255,255,255,${bgOpacity})" stroke="${strokeCol}" stroke-width="1.2" />`;
+    svg += `<rect x="${(cx - groupW * 0.44).toFixed(1)}" y="${padT - 12}" width="${(groupW * 0.88).toFixed(1)}" height="${plotH + 16}" rx="8" fill="rgba(255,255,255,${bgOpacity})" stroke="${strokeCol}" stroke-width="1.2" />`;
 
     svg += `<rect x="${xF.toFixed(1)}" y="${yF.toFixed(1)}" width="${barW}" height="${hF.toFixed(1)}" rx="4" fill="url(#psGradFalse)" />`;
     svg += `<rect x="${xT.toFixed(1)}" y="${yT.toFixed(1)}" width="${barW}" height="${hT.toFixed(1)}" rx="4" fill="url(#psGradTrue)" />`;
 
-    svg += `<text x="${(xF + barW / 2).toFixed(1)}" y="${(yF - 6).toFixed(1)}" fill="#64d2ff" font-family="ui-monospace, monospace" font-size="10.5" font-weight="600" text-anchor="middle">${formatPriceStratVal(valF, priceStratMetric)}</text>`;
-    svg += `<text x="${(xT + barW / 2).toFixed(1)}" y="${(yT - 6).toFixed(1)}" fill="#ffb340" font-family="ui-monospace, monospace" font-size="10.5" font-weight="600" text-anchor="middle">${formatPriceStratVal(valT, priceStratMetric)}</text>`;
+    svg += `<text x="${(xF + barW / 2).toFixed(1)}" y="${(yF - 5).toFixed(1)}" fill="#64d2ff" font-family="ui-monospace, monospace" font-size="10.5" font-weight="600" text-anchor="middle">${formatPriceStratVal(valF, priceStratMetric)}</text>`;
+    svg += `<text x="${(xT + barW / 2).toFixed(1)}" y="${(yT - 5).toFixed(1)}" fill="#ffb340" font-family="ui-monospace, monospace" font-size="10.5" font-weight="600" text-anchor="middle">${formatPriceStratVal(valT, priceStratMetric)}</text>`;
+
+    svg += `<text x="${cx.toFixed(1)}" y="${Math.max(14, topBarY - 20).toFixed(1)}" fill="#ff6961" font-family="ui-monospace, monospace" font-size="9.5" font-weight="700" text-anchor="middle">${deltaTag}</text>`;
 
     svg += `<text x="${cx.toFixed(1)}" y="${padT + plotH + 18}" fill="#f5f5f7" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif" font-size="11" font-weight="600" text-anchor="middle">${tier.shortLabel}</text>`;
-    svg += `<text x="${cx.toFixed(1)}" y="${padT + plotH + 34}" fill="rgba(235,235,245,0.52)" font-family="ui-monospace, monospace" font-size="9.5" text-anchor="middle">${tier.aiSharePct}% AI (n=${fmtInt(tier.totalGames)})</text>`;
+    svg += `<text x="${cx.toFixed(1)}" y="${padT + plotH + 34}" fill="rgba(235,235,245,0.68)" font-family="ui-monospace, monospace" font-size="9.5" text-anchor="middle">${tier.aiSharePct}% AI (n=${fmtInt(tier.totalGames)})</text>`;
     svg += `</g>`;
   });
 
@@ -2558,7 +2852,6 @@ function renderPriceStratified() {
 
 function renderPriceStratifiedInspector(subset) {
   const titleEl = document.getElementById("price-strat-title");
-  const eyebrowEl = document.getElementById("price-strat-eyebrow");
   const insightEl = document.getElementById("price-strat-insight");
   const kpisEl = document.getElementById("price-strat-kpis");
   const resetBtn = document.getElementById("reset-price-strat-btn");
@@ -2571,7 +2864,6 @@ function renderPriceStratifiedInspector(subset) {
 
   if (priceStratSelectedTier) {
     const t = subset.tiers.find((item) => item.key === priceStratSelectedTier) || subset.tiers[0];
-    if (eyebrowEl) eyebrowEl.textContent = `SELECTED TIER // ${scopeLabel.toUpperCase()}`;
     titleEl.textContent = `${t.label} (${fmtInt(t.totalGames)} Games)`;
     if (resetBtn) resetBtn.classList.remove("hidden");
 
@@ -2598,7 +2890,6 @@ function renderPriceStratifiedInspector(subset) {
       </div>
     `;
   } else {
-    if (eyebrowEl) eyebrowEl.textContent = `TIER & CONFOUNDING SUMMARY // ${scopeLabel.toUpperCase()}`;
     titleEl.textContent = `All Price Tiers (${scopeLabel})`;
     if (resetBtn) resetBtn.classList.add("hidden");
 
@@ -2652,7 +2943,7 @@ function renderPriceStratifiedInspector(subset) {
    15. BORING STUFF EVERY GAME DEV IS CURIOUS ABOUT
    ========================================================= */
 function initBoringSubnav() {
-  const subBtns = document.querySelectorAll("#section-boring-stuff .bottom-subnav .subnav-btn");
+  const subBtns = document.querySelectorAll('#topbar-subnav-drawer .section-subnav[data-for-section="boring-stuff"] .subnav-btn');
   const subviews = document.querySelectorAll("#section-boring-stuff .boring-subview");
 
   subBtns.forEach((btn) => {
@@ -2666,6 +2957,7 @@ function initBoringSubnav() {
       subviews.forEach((sv) => {
         sv.classList.toggle("active", sv.id === `subview-${target}`);
       });
+      if (window.scrollY > 40) window.scrollTo({ top: 0, behavior: "smooth" });
 
       if (target === "boring-best-tags") renderBoringBestTags();
       else if (target === "boring-trending") renderBoringTrending();
@@ -2681,13 +2973,23 @@ function initBoringSubnav() {
 let boringDevMinGames = 150;
 let boringDevSearchQuery = "";
 let boringFocusedTag = null;
+let boringDensityMode = "top60"; // "top60" | "all"
 
 function initBoringBestTagsView() {
   const searchInput = document.getElementById("boring-tags-search");
   const minPills = document.querySelectorAll("#boring-min-games-pills .mini-pill");
+  const densityBtns = document.querySelectorAll("#boring-focus-toggle .mode-btn");
   const resetBtn = document.getElementById("reset-boring-tags-btn");
 
   if (!window.STUDY_DATA_EXTENDED || !window.STUDY_DATA_EXTENDED.boringDeveloperTags) return;
+
+  densityBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      boringDensityMode = btn.getAttribute("data-density") || "top60";
+      densityBtns.forEach((b) => b.classList.toggle("active", b === btn));
+      renderBoringBestTags();
+    });
+  });
 
   minPills.forEach((pill) => {
     pill.addEventListener("click", () => {
@@ -2709,8 +3011,10 @@ function initBoringBestTagsView() {
       boringDevMinGames = 150;
       boringDevSearchQuery = "";
       boringFocusedTag = null;
+      boringDensityMode = "top60";
       if (searchInput) searchInput.value = "";
       minPills.forEach((p) => p.classList.toggle("active", p.getAttribute("data-min") === "150"));
+      densityBtns.forEach((b) => b.classList.toggle("active", b.getAttribute("data-density") === "top60"));
       renderBoringBestTags();
     });
   }
@@ -2795,24 +3099,39 @@ function renderBoringBestTags() {
     return;
   }
 
+  // Decide which bubbles to plot to avoid unreadable dense clumping
+  let visiblePool = pool;
+  if (boringDensityMode === "top60" && pool.length > 60) {
+    const topSet = new Set(pool.slice(0, 60).map((t) => t.tag));
+    if (activeTag) topSet.add(activeTag.tag);
+    if (boringDevSearchQuery) {
+      searched.slice(0, 30).forEach((t) => topSet.add(t.tag));
+    }
+    visiblePool = pool.filter((t) => topSet.has(t.tag));
+  }
+
   const w = 760;
-  const h = 380;
-  const padL = 56;
+  const h = 410;
+  const padL = 62;
   const padR = 28;
-  const padT = 30;
-  const padB = 46;
+  const padT = 34;
+  const padB = 50;
   const plotW = w - padL - padR;
   const plotH = h - padT - padB;
 
+  // Compute axis bounds and median lines from full pool so quadrant lines remain stable
   const discVals = pool.map((t) => t.discRate).sort((a, b) => a - b);
   const scoreVals = pool.map((t) => t.avgScore).sort((a, b) => a - b);
-  const minX = Math.max(0, Math.floor((discVals[0] - 4) / 5) * 5);
-  const maxX = Math.min(100, Math.ceil((discVals[discVals.length - 1] + 4) / 5) * 5);
-  const minY = Math.max(50, Math.floor((scoreVals[0] - 2) / 5) * 5);
-  const maxY = Math.min(95, Math.ceil((scoreVals[scoreVals.length - 1] + 2) / 5) * 5);
-
   const medDisc = discVals[Math.floor(discVals.length / 2)];
   const medScore = scoreVals[Math.floor(scoreVals.length / 2)];
+
+  const vDisc = visiblePool.map((t) => t.discRate).sort((a, b) => a - b);
+  const vScore = visiblePool.map((t) => t.avgScore).sort((a, b) => a - b);
+  const minX = Math.max(0, Math.floor((Math.min(vDisc[0], medDisc) - 4) / 5) * 5);
+  const maxX = Math.min(100, Math.ceil((Math.max(vDisc[vDisc.length - 1], medDisc) + 4) / 5) * 5);
+  const minY = Math.max(50, Math.floor((Math.min(vScore[0], medScore) - 2) / 5) * 5);
+  const maxY = Math.min(95, Math.ceil((Math.max(vScore[vScore.length - 1], medScore) + 2) / 5) * 5);
+
   const maxLogMed = Math.max(...pool.map((t) => Math.log1p(t.medRev)), 1);
 
   const xScale = (v) => padL + ((v - minX) / Math.max(maxX - minX, 1)) * plotW;
@@ -2823,41 +3142,46 @@ function renderBoringBestTags() {
   // Sweet spot highlight box (top-right quadrant)
   const qx = xScale(medDisc);
   const qy = yScale(medScore);
-  svg += `<rect x="${qx.toFixed(1)}" y="${padT}" width="${(padL + plotW - qx).toFixed(1)}" height="${(qy - padT).toFixed(1)}" fill="rgba(48, 209, 88, 0.06)" />`;
-  svg += `<text x="${padL + plotW - 8}" y="${padT + 15}" fill="rgba(48, 209, 88, 0.75)" font-family="ui-monospace, monospace" font-size="9.5" font-weight="700" text-anchor="end">DEVELOPER SWEET SPOT (FAST DISCOVERY + HIGH SCORE)</text>`;
+  svg += `<rect x="${qx.toFixed(1)}" y="${padT}" width="${Math.max(0, padL + plotW - qx).toFixed(1)}" height="${Math.max(0, qy - padT).toFixed(1)}" fill="rgba(48, 209, 88, 0.07)" />`;
+
+  // Quadrant corner labels (subtle, pinned away from data clusters)
+  svg += `<text x="${padL + plotW - 8}" y="${padT + 15}" fill="rgba(48, 209, 88, 0.85)" font-family="ui-monospace, monospace" font-size="9.5" font-weight="700" text-anchor="end">SWEET SPOT (FAST DISCOVERY + HIGH SCORE)</text>`;
+  svg += `<text x="${padL + 8}" y="${padT + 15}" fill="rgba(100, 210, 255, 0.65)" font-family="ui-monospace, monospace" font-size="9" font-weight="600" text-anchor="start">NICHE GEMS</text>`;
+  svg += `<text x="${padL + plotW - 8}" y="${padT + plotH - 8}" fill="rgba(255, 159, 10, 0.65)" font-family="ui-monospace, monospace" font-size="9" font-weight="600" text-anchor="end">HIGH TRAFFIC / MIXED SCORE</text>`;
+  svg += `<text x="${padL + 8}" y="${padT + plotH - 8}" fill="rgba(235, 235, 245, 0.45)" font-family="ui-monospace, monospace" font-size="9" font-weight="600" text-anchor="start">LOWER TRACTION</text>`;
 
   // Gridlines Y
   for (let yv = minY; yv <= maxY; yv += 5) {
     const yp = yScale(yv);
-    svg += `<line x1="${padL}" y1="${yp.toFixed(1)}" x2="${w - padR}" y2="${yp.toFixed(1)}" stroke="rgba(255,255,255,0.06)" stroke-dasharray="3,3" />`;
-    svg += `<text x="${padL - 8}" y="${(yp + 3.5).toFixed(1)}" fill="rgba(235,235,245,0.45)" font-family="ui-monospace, monospace" font-size="10" text-anchor="end">${yv}%</text>`;
+    svg += `<line x1="${padL}" y1="${yp.toFixed(1)}" x2="${w - padR}" y2="${yp.toFixed(1)}" stroke="rgba(255,255,255,0.09)" stroke-dasharray="3,3" />`;
+    svg += `<text x="${padL - 8}" y="${(yp + 4).toFixed(1)}" fill="rgba(235,235,245,0.75)" font-family="ui-monospace, monospace" font-size="11" text-anchor="end">${yv}%</text>`;
   }
 
   // Gridlines X
   const xStep = maxX - minX > 45 ? 10 : 5;
   for (let xv = minX; xv <= maxX; xv += xStep) {
     const xp = xScale(xv);
-    svg += `<line x1="${xp.toFixed(1)}" y1="${padT}" x2="${xp.toFixed(1)}" y2="${padT + plotH}" stroke="rgba(255,255,255,0.06)" stroke-dasharray="3,3" />`;
-    svg += `<text x="${xp.toFixed(1)}" y="${padT + plotH + 16}" fill="rgba(235,235,245,0.45)" font-family="ui-monospace, monospace" font-size="10" text-anchor="middle">${xv}%</text>`;
+    svg += `<line x1="${xp.toFixed(1)}" y1="${padT}" x2="${xp.toFixed(1)}" y2="${padT + plotH}" stroke="rgba(255,255,255,0.09)" stroke-dasharray="3,3" />`;
+    svg += `<text x="${xp.toFixed(1)}" y="${padT + plotH + 17}" fill="rgba(235,235,245,0.75)" font-family="ui-monospace, monospace" font-size="11" text-anchor="middle">${xv}%</text>`;
   }
 
   // Quadrant median dashed lines
-  svg += `<line x1="${qx.toFixed(1)}" y1="${padT}" x2="${qx.toFixed(1)}" y2="${padT + plotH}" stroke="rgba(255, 214, 10, 0.3)" stroke-dasharray="5,4" />`;
-  svg += `<line x1="${padL}" y1="${qy.toFixed(1)}" x2="${w - padR}" y2="${qy.toFixed(1)}" stroke="rgba(255, 214, 10, 0.3)" stroke-dasharray="5,4" />`;
+  svg += `<line x1="${qx.toFixed(1)}" y1="${padT}" x2="${qx.toFixed(1)}" y2="${padT + plotH}" stroke="rgba(255, 214, 10, 0.35)" stroke-dasharray="5,4" />`;
+  svg += `<line x1="${padL}" y1="${qy.toFixed(1)}" x2="${w - padR}" y2="${qy.toFixed(1)}" stroke="rgba(255, 214, 10, 0.35)" stroke-dasharray="5,4" />`;
 
   // Axis Titles
-  svg += `<text x="${padL + plotW / 2}" y="${h - 8}" fill="rgba(235,235,245,0.65)" font-family="-apple-system, sans-serif" font-size="10.5" font-weight="600" text-anchor="middle">Fast Discovery: % of Games Reaching 10+ Reviews</text>`;
-  svg += `<text x="15" y="${padT + plotH / 2}" fill="rgba(235,235,245,0.65)" font-family="-apple-system, sans-serif" font-size="10.5" font-weight="600" text-anchor="middle" transform="rotate(-90 15 ${padT + plotH / 2})">Avg Review Score (%)</text>`;
+  svg += `<text x="${padL + plotW / 2}" y="${h - 10}" fill="rgba(235,235,245,0.82)" font-family="-apple-system, sans-serif" font-size="11.5" font-weight="600" text-anchor="middle">Fast Discovery: % of Games Reaching 10+ Reviews</text>`;
+  svg += `<text x="16" y="${padT + plotH / 2}" fill="rgba(235,235,245,0.82)" font-family="-apple-system, sans-serif" font-size="11.5" font-weight="600" text-anchor="middle" transform="rotate(-90 16 ${padT + plotH / 2})">Avg Review Score (%)</text>`;
 
   // Draw bubbles back-to-front (smaller/lower score first, top/focused last)
   const searchSet = boringDevSearchQuery ? new Set(searched.map((t) => t.tag)) : null;
-  const drawOrder = [...pool].sort((a, b) => a.devScore - b.devScore);
+  const drawOrder = [...visiblePool].sort((a, b) => a.devScore - b.devScore);
 
   drawOrder.forEach((t) => {
     const cx = xScale(t.discRate);
     const cy = yScale(t.avgScore);
     const normR = Math.log1p(t.medRev) / maxLogMed;
-    const r = 4.2 + Math.pow(normR, 1.35) * 14.5;
+    const r = 4.5 + Math.pow(normR, 1.35) * 14.0;
     const isFocus = activeTag && t.tag === activeTag.tag;
     const isDimmed = searchSet && !searchSet.has(t.tag) && !isFocus;
 
@@ -2868,27 +3192,83 @@ function renderBoringBestTags() {
 
     if (isFocus) fill = "#ffd60a";
 
-    const opacity = isFocus ? 0.95 : isDimmed ? 0.14 : 0.72;
-    const stroke = isFocus ? "#ffffff" : "rgba(0,0,0,0.45)";
-    const sw = isFocus ? 2.4 : 1;
+    const opacity = isFocus ? 0.98 : isDimmed ? 0.14 : 0.78;
+    const stroke = isFocus ? "#ffffff" : "rgba(0,0,0,0.55)";
+    const sw = isFocus ? 2.5 : 1;
 
     svg += `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${r.toFixed(1)}" fill="${fill}" fill-opacity="${opacity}" stroke="${stroke}" stroke-width="${sw}" class="dev-bubble" data-tag="${t.tag.replace(/"/g, "&quot;")}" />`;
   });
 
-  // Labels for top 6 tags + focused tag
-  const labelTags = new Map();
-  pool.slice(0, 6).forEach((t) => labelTags.set(t.tag, t));
-  if (activeTag) labelTags.set(activeTag.tag, activeTag);
+  // Collision-aware label placement for focused tag + top 6 tags
+  const labelTargets = [];
+  if (activeTag) labelTargets.push(activeTag);
+  pool.slice(0, 7).forEach((t) => {
+    if (!activeTag || t.tag !== activeTag.tag) labelTargets.push(t);
+  });
 
-  labelTags.forEach((t) => {
+  const placedBoxes = [
+    // Reserve Sweet Spot header corner so labels never collide with it
+    { x1: padL + plotW - 260, y1: padT, x2: padL + plotW, y2: padT + 22 }
+  ];
+
+  const overlaps = (b) =>
+    placedBoxes.some((p) => !(b.x2 < p.x1 || b.x1 > p.x2 || b.y2 < p.y1 || b.y1 > p.y2));
+
+  labelTargets.forEach((t) => {
     const cx = xScale(t.discRate);
     const cy = yScale(t.avgScore);
     const normR = Math.log1p(t.medRev) / maxLogMed;
-    const r = 4.2 + Math.pow(normR, 1.35) * 14.5;
+    const r = 4.5 + Math.pow(normR, 1.35) * 14.0;
     const isFocus = activeTag && t.tag === activeTag.tag;
-    const anchor = cx > padL + plotW - 90 ? "end" : "start";
-    const dx = anchor === "end" ? -(r + 5) : r + 5;
-    svg += `<text x="${(cx + dx).toFixed(1)}" y="${(cy + 3.5).toFixed(1)}" fill="${isFocus ? "#ffd60a" : "#ffffff"}" font-family="-apple-system, sans-serif" font-size="${isFocus ? "11" : "9.5"}" font-weight="${isFocus ? "700" : "600"}" text-anchor="${anchor}" style="pointer-events:none; text-shadow: 0 1px 4px #000;">${t.tag}</text>`;
+    const labelW = t.tag.length * 6.2 + 12;
+    const labelH = 16;
+
+    const candidates = [
+      { ox: r + 7, oy: 0, anchor: "start" },
+      { ox: -(r + 7), oy: 0, anchor: "end" },
+      { ox: r + 7, oy: -16, anchor: "start" },
+      { ox: r + 7, oy: 16, anchor: "start" },
+      { ox: -(r + 7), oy: -16, anchor: "end" },
+      { ox: -(r + 7), oy: 16, anchor: "end" },
+      { ox: 0, oy: -(r + 14), anchor: "middle" },
+      { ox: 0, oy: r + 18, anchor: "middle" }
+    ];
+
+    let chosen = null;
+    for (const c of candidates) {
+      const lx = cx + c.ox;
+      const ly = cy + c.oy;
+      const bx1 = c.anchor === "start" ? lx - 2 : c.anchor === "end" ? lx - labelW + 2 : lx - labelW / 2;
+      const bx2 = bx1 + labelW;
+      const by1 = ly - labelH / 2;
+      const by2 = by1 + labelH;
+
+      if (bx1 < padL + 2 || bx2 > padL + plotW - 2 || by1 < padT + 2 || by2 > padT + plotH - 2) {
+        continue;
+      }
+      const box = { x1: bx1, y1: by1, x2: bx2, y2: by2 };
+      if (!overlaps(box)) {
+        chosen = { ...c, lx, ly, box };
+        break;
+      }
+    }
+
+    if (!chosen && isFocus) {
+      const lx = cx > padL + plotW - 110 ? cx - (r + 7) : cx + (r + 7);
+      const anchor = cx > padL + plotW - 110 ? "end" : "start";
+      const bx1 = anchor === "start" ? lx - 2 : lx - labelW + 2;
+      chosen = { ox: lx - cx, oy: 0, anchor, lx, ly: cy, box: { x1: bx1, y1: cy - 8, x2: bx1 + labelW, y2: cy + 8 } };
+    }
+
+    if (!chosen) return;
+    placedBoxes.push(chosen.box);
+
+    if (Math.abs(chosen.oy) > 4 || Math.abs(chosen.ox) > r + 10) {
+      svg += `<line x1="${cx.toFixed(1)}" y1="${cy.toFixed(1)}" x2="${chosen.lx.toFixed(1)}" y2="${chosen.ly.toFixed(1)}" stroke="${isFocus ? "#ffd60a" : "rgba(255,255,255,0.35)"}" stroke-width="1" style="pointer-events:none;" />`;
+    }
+
+    svg += `<rect x="${chosen.box.x1.toFixed(1)}" y="${chosen.box.y1.toFixed(1)}" width="${labelW.toFixed(1)}" height="${labelH}" rx="4" fill="rgba(14,16,22,0.86)" stroke="${isFocus ? "rgba(255,214,10,0.65)" : "rgba(255,255,255,0.12)"}" stroke-width="0.8" style="pointer-events:none;" />`;
+    svg += `<text x="${chosen.lx.toFixed(1)}" y="${(chosen.ly + 3.5).toFixed(1)}" fill="${isFocus ? "#ffd60a" : "#ffffff"}" font-family="-apple-system, sans-serif" font-size="${isFocus ? "10.5" : "9.5"}" font-weight="${isFocus ? "700" : "600"}" text-anchor="${chosen.anchor}" style="pointer-events:none;">${t.tag}</text>`;
   });
 
   svg += `</svg>`;
@@ -2957,19 +3337,22 @@ function renderBoringTrending() {
       <div class="trending-cards-grid">
         ${top12
           .map((t, idx) => {
-            const pct = ((boringTrendingSort === "growth" ? t.multiplier : t.totalGames) / maxVal) * 100;
+            const isGrowth = boringTrendingSort === "growth";
+            const pct = ((isGrowth ? t.multiplier : t.totalGames) / maxVal) * 100;
+            const heroBadge = isGrowth ? `${t.multiplier}&times;` : `${fmtInt(t.totalGames)} games`;
+            const rightMeta = isGrowth ? `${fmtInt(t.totalGames)} games` : `${t.multiplier}&times; growth`;
             return `
               <div class="trending-card">
                 <div class="trending-card-header">
                   <span class="trending-card-title">#${idx + 1} ${t.tag}</span>
-                  <span class="trending-card-mult">${t.multiplier}&times;</span>
+                  <span class="trending-card-mult">${heroBadge}</span>
                 </div>
                 <div class="trending-card-track">
                   <div class="trending-card-fill" style="width: ${pct.toFixed(1)}%;"></div>
                 </div>
                 <div class="trending-card-meta">
                   <span>2024: ${t.count2024} &rarr; 2026: ${t.count2026}</span>
-                  <span class="trending-card-games">${fmtInt(t.totalGames)} games</span>
+                  <span class="trending-card-games">${rightMeta}</span>
                 </div>
               </div>
             `;
@@ -2995,16 +3378,28 @@ function initBoringCostView() {
 
 function renderBoringCost() {
   const container = document.getElementById("boring-cost-chart-container");
+  const legendEl = document.getElementById("boring-cost-legend");
   if (!container || !window.STUDY_DATA_EXTENDED || !window.STUDY_DATA_EXTENDED.boringCostAverage) return;
 
   const data = window.STUDY_DATA_EXTENDED.boringCostAverage;
 
-  const w = 760;
-  const h = 340;
-  const padL = 120;
-  const padR = 45;
-  const padT = 30;
-  const padB = 40;
+  if (legendEl) {
+    if (boringCostViewMode === "buckets") {
+      legendEl.innerHTML = `<span class="legend-item active" style="cursor:default;"><span class="legend-swatch" style="background:#0a84ff;"></span><span class="legend-label">Bars: Number of Games Released in Each Price Bucket (% of 63,798)</span></span>`;
+    } else {
+      legendEl.innerHTML = `
+        <span class="legend-item active" style="cursor:default;"><span class="legend-swatch" style="background:#30d158;"></span><span class="legend-label">Bar: Mean Base Price (USD)</span></span>
+        <span class="legend-item active" style="cursor:default;"><span class="legend-swatch" style="background:#ffd60a; border-radius:2px; transform:rotate(45deg);"></span><span class="legend-label">Diamond (&diams;): Median Price (USD)</span></span>
+      `;
+    }
+  }
+
+  const w = 780;
+  const h = 300;
+  const padL = 138;
+  const padR = 185;
+  const padT = 18;
+  const padB = 46;
   const plotW = w - padL - padR;
   const plotH = h - padT - padB;
 
@@ -3018,33 +3413,54 @@ function renderBoringCost() {
 
   if (boringCostViewMode === "buckets") {
     const buckets = data.buckets;
-    const maxCount = Math.max(...buckets.map((b) => b.count));
-    const barH = 26;
+    const maxCount = Math.ceil(Math.max(...buckets.map((b) => b.count)) / 4000) * 4000;
+    const barH = 24;
     const gap = (plotH - buckets.length * barH) / (buckets.length + 1);
+
+    // X Gridlines & Axis Ticks
+    for (let i = 0; i <= 4; i++) {
+      const tickVal = Math.round((maxCount / 4) * i);
+      const xPos = padL + (tickVal / maxCount) * plotW;
+      svg += `<line x1="${xPos.toFixed(1)}" y1="${padT}" x2="${xPos.toFixed(1)}" y2="${padT + plotH}" stroke="rgba(255,255,255,0.09)" stroke-dasharray="3,3" />`;
+      svg += `<text x="${xPos.toFixed(1)}" y="${padT + plotH + 16}" fill="rgba(235,235,245,0.72)" font-family="ui-monospace, monospace" font-size="10.5" text-anchor="middle">${fmtInt(tickVal)}</text>`;
+    }
+    svg += `<text x="${padL + plotW / 2}" y="${h - 8}" fill="rgba(235,235,245,0.75)" font-family="-apple-system, sans-serif" font-size="11" font-weight="600" text-anchor="middle">Games Released</text>`;
 
     buckets.forEach((b, idx) => {
       const y = padT + gap + idx * (barH + gap);
       const barW = (b.count / maxCount) * plotW;
 
-      svg += `<text x="${padL - 10}" y="${y + barH / 2 + 4}" fill="#f5f5f7" font-family="ui-monospace, monospace" font-size="11" text-anchor="end">${b.bucket}</text>`;
+      svg += `<text x="${padL - 10}" y="${y + barH / 2 + 4}" fill="#f5f5f7" font-family="ui-monospace, monospace" font-size="11" font-weight="600" text-anchor="end">${b.bucket}</text>`;
       svg += `<rect x="${padL}" y="${y}" width="${plotW}" height="${barH}" fill="rgba(255,255,255,0.04)" rx="5" />`;
       svg += `<rect x="${padL}" y="${y}" width="${barW.toFixed(1)}" height="${barH}" fill="url(#costGrad)" rx="5" class="time-bar" data-bucket="${b.bucket}" data-count="${b.count}" data-pct="${b.pct}" />`;
-      svg += `<text x="${padL + barW + 8}" y="${y + barH / 2 + 4}" fill="var(--apple-blue, #0a84ff)" font-family="ui-monospace, monospace" font-size="10" font-weight="600">${fmtInt(b.count)} (${b.pct}%)</text>`;
+      svg += `<text x="${(padL + barW + 10).toFixed(1)}" y="${y + barH / 2 + 4}" fill="#64d2ff" font-family="ui-monospace, monospace" font-size="11" font-weight="600">${fmtInt(b.count)} (${b.pct}%)</text>`;
     });
   } else {
     const tiers = data.byReviewTier;
     const maxPrice = 20;
-    const barH = 30;
+    const barH = 26;
     const gap = (plotH - tiers.length * barH) / (tiers.length + 1);
+
+    // X Gridlines & Axis Ticks
+    for (let p = 0; p <= maxPrice; p += 5) {
+      const xPos = padL + (p / maxPrice) * plotW;
+      svg += `<line x1="${xPos.toFixed(1)}" y1="${padT}" x2="${xPos.toFixed(1)}" y2="${padT + plotH}" stroke="rgba(255,255,255,0.09)" stroke-dasharray="3,3" />`;
+      svg += `<text x="${xPos.toFixed(1)}" y="${padT + plotH + 16}" fill="rgba(235,235,245,0.72)" font-family="ui-monospace, monospace" font-size="10.5" text-anchor="middle">$${p}</text>`;
+    }
+    svg += `<text x="${padL + plotW / 2}" y="${h - 8}" fill="rgba(235,235,245,0.75)" font-family="-apple-system, sans-serif" font-size="11" font-weight="600" text-anchor="middle">Base Price (USD)</text>`;
 
     tiers.forEach((t, idx) => {
       const y = padT + gap + idx * (barH + gap);
       const barW = (t.avgPrice / maxPrice) * plotW;
+      const medX = padL + (t.medianPrice / maxPrice) * plotW;
+      const midY = y + barH / 2;
 
-      svg += `<text x="${padL - 10}" y="${y + barH / 2 + 4}" fill="#f5f5f7" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif" font-size="11" font-weight="600" text-anchor="end">${t.tier}</text>`;
+      svg += `<text x="${padL - 10}" y="${midY + 4}" fill="#f5f5f7" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif" font-size="11" font-weight="600" text-anchor="end">${t.tier}</text>`;
       svg += `<rect x="${padL}" y="${y}" width="${plotW}" height="${barH}" fill="rgba(255,255,255,0.04)" rx="5" />`;
-      svg += `<rect x="${padL}" y="${y}" width="${barW.toFixed(1)}" height="${barH}" fill="url(#costGrad)" rx="3" class="time-bar" data-tier="${t.tier}" data-price="${t.avgPrice}" data-med="${t.medianPrice}" data-count="${t.count}" />`;
-      svg += `<text x="${padL + barW + 8}" y="${y + barH / 2 + 4}" fill="var(--apple-green, #30d158)" font-family="ui-monospace, SFMono-Regular, monospace" font-size="11" font-weight="600">$${t.avgPrice.toFixed(2)} (Med: $${t.medianPrice.toFixed(2)})</text>`;
+      svg += `<rect x="${padL}" y="${y}" width="${barW.toFixed(1)}" height="${barH}" fill="url(#costGrad)" rx="4" class="time-bar" data-tier="${t.tier}" data-price="${t.avgPrice}" data-med="${t.medianPrice}" data-count="${t.count}" />`;
+      // Median diamond marker
+      svg += `<polygon points="${medX.toFixed(1)},${(midY - 6).toFixed(1)} ${(medX + 6).toFixed(1)},${midY.toFixed(1)} ${medX.toFixed(1)},${(midY + 6).toFixed(1)} ${(medX - 6).toFixed(1)},${midY.toFixed(1)}" fill="#ffd60a" stroke="#14151c" stroke-width="1.4" style="pointer-events:none;" />`;
+      svg += `<text x="${(padL + barW + 10).toFixed(1)}" y="${midY + 4}" fill="#30d158" font-family="ui-monospace, SFMono-Regular, monospace" font-size="11" font-weight="600">Mean $${t.avgPrice.toFixed(2)} &bull; Med $${t.medianPrice.toFixed(2)}</text>`;
     });
   }
 

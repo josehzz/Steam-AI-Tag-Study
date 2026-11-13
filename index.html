@@ -19,33 +19,119 @@
 
   <!-- Top Navigation Bar -->
   <header class="topbar">
-    <div class="topbar-brand">
-      <div class="chip-logo" aria-hidden="true">🤖</div>
-      <span class="brand-badge"><span class="chip-status-dot"></span> Steam AI Tag Study</span>
-      <span class="brand-meta">63,798 RELEASES // 2024–2026</span>
+    <div class="topbar-main">
+      <div class="topbar-brand">
+        <!--div class="chip-logo" aria-hidden="true">🤖</div-->
+        <span class="brand-badge"><span class="chip-status-dot"></span> Steam AI Tag Study</span>
+        <span class="brand-meta">63,798 RELEASES // 2024–2026</span>
+      </div>
+      <nav class="topbar-nav" aria-label="Main Sections">
+        <button class="nav-btn active" data-section="intro" type="button">Intro</button>
+        <button class="nav-btn has-subnav" data-section="data" type="button">Data <span class="nav-caret" aria-hidden="true">▾</span></button>
+        <button class="nav-btn has-subnav" data-section="relevant" type="button">Is it Relevant? <span class="nav-caret" aria-hidden="true">▾</span></button>
+        <button class="nav-btn has-subnav" data-section="more-info" type="button">More Info <span class="nav-caret" aria-hidden="true">▾</span></button>
+        <button class="nav-btn has-subnav" data-section="for-fun" type="button">For Fun <span class="nav-caret" aria-hidden="true">▾</span></button>
+        <button class="nav-btn has-subnav" data-section="boring-stuff" type="button">Boring stuff devs are curious about <span class="nav-caret" aria-hidden="true">▾</span></button>
+        <button class="nav-btn" data-section="conclusions" type="button">Conclusions</button>
+        <button class="nav-btn" data-section="contact" type="button">Contact</button>
+      </nav>
+      <a
+        class="github-repo-btn"
+        href="https://github.com/josehzz/Steam-AI-Tag-Study"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="View repository on GitHub"
+      >
+        <svg class="github-icon" viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">
+          <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/>
+        </svg>
+        <!--span>GitHub</span-->
+      </a>
     </div>
-    <nav class="topbar-nav" aria-label="Main Sections">
-      <button class="nav-btn active" data-section="intro" type="button">Intro</button>
-      <button class="nav-btn" data-section="data" type="button">Data</button>
-      <button class="nav-btn" data-section="relevant" type="button">Is it Relevant?</button>
-      <button class="nav-btn" data-section="more-info" type="button">More Info</button>
-      <button class="nav-btn" data-section="for-fun" type="button">For Fun</button>
-      <button class="nav-btn" data-section="boring-stuff" type="button">Boring stuff devs are curious about</button>
-      <button class="nav-btn" data-section="conclusions" type="button">Conclusions</button>
-      <button class="nav-btn" data-section="contact" type="button">Contact</button>
-    </nav>
-    <a
-      class="github-repo-btn"
-      href="https://github.com/josehzz/Steam-AI-Tag-Study"
-      target="_blank"
-      rel="noopener noreferrer"
-      aria-label="View repository on GitHub"
-    >
-      <svg class="github-icon" viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">
-        <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/>
-      </svg>
-      <span>GitHub</span>
-    </a>
+
+    <!-- Unfolding Second Navigation Bar for Section Sub-Views -->
+    <div class="topbar-subnav-drawer" id="topbar-subnav-drawer" aria-hidden="true">
+      <div class="topbar-subnav-inner">
+        <div class="topbar-subnav-bar">
+          <!-- Data Sub-sections (4) -->
+          <div class="section-subnav data-subnav" data-for-section="data" role="tablist" aria-label="Data Sub-sections">
+            <button type="button" class="subnav-btn active" data-datasubview="data-overview" role="tab" aria-selected="true">
+              Overall Statistics
+            </button>
+            <button type="button" class="subnav-btn" data-datasubview="data-built" role="tab" aria-selected="false">
+              How This Data Was Built
+            </button>
+            <button type="button" class="subnav-btn" data-datasubview="data-limitations" role="tab" aria-selected="false">
+              Limitations
+            </button>
+            <button type="button" class="subnav-btn" data-datasubview="data-validation" role="tab" aria-selected="false">
+              Validation &amp; Accuracy
+            </button>
+          </div>
+
+          <!-- Is it Relevant? Sub-sections (5) -->
+          <div class="section-subnav relevant-subnav" data-for-section="relevant" role="tablist" aria-label="Is it Relevant Sub-sections">
+            <button type="button" class="subnav-btn active" data-subview="review-count" role="tab" aria-selected="true">
+              Review Count
+            </button>
+            <button type="button" class="subnav-btn" data-subview="review-velocity" role="tab" aria-selected="false">
+              Review Velocity
+            </button>
+            <button type="button" class="subnav-btn" data-subview="similarity" role="tab" aria-selected="false">
+              Similarity
+            </button>
+            <button type="button" class="subnav-btn" data-subview="over-time" role="tab" aria-selected="false">
+              Over Time
+            </button>
+            <button type="button" class="subnav-btn" data-subview="price-stratified" role="tab" aria-selected="false">
+              Price-Stratified
+            </button>
+          </div>
+
+          <!-- More Info Sub-sections (5) -->
+          <div class="section-subnav more-subnav" data-for-section="more-info" role="tablist" aria-label="More Info Sub-sections">
+            <button type="button" class="subnav-btn active" data-moresubview="more-best-ai" role="tab" aria-selected="true">
+              Best AI Games
+            </button>
+            <button type="button" class="subnav-btn" data-moresubview="more-vis-aud" role="tab" aria-selected="false">
+              Best AI Visuals and Audio
+            </button>
+            <button type="button" class="subnav-btn" data-moresubview="more-ai-usage" role="tab" aria-selected="false">
+              AI Usage
+            </button>
+            <button type="button" class="subnav-btn" data-moresubview="more-best-tags" role="tab" aria-selected="false">
+              Best performing tags for AI
+            </button>
+            <button type="button" class="subnav-btn" data-moresubview="more-cost-vs" role="tab" aria-selected="false">
+              Average AI cost
+            </button>
+          </div>
+
+          <!-- For Fun Sub-sections (2) -->
+          <div class="section-subnav fun-subnav" data-for-section="for-fun" role="tablist" aria-label="For Fun Sub-sections">
+            <button type="button" class="subnav-btn active" data-funsubview="fun-foot" role="tab" aria-selected="true">
+              Devs shooting themselves in the foot
+            </button>
+            <button type="button" class="subnav-btn" data-funsubview="fun-word-ai" role="tab" aria-selected="false">
+              Games with word AI
+            </button>
+          </div>
+
+          <!-- Boring stuff Sub-sections (3) -->
+          <div class="section-subnav boring-subnav" data-for-section="boring-stuff" role="tablist" aria-label="Boring Stuff Sub-sections">
+            <button type="button" class="subnav-btn active" data-boringsubview="boring-best-tags" role="tab" aria-selected="true">
+              Best tags by review count
+            </button>
+            <button type="button" class="subnav-btn" data-boringsubview="boring-trending" role="tab" aria-selected="false">
+              Trending tags
+            </button>
+            <button type="button" class="subnav-btn" data-boringsubview="boring-cost" role="tab" aria-selected="false">
+              Cost of the average game
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </header>
 
   <!-- Main Content Container -->
@@ -124,7 +210,7 @@
     </section>
 
     <!-- 2. DATA SECTION: Overall Stats, Methodology & Limitations Sub-views -->
-    <section id="section-data" class="tab-section has-bottom-bar" aria-labelledby="data-heading">
+    <section id="section-data" class="tab-section" aria-labelledby="data-heading">
 
       <!-- Persistent Top Banner across all sections of "Data" -->
       <div class="relevant-verdict-banner" role="region" aria-label="Study Verdict Banner">
@@ -141,7 +227,6 @@
       <div id="subview-data-overview" class="data-subview active">
         <div class="tetris-panel data-left-panel">
           <div class="panel-header">
-            <span class="eyebrow">DATA &bull; AN OVERVIEW</span>
             <h2 id="data-heading">Overall Dataset Statistics</h2>
             <p class="panel-subtitle">Public Steam releases from Jan-01-2024 to Nov-02-2026 classified across 10 AI disclosure tags.</p>
           </div>
@@ -248,7 +333,6 @@
       <div id="subview-data-built" class="data-subview">
         <aside class="tetris-panel data-right-panel">
           <div class="panel-header">
-            <span class="eyebrow">DATA &bull; ACQUIRING THE DATA</span>
             <h3>How This Data Was Built</h3>
           </div>
           <ul class="data-notes-list">
@@ -316,7 +400,6 @@
       <div id="subview-data-limitations" class="data-subview">
         <aside class="tetris-panel data-right-panel">
           <div class="panel-header">
-            <span class="eyebrow">DATA &bull; CAVEATS</span>
             <h3>Limitations</h3>
           </div>
           <ul class="data-notes-list">
@@ -352,7 +435,6 @@
       <div id="subview-data-validation" class="data-subview">
         <div class="tetris-panel data-left-panel">
           <div class="panel-header">
-            <span class="eyebrow">DATA &bull; MANUAL AUDIT (N = 300)</span>
             <h3>LLM Classification Validation</h3>
             <p class="panel-subtitle">Per-category Precision, Recall, and F1 comparing Gemini's <code>ai_tags</code> against 300 randomly sampled disclosures tagged manually (<code>ai_tags_manual</code>).</p>
           </div>
@@ -565,26 +647,10 @@
           </div>
         </div>
       </div>
-
-      <!-- Bottom Navigation Bar for "Data" (4 Sections) -->
-      <div class="bottom-subnav data-bottom-subnav" role="tablist" aria-label="Data Sub-sections">
-        <button type="button" class="subnav-btn active" data-datasubview="data-overview" role="tab" aria-selected="true">
-          Overall Statistics
-        </button>
-        <button type="button" class="subnav-btn" data-datasubview="data-built" role="tab" aria-selected="false">
-          How This Data Was Built
-        </button>
-        <button type="button" class="subnav-btn" data-datasubview="data-limitations" role="tab" aria-selected="false">
-          Limitations
-        </button>
-        <button type="button" class="subnav-btn" data-datasubview="data-validation" role="tab" aria-selected="false">
-          Validation &amp; Accuracy
-        </button>
-      </div>
     </section>
 
     <!-- 3. IS IT RELEVANT? SECTION -->
-    <section id="section-relevant" class="tab-section has-bottom-bar" aria-label="Is it Relevant?">
+    <section id="section-relevant" class="tab-section" aria-label="Is it Relevant?">
       <!-- Persistent Top Banner across all sections of "Is it Relevant?" -->
       <div class="relevant-verdict-banner" role="region" aria-label="Study Verdict Banner">
         <div class="verdict-blocks" aria-hidden="true">
@@ -603,12 +669,11 @@
           <div class="chart-card tetris-panel">
             <div class="chart-card-header">
               <div>
-                <span class="eyebrow">IS IT RELEVANT? &bull; REVIEW COUNT</span>
                 <h2>Games by Review Count Tier &amp; In-Game AI Usage</h2>
                 <p class="chart-subtitle">Click or hover any bar to inspect tier metrics on the right. Click legend items to toggle series.</p>
               </div>
               <div class="chart-controls">
-                <div class="mode-toggle" role="group" aria-label="Chart Display Mode">
+                <div class="mode-toggle" id="review-count-mode-toggle" role="group" aria-label="Chart Display Mode">
                   <button type="button" class="mode-btn active" data-mode="percentage">100% Share (%)</button>
                   <button type="button" class="mode-btn" data-mode="count">Game Count (#)</button>
                 </div>
@@ -633,12 +698,15 @@
 
             <!-- Stacked Bar Chart Stage -->
             <div class="stacked-chart-wrapper">
-              <div class="y-axis-labels" id="y-axis-labels">
-                <span>100%</span>
-                <span>75%</span>
-                <span>50%</span>
-                <span>25%</span>
-                <span>0%</span>
+              <div class="y-axis-col">
+                <span class="y-axis-unit-label" id="stacked-y-unit">Share (%)</span>
+                <div class="y-axis-labels" id="y-axis-labels">
+                  <span>100%</span>
+                  <span>75%</span>
+                  <span>50%</span>
+                  <span>25%</span>
+                  <span>0%</span>
+                </div>
               </div>
               <div class="chart-plot-area" id="stacked-bar-chart" role="img" aria-label="Interactive stacked bar chart of Steam games by review count tier and AI usage">
                 <!-- Bars dynamically rendered by app.js -->
@@ -651,7 +719,6 @@
           <aside class="inspector-card tetris-panel" id="tier-inspector">
             <div class="inspector-header">
               <div>
-                <span class="eyebrow" id="inspector-eyebrow">SELECTED TIER DETAILS</span>
                 <h3 id="inspector-title">All Games Overview (63,798 Games)</h3>
               </div>
               <button type="button" class="reset-tier-btn hidden" id="reset-tier-btn">Show All Tiers</button>
@@ -702,15 +769,15 @@
           <div class="chart-card tetris-panel">
             <div class="chart-card-header">
               <div>
-                <span class="eyebrow">IS IT RELEVANT? &bull; REVIEW VELOCITY</span>
                 <h2>Time vs. Milestone Achievement Velocity</h2>
                 <p class="chart-subtitle">Average days taken by games to reach 1, 10, 50, 200, and 1,000 reviews across release cohorts.</p>
               </div>
               <div class="chart-controls">
                 <div class="filter-group" role="group" aria-label="Filter by AI Usage">
-                  <span class="ctrl-label">AI_Used:</span>
+                  <span class="ctrl-label">Compare:</span>
                   <div class="mini-filter-pills" id="vel-ai-filter">
-                    <button type="button" class="mini-pill active" data-ai="ALL">ALL</button>
+                    <button type="button" class="mini-pill active" data-ai="VS" title="Compare Non-AI (FALSE) vs In-Game AI (TRUE)">AI vs Non-AI</button>
+                    <button type="button" class="mini-pill" data-ai="ALL">ALL</button>
                     <button type="button" class="mini-pill" data-ai="TRUE">TRUE</button>
                     <button type="button" class="mini-pill" data-ai="FALSE">FALSE</button>
                     <button type="button" class="mini-pill" data-ai="MAYBE">MAYBE</button>
@@ -719,15 +786,17 @@
               </div>
             </div>
 
-            <!-- Milestone Selector Pills -->
+            <!-- Milestone Selector Pills with Color Legend Swatches -->
             <div class="milestone-pills" id="vel-milestone-pills" role="group" aria-label="Select Milestones">
-              <button type="button" class="milestone-pill active" data-milestone="all">All Milestones</button>
-              <button type="button" class="milestone-pill" data-milestone="1">1 Review</button>
-              <button type="button" class="milestone-pill" data-milestone="10">10 Reviews</button>
-              <button type="button" class="milestone-pill" data-milestone="50">50 Reviews</button>
-              <button type="button" class="milestone-pill" data-milestone="200">200 Reviews</button>
-              <button type="button" class="milestone-pill" data-milestone="1000">1,000 Reviews</button>
+              <button type="button" class="milestone-pill" data-milestone="all">All Milestones</button>
+              <button type="button" class="milestone-pill" data-milestone="1"><span class="m-dot" style="background:#64d2ff;"></span>1 Review</button>
+              <button type="button" class="milestone-pill active" data-milestone="10"><span class="m-dot" style="background:#30d158;"></span>10 Reviews</button>
+              <button type="button" class="milestone-pill" data-milestone="50"><span class="m-dot" style="background:#ffd60a;"></span>50 Reviews</button>
+              <button type="button" class="milestone-pill" data-milestone="200"><span class="m-dot" style="background:#ff9f0a;"></span>200 Reviews</button>
+              <button type="button" class="milestone-pill" data-milestone="1000"><span class="m-dot" style="background:#bf5af2;"></span>1,000 Reviews</button>
             </div>
+
+            <div class="chart-inline-legend" id="vel-chart-legend"></div>
 
             <!-- Velocity SVG Chart Container -->
             <div class="velocity-chart-wrapper" id="velocity-chart-container">
@@ -740,7 +809,6 @@
           <aside class="inspector-card tetris-panel" id="velocity-inspector">
             <div class="inspector-header">
               <div>
-                <span class="eyebrow">VELOCITY TELEMETRY</span>
                 <h3 id="vel-inspector-title">Milestone Performance</h3>
               </div>
             </div>
@@ -782,7 +850,6 @@
           <div class="chart-card tetris-panel">
             <div class="chart-card-header">
               <div>
-                <span class="eyebrow">IS IT RELEVANT? &bull; TAG RANKING COMPARISON</span>
                 <h2>Top 10 Review Drivers vs. Top 10 AI Usage Tags</h2>
                 <p class="chart-subtitle">Comparing the tags driving the highest total Steam reviews against the tags with the most AI deployments.</p>
               </div>
@@ -794,9 +861,9 @@
                 <thead>
                   <tr>
                     <th class="th-rank">#</th>
-                    <th class="th-rev">Top 10 Review Tags (Total Reviews)</th>
-                    <th class="th-ai">Top 10 AI Usage Tags (AI Game Count)</th>
-                    <th class="th-diff">Rank Difference (&Delta;)</th>
+                    <th class="th-rev">Top Review Drivers</th>
+                    <th class="th-ai">Top AI-Used Tags</th>
+                    <th class="th-diff">Rank Shift (Rev &rarr; AI)</th>
                   </tr>
                 </thead>
                 <tbody id="similarity-table-body">
@@ -810,7 +877,6 @@
           <aside class="inspector-card tetris-panel" id="similarity-inspector">
             <div class="inspector-header">
               <div>
-                <span class="eyebrow">MATHEMATICAL CORRELATION</span>
                 <h3>Similarity Calculation</h3>
               </div>
             </div>
@@ -890,7 +956,6 @@
           <div class="chart-card tetris-panel">
             <div class="chart-card-header">
               <div>
-                <span class="eyebrow">IS IT RELEVANT? &bull; TEMPORAL ADOPTION</span>
                 <h2>Steam Releases &amp; AI Adoption Trend Over Time</h2>
                 <p class="chart-subtitle">Monthly game release count from Jan 2024 to Nov 2026 filtered by in-game AI usage.</p>
               </div>
@@ -908,13 +973,18 @@
                   <button type="button" class="mode-btn active" data-mode="volume">Volume (#)</button>
                   <button type="button" class="mode-btn" data-mode="rate">Adoption %</button>
                 </div>
+                <button type="button" class="mode-btn price-strat-mature-btn active" id="time-events-toggle" aria-pressed="true" title="Toggle Claude & GPT release vertical markers">
+                  LLM Markers
+                </button>
               </div>
             </div>
 
-            <!-- Over Time Event Legend -->
+            <!-- Over Time Series + Event Legend -->
             <div class="time-events-legend" id="time-events-legend">
-              <span class="time-evt-key"><span class="evt-line-swatch evt-claude"></span> Claude Releases (C3, C3.5, C3.7, C4, C4.5, C4.6, C5, Opus 5.5)</span>
-              <span class="time-evt-key"><span class="evt-line-swatch evt-gpt"></span> GPT / OpenAI Releases (GPT-4o, o1, GPT-5, GPT-6)</span>
+              <span class="time-evt-key" id="time-series-key-bars"><span class="legend-swatch swatch-true"></span> AI Games &nbsp;<span class="legend-swatch swatch-false"></span> Non-AI Games</span>
+              <span class="time-evt-key" id="time-series-key-line"><span class="evt-line-swatch" style="background:#ffd60a;"></span> AI Share %</span>
+              <span class="time-evt-key"><span class="evt-line-swatch evt-claude"></span> Claude Releases</span>
+              <span class="time-evt-key"><span class="evt-line-swatch evt-gpt"></span> GPT / OpenAI Releases</span>
             </div>
 
             <!-- Over Time Chart Wrapper -->
@@ -928,7 +998,6 @@
           <aside class="inspector-card tetris-panel" id="time-inspector">
             <div class="inspector-header">
               <div>
-                <span class="eyebrow">GROWTH TRAJECTORY</span>
                 <h3>Adoption Milestones</h3>
               </div>
             </div>
@@ -979,7 +1048,6 @@
           <div class="chart-card tetris-panel">
             <div class="chart-card-header">
               <div>
-                <span class="eyebrow">IS IT RELEVANT? &bull; CONFOUNDING CHECK</span>
                 <h2>Price-Stratified Comparison: AI vs. Non-AI</h2>
                 <p class="chart-subtitle">Comparing games inside each <code>base_price_usd</code> tier &mdash; zero low-budget entries removed or down-weighted.</p>
               </div>
@@ -1005,6 +1073,9 @@
                 <span class="legend-swatch swatch-true"></span>
                 <span class="legend-label">In-Game AI (<code>ai_used = TRUE</code>)</span>
               </span>
+              <span class="legend-item active" id="price-strat-axis-note">
+                <span class="legend-label" style="color: var(--text-secondary);">Y-axis zoomed (50%&ndash;90%) to show within-tier score gap</span>
+              </span>
             </div>
 
             <!-- Grouped Bar Chart Container -->
@@ -1020,7 +1091,6 @@
           <aside class="inspector-card tetris-panel" id="price-strat-inspector">
             <div class="inspector-header">
               <div>
-                <span class="eyebrow" id="price-strat-eyebrow">TIER &amp; CONFOUNDING SUMMARY</span>
                 <h3 id="price-strat-title">All Price Tiers Overview</h3>
               </div>
               <button type="button" class="reset-tier-btn hidden" id="reset-price-strat-btn">All Tiers</button>
@@ -1051,29 +1121,10 @@
           </aside>
         </div>
       </div>
-
-      <!-- Bottom Navigation Bar for "Is it Relevant?" (5 Sections) -->
-      <div class="bottom-subnav" role="tablist" aria-label="Is it Relevant Sub-sections">
-        <button type="button" class="subnav-btn active" data-subview="review-count" role="tab" aria-selected="true">
-          Review Count
-        </button>
-        <button type="button" class="subnav-btn" data-subview="review-velocity" role="tab" aria-selected="false">
-          Review Velocity
-        </button>
-        <button type="button" class="subnav-btn" data-subview="similarity" role="tab" aria-selected="false">
-          Similarity
-        </button>
-        <button type="button" class="subnav-btn" data-subview="over-time" role="tab" aria-selected="false">
-          Over Time
-        </button>
-        <button type="button" class="subnav-btn" data-subview="price-stratified" role="tab" aria-selected="false">
-          Price-Stratified
-        </button>
-      </div>
     </section>
 
     <!-- 4. MORE INFO SECTION -->
-    <section id="section-more-info" class="tab-section has-bottom-bar" aria-label="More Info">
+    <section id="section-more-info" class="tab-section" aria-label="More Info">
       <div class="relevant-verdict-banner" role="region" aria-label="More Info Banner">
         <div class="verdict-blocks" aria-hidden="true">
           <span class="vb-purple"></span>
@@ -1091,7 +1142,6 @@
           <div class="chart-card tetris-panel">
             <div class="chart-card-header">
               <div>
-                <span class="eyebrow">MORE INFO &bull; TOP AI TITLES</span>
                 <h2>Best 5 AI Games on Steam</h2>
                 <p class="chart-subtitle" id="best-ai-subtitle">Top games utilizing in-game AI, dynamically filtered by tags and review score.</p>
               </div>
@@ -1110,7 +1160,6 @@
           <aside class="inspector-card tetris-panel" id="best-ai-filter-card">
             <div class="inspector-header">
               <div>
-                <span class="eyebrow">TAG SELECTION (MULTI-SELECT)</span>
                 <h3>Filter by Tags</h3>
               </div>
               <button type="button" class="reset-tier-btn" id="reset-best-ai-filters">Reset</button>
@@ -1157,7 +1206,6 @@
         <div class="chart-card tetris-panel">
           <div class="chart-card-header">
             <div>
-              <span class="eyebrow">MORE INFO &bull; MULTI-MODAL SHOWCASE</span>
               <h2>Best AI Visuals, Audio &amp; Both</h2>
               <p class="chart-subtitle">Three rankings of at most 5 games ranked by review count featuring Visuals, Audio, and Both modalities.</p>
             </div>
@@ -1219,14 +1267,13 @@
           <aside class="inspector-card tetris-panel" id="ai-usage-left-panel">
             <div class="inspector-header">
               <div>
-                <span class="eyebrow" id="ai-usage-eyebrow">SELECTED AI DISCLOSURE</span>
                 <h3 id="ai-usage-tag-title">Visual AI Disclosures</h3>
               </div>
               <span class="usage-count-pill" id="ai-usage-count-pill">12,006 games (70.6%)</span>
             </div>
 
             <p class="inspector-insight" id="ai-usage-insight">
-              Visual generation is by far the most common AI disclosure on Steam. Click any slice of the pie chart on the right to inspect its top associated game genres.
+              Visual generation is by far the most common AI disclosure on Steam. Select any slice or category bar to inspect its top associated game genres and notable titles.
             </p>
 
             <div class="inspector-subcard">
@@ -1253,9 +1300,8 @@
           <div class="chart-card tetris-panel">
             <div class="chart-card-header">
               <div>
-                <span class="eyebrow">MORE INFO &bull; DISCLOSURE BREAKDOWN</span>
-                <h2>AI_Tags Column Occurrence</h2>
-                <p class="chart-subtitle">Click any slice or legend item to reveal its genre distribution on the left.</p>
+                <h2>How Developers Use AI (Disclosure Categories)</h2>
+                <p class="chart-subtitle">Share of 28,652 AI tag mentions across 17,014 disclosed games (multi-label). Click any slice or bar below to inspect genres.</p>
               </div>
             </div>
 
@@ -1278,7 +1324,6 @@
           <div class="chart-card tetris-panel">
             <div class="chart-card-header">
               <div>
-                <span class="eyebrow">MORE INFO &bull; SCORE RANKINGS</span>
                 <h2>Best Performing Tags for AI Games</h2>
                 <p class="chart-subtitle">Tags ranked by average user review score among games using AI technology.</p>
               </div>
@@ -1311,7 +1356,6 @@
           <aside class="inspector-card tetris-panel" id="best-tags-filter-card">
             <div class="inspector-header">
               <div>
-                <span class="eyebrow">SCORE FILTER</span>
                 <h3>Filter by Review Score</h3>
               </div>
               <button type="button" class="reset-tier-btn" id="reset-best-tags-filters">Reset</button>
@@ -1370,7 +1414,6 @@
           <div class="chart-card tetris-panel">
             <div class="chart-card-header">
               <div>
-                <span class="eyebrow">MORE INFO &bull; PRICING DYNAMICS</span>
                 <h2>Average Game Cost: AI vs. Non-AI</h2>
                 <p class="chart-subtitle">Comparing base price USD between games using AI technology and games that do not use AI.</p>
               </div>
@@ -1400,6 +1443,20 @@
               </div>
             </div>
 
+            <!-- Visual Price Comparison Meter -->
+            <div class="vs-visual-bars" id="vs-visual-bars">
+              <div class="tag-bar-row">
+                <span class="tag-bar-name">In-Game AI Avg</span>
+                <div class="tag-bar-track"><div class="tag-bar-fill" id="vs-bar-ai" style="width: 76%; background: var(--apple-orange);"></div></div>
+                <span class="tag-bar-count" id="vs-bar-ai-lbl">$6.03</span>
+              </div>
+              <div class="tag-bar-row">
+                <span class="tag-bar-name">Non-AI Avg</span>
+                <div class="tag-bar-track"><div class="tag-bar-fill" id="vs-bar-nonai" style="width: 100%; background: var(--apple-blue);"></div></div>
+                <span class="tag-bar-count" id="vs-bar-nonai-lbl">$7.90</span>
+              </div>
+            </div>
+
             <!-- Tag Breakdown Mini Table -->
             <div class="similarity-table-wrapper" style="margin-top: 16px;">
               <table class="similarity-table" id="vs-breakdown-table">
@@ -1423,7 +1480,6 @@
           <aside class="inspector-card tetris-panel" id="fun-cost-inspector">
             <div class="inspector-header">
               <div>
-                <span class="eyebrow">TAG SELECTION (MULTI-SELECT)</span>
                 <h3>Filter by Tags</h3>
               </div>
               <span class="selected-tags-badge" id="fun-cost-selected-count">7 selected</span>
@@ -1436,29 +1492,10 @@
           </aside>
         </div>
       </div>
-
-      <!-- Bottom Navigation Bar for "More Info" (5 Sections) -->
-      <div class="bottom-subnav more-bottom-subnav" role="tablist" aria-label="More Info Sub-sections">
-        <button type="button" class="subnav-btn active" data-moresubview="more-best-ai" role="tab" aria-selected="true">
-          Best AI Games
-        </button>
-        <button type="button" class="subnav-btn" data-moresubview="more-vis-aud" role="tab" aria-selected="false">
-          Best AI Visuals and Audio
-        </button>
-        <button type="button" class="subnav-btn" data-moresubview="more-ai-usage" role="tab" aria-selected="false">
-          AI Usage
-        </button>
-        <button type="button" class="subnav-btn" data-moresubview="more-best-tags" role="tab" aria-selected="false">
-          Best performing tags for AI
-        </button>
-        <button type="button" class="subnav-btn" data-moresubview="more-cost-vs" role="tab" aria-selected="false">
-          Average AI cost
-        </button>
-      </div>
     </section>
 
         <!-- 5. FOR FUN SECTION -->
-    <section id="section-for-fun" class="tab-section has-bottom-bar" aria-label="For Fun">
+    <section id="section-for-fun" class="tab-section" aria-label="For Fun">
       <div class="relevant-verdict-banner" role="region" aria-label="For Fun Verdict Banner">
         <div class="verdict-blocks" aria-hidden="true">
           <span class="vb-orange"></span>
@@ -1466,7 +1503,6 @@
           <span class="vb-green"></span>
         </div>
         <div class="verdict-content">
-          <span class="verdict-tag">FOR FUN &bull; EXPERIMENTS &amp; ODDITIES</span>
           <h2 class="verdict-title">The Quirks, Ironies &amp; Wild Curves of the AI Era</h2>
         </div>
       </div>
@@ -1478,7 +1514,6 @@
           <div class="chart-card tetris-panel">
             <div class="chart-card-header">
               <div>
-                <span class="eyebrow">FOR FUN &bull; IRONIC DISCLOSURES</span>
                 <h2>Devs Shooting Themselves in the Foot</h2>
                 <p class="chart-subtitle">Top 5 games ranked by review count that declared "No AI" inside Steam's AI disclosure form.</p>
               </div>
@@ -1497,7 +1532,6 @@
           <aside class="inspector-card tetris-panel" id="fun-foot-inspector">
             <div class="inspector-header">
               <div>
-                <span class="eyebrow">CRITICAL ADVISORY</span>
                 <h3>The "Declares No AI" Trap</h3>
               </div>
             </div>
@@ -1548,13 +1582,19 @@
           <div class="chart-card tetris-panel">
             <div class="chart-card-header">
               <div>
-                <span class="eyebrow">FOR FUN &bull; TITLE ANALYSIS</span>
                 <h2>Releases with "AI" in the Title Over Time</h2>
                 <p class="chart-subtitle">Monthly count of games released featuring the standalone word "AI" or "A.I." in their title.</p>
               </div>
               <div class="chart-controls">
-                <span class="games-count-badge" id="fun-word-ai-total-badge">Total Games: 85</span>
+                <span class="games-count-badge" id="fun-word-ai-total-badge">Total Games: 87</span>
               </div>
+            </div>
+
+            <!-- Chart Legend -->
+            <div class="chart-inline-legend" id="fun-word-ai-legend">
+              <span class="legend-item active"><span class="legend-swatch swatch-true"></span><span class="legend-label">Bars (Bottom): Declared AI (TRUE)</span></span>
+              <span class="legend-item active"><span class="legend-swatch" style="background: #64748b;"></span><span class="legend-label">Bars (Top): Sci-Fi Theme Only (FALSE)</span></span>
+              <span class="legend-item active"><span class="evt-line-swatch" style="background: #0a84ff;"></span><span class="legend-label">Line (Right Axis): Cumulative Titles</span></span>
             </div>
 
             <!-- Time Chart Container -->
@@ -1567,7 +1607,6 @@
           <aside class="inspector-card tetris-panel" id="fun-word-ai-inspector">
             <div class="inspector-header">
               <div>
-                <span class="eyebrow">TITLE TREND SUMMARY</span>
                 <h3>The "AI" In Title Phenomenon</h3>
               </div>
             </div>
@@ -1602,20 +1641,10 @@
           </aside>
         </div>
       </div>
-
-      <!-- Bottom Navigation Bar for "For Fun" (2 Sections) -->
-      <div class="bottom-subnav fun-bottom-subnav" role="tablist" aria-label="For Fun Sub-sections">
-        <button type="button" class="subnav-btn active" data-funsubview="fun-foot" role="tab" aria-selected="true">
-          Devs shooting themselves in the foot
-        </button>
-        <button type="button" class="subnav-btn" data-funsubview="fun-word-ai" role="tab" aria-selected="false">
-          Games with word AI
-        </button>
-      </div>
     </section>
 
     <!-- 6. BORING STUFF SECTION -->
-    <section id="section-boring-stuff" class="tab-section has-bottom-bar" aria-label="Boring stuff devs are curious about">
+    <section id="section-boring-stuff" class="tab-section" aria-label="Boring stuff devs are curious about">
       <div class="relevant-verdict-banner" role="region" aria-label="Boring Stuff Banner">
         <div class="verdict-blocks" aria-hidden="true">
           <span class="vb-blue"></span>
@@ -1623,7 +1652,6 @@
           <span class="vb-purple"></span>
         </div>
         <div class="verdict-content">
-          <span class="verdict-tag">BORING STUFF // STEAM ECONOMICS</span>
           <h2 class="verdict-title">Boring Stuff Every Game Dev Is Curious About</h2>
         </div>
       </div>
@@ -1635,11 +1663,14 @@
           <div class="chart-card tetris-panel">
             <div class="chart-card-header">
               <div>
-                <span class="eyebrow">STEAM METRICS &bull; DEVELOPER PERFORMANCE</span>
                 <h2>Best Performing Tags for Game Developers</h2>
                 <p class="chart-subtitle">Plotting Fast Discovery (% reaching 10+ reviews) vs. High Scoring (Avg Score %). Bubble size = Median Reviews per game.</p>
               </div>
               <div class="chart-controls">
+                <div class="mode-toggle" id="boring-focus-toggle" role="group" aria-label="Bubble Density">
+                  <button type="button" class="mode-btn active" data-density="top60">Top 60 Tags</button>
+                  <button type="button" class="mode-btn" data-density="all">All Tags</button>
+                </div>
                 <div class="mini-filter-pills" id="boring-min-games-pills" role="group" aria-label="Minimum Games in Tag">
                   <button type="button" class="mini-pill" data-min="50">50+ games</button>
                   <button type="button" class="mini-pill active" data-min="150">150+ games</button>
@@ -1651,10 +1682,15 @@
 
             <!-- Bubble Legend -->
             <div class="boring-dev-legend">
-              <span><strong>X-Axis:</strong> Fast Discovery (% reaching 10+ rev)</span>
-              <span><strong>Y-Axis:</strong> Avg Score (%)</span>
-              <span><strong>Bubble Size:</strong> Median Reviews</span>
-              <span class="sweet-spot-tag">Top-Right = Developer Sweet Spot</span>
+              <span><span class="legend-swatch" style="background:#30d158;"></span> Dev Index &ge;62 (Top)</span>
+              <span><span class="legend-swatch" style="background:#0a84ff;"></span> 52&ndash;61 (Strong)</span>
+              <span><span class="legend-swatch" style="background:#8e8e93;"></span> &lt;52 (Crowded)</span>
+              <span><span class="legend-swatch" style="background:#ffd60a;"></span> Focused Tag</span>
+              <span class="size-key-inline">
+                <span class="size-dot s-sm"></span><span class="size-dot s-md"></span><span class="size-dot s-lg"></span>
+                Bubble Size = Median Reviews
+              </span>
+              <span class="sweet-spot-tag">Top-Right = Sweet Spot</span>
             </div>
 
             <!-- Graphic Display Container -->
@@ -1667,7 +1703,6 @@
           <aside class="inspector-card tetris-panel" id="boring-tags-picker-card">
             <div class="inspector-header">
               <div>
-                <span class="eyebrow">COMPOSITE DEV INDEX</span>
                 <h3>Top Developer Tags</h3>
               </div>
               <span class="selected-tags-badge" id="boring-tags-selected-count">345 Tags</span>
@@ -1696,7 +1731,6 @@
         <div class="chart-card tetris-panel">
           <div class="chart-card-header">
             <div>
-              <span class="eyebrow">MARKET VELOCITY &bull; RELATIVE GROWTH</span>
               <h2>Trending Tags on Steam (2024–2026)</h2>
               <p class="chart-subtitle">Tags demonstrating the fastest relative market share growth from 2024 to 2026 releases.</p>
             </div>
@@ -1720,7 +1754,6 @@
         <div class="chart-card tetris-panel">
           <div class="chart-card-header">
             <div>
-              <span class="eyebrow">COMMERCIAL BENCHMARKS &bull; PRICING STRATEGY</span>
               <h2>Cost of the Average Game</h2>
               <p class="chart-subtitle">Analyzing base price distribution, average price benchmarks, and pricing vs. review success tiers.</p>
             </div>
@@ -1756,24 +1789,12 @@
             </div>
           </div>
 
-          <!-- Main Cost Chart Container -->
-          <div class="cost-chart-wrapper" id="boring-cost-chart-container" style="margin-top: 18px;">
+          <!-- Main Cost Chart Legend & Container -->
+          <div class="chart-inline-legend" id="boring-cost-legend" style="margin-top: 14px;"></div>
+          <div class="cost-chart-wrapper" id="boring-cost-chart-container" style="margin-top: 10px;">
             <!-- Dynamically populated SVG -->
           </div>
         </div>
-      </div>
-
-      <!-- Bottom Navigation Bar for "Boring stuff" (3 Sections) -->
-      <div class="bottom-subnav boring-bottom-subnav" role="tablist" aria-label="Boring Stuff Sub-sections">
-        <button type="button" class="subnav-btn active" data-boringsubview="boring-best-tags" role="tab" aria-selected="true">
-          Best tags by review count
-        </button>
-        <button type="button" class="subnav-btn" data-boringsubview="boring-trending" role="tab" aria-selected="false">
-          Trending tags
-        </button>
-        <button type="button" class="subnav-btn" data-boringsubview="boring-cost" role="tab" aria-selected="false">
-          Cost of the average game
-        </button>
       </div>
     </section>
 
@@ -1786,7 +1807,6 @@
           <span class="vb-yellow"></span>
         </div>
         <div class="verdict-content">
-          <span class="verdict-tag">STUDY SYNTHESIS // FINAL FINDINGS</span>
           <h2 class="verdict-title">Conclusions &amp; Key Developer Takeaways</h2>
         </div>
       </div>
@@ -1796,7 +1816,6 @@
         <!-- Card 1: Adoption vs Bottleneck -->
         <div class="conclusion-card tetris-panel">
           <div class="conclusion-icon">📈</div>
-          <span class="conclusion-badge">FINDING 01 // MARKET ADOPTION</span>
           <h3>The Disclosure Surge vs. Discovery Bottleneck</h3>
           <p>
             Generative AI disclosure in new Steam games exploded from <strong>1.5% in January 2024</strong> to <strong>47.2% by late 2026</strong>, yet AI games shrink from <strong>35.6% of zero-review titles</strong> to <strong>9.48% of games reaching 1,000+ reviews</strong>. Even after controlling for price tier, game age, mature content, and top 20 tags, AI titles still have <strong>41.6% lower odds</strong> of reaching 10+ reviews (<code>OR = 0.584</code>, 95% CI [0.559, 0.610]).
@@ -1806,7 +1825,6 @@
         <!-- Card 2: Review Velocity Friction -->
         <div class="conclusion-card tetris-panel">
           <div class="conclusion-icon">⏱️</div>
-          <span class="conclusion-badge">FINDING 02 // VELOCITY &amp; TRUST</span>
           <h3>The 18.5% Review Velocity Friction</h3>
           <p>
             Non-AI games reach Steam's critical 10-review visibility threshold in an average of <strong>142.1 days</strong>, whereas AI games require <strong>168.4 days</strong> &mdash; an 18.5% delay. While hit AI games prove players will embrace great titles regardless of disclosure, the average AI game faces greater community skepticism and slower word-of-mouth.
@@ -1816,7 +1834,6 @@
         <!-- Card 3: Pricing & Confounding Check -->
         <div class="conclusion-card tetris-panel">
           <div class="conclusion-icon">🏷️</div>
-          <span class="conclusion-badge">FINDING 03 // PRICING &amp; CONFOUNDING</span>
           <h3>Not Just Cheap Shovelware (-4.07 pts Controlled)</h3>
           <p>
             AI games average <strong>$6.03</strong> vs <strong>$7.90</strong> (-23.7%) and peak at <strong>28.1% share</strong> in <code>$0.01–$4.99</code>, but budget mix is not the whole story. The score gap persists inside <em>every</em> price tier (including <strong>-4.29 pts</strong> in <code>$15–$29.99</code>). Controlling for price, age, mature content, and genre via OLS leaves a <strong>-4.07 pt</strong> score penalty (95% CI [-4.60, -3.55]) vs <strong>-4.96 pts</strong> raw.
@@ -1826,7 +1843,6 @@
         <!-- Card 4: Genre Mismatch (33.3% Similarity) -->
         <div class="conclusion-card tetris-panel">
           <div class="conclusion-icon">🧩</div>
-          <span class="conclusion-badge">FINDING 04 // GENRE DIVERGENCE</span>
           <h3>The Multiplayer vs. Solo Divide (33.3% Similarity)</h3>
           <p>
             Steam's biggest review drivers &mdash; <code>Multiplayer</code> (#3), <code>Co-op</code> (#6), <code>Open World</code> (#7), and <code>Online Co-Op</code> (#10) &mdash; account for over <strong>24 million reviews</strong>, but developers rarely disclose AI in them (AI ranks #32 to #92). Generative AI remains heavily siloed in solo, casual, and 2D games.
@@ -1836,25 +1852,19 @@
         <!-- Card 5: The "Declares No AI" Blunder -->
         <div class="conclusion-card tetris-panel">
           <div class="conclusion-icon">⚠️</div>
-          <span class="conclusion-badge">FINDING 05 // DEVELOPER TRAP</span>
           <h3>The "Declares No AI" Self-Inflicted Tag</h3>
           <p>
             Over <strong>116 developers</strong> typed <em>"We do NOT use AI"</em> into Steam's AI disclosure form. Because Steam's system flags any game with text in that field, these games received the AI disclosure badge anyway &mdash; subjecting them to automated filters, user skepticism, and browser extensions designed to blur AI content.
           </p>
         </div>
       </div>
-
       <!-- 3 Collapsible Advice Panels (Click to Reveal) -->
-      <div class="advice-section-header">
-        <span class="eyebrow">ADVICE // CLICK ANY PANEL TO REVEAL</span>
-      </div>
       <div class="advice-panels-grid">
         <button type="button" class="advice-panel tetris-panel" aria-expanded="false">
           <div class="advice-panel-header">
             <div class="advice-title-group">
               <span class="advice-icon">🤖</span>
               <div>
-                <span class="conclusion-badge">PERSPECTIVE 01</span>
                 <h3>AI Advice</h3>
               </div>
             </div>
@@ -1872,7 +1882,6 @@
             <div class="advice-title-group">
               <span class="advice-icon">🎮</span>
               <div>
-                <span class="conclusion-badge">PERSPECTIVE 02</span>
                 <h3>My Advice</h3>
               </div>
             </div>
@@ -1890,7 +1899,6 @@
             <div class="advice-title-group">
               <span class="advice-icon">🧥</span>
               <div>
-                <span class="conclusion-badge">PERSPECTIVE 03</span>
                 <h3>Jensen Huang Advice</h3>
               </div>
             </div>

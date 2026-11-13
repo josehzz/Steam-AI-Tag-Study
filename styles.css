@@ -151,19 +151,6 @@ h1, h2, h3, h4, .q-title, .tetris-title {
   color: #ffffff;
 }
 
-/* Clean Apple Eyebrow / Section Category Tag */
-.eyebrow {
-  display: inline-block;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", sans-serif;
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--apple-blue);
-  margin-bottom: 6px;
-  text-shadow: none;
-}
-
 /* ==========================================================================
    Apple Frosted Glass Cards & Panels
    ========================================================================== */
@@ -206,16 +193,24 @@ h1, h2, h3, h4, .q-title, .tetris-title {
   top: 0;
   z-index: 100;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 18px;
-  padding: 12px 28px;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 0;
   background: rgba(18, 18, 20, 0.75);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.topbar-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 12px 28px;
   flex-wrap: wrap;
+  width: 100%;
 }
 
 .topbar-brand {
@@ -318,11 +313,29 @@ h1, h2, h3, h4, .q-title, .tetris-title {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
+.nav-caret {
+  display: inline-block;
+  font-size: 0.72rem;
+  margin-left: 3px;
+  opacity: 0.55;
+  transition: transform 0.22s ease, opacity 0.18s ease, color 0.18s ease;
+}
+
+.nav-btn:hover .nav-caret {
+  opacity: 0.9;
+}
+
+.nav-btn.active .nav-caret {
+  opacity: 1;
+  color: #5ac8fa;
+  transform: translateY(1px);
+}
+
 /* Main Container Layout */
 .main-container {
   max-width: 1420px;
   margin: 0 auto;
-  padding: 28px 24px 104px;
+  padding: 28px 24px 56px;
 }
 
 .tab-section {
@@ -932,16 +945,6 @@ h1, h2, h3, h4, .q-title, .tetris-title {
   text-shadow: none;
 }
 
-.verdict-tag {
-  display: block;
-  font-size: 0.72rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--apple-blue);
-  margin-bottom: 2px;
-}
-
 .verdict-title {
   font-size: 1.15rem;
   font-weight: 600;
@@ -1098,21 +1101,40 @@ h1, h2, h3, h4, .q-title, .tetris-title {
 /* Stacked Bar Plot Stage */
 .stacked-chart-wrapper {
   display: grid;
-  grid-template-columns: 56px 1fr;
+  grid-template-columns: 64px 1fr;
   gap: 10px;
-  height: 400px;
-  padding-top: 12px;
+  height: 390px;
+  padding-top: 28px;
+}
+
+.y-axis-col {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding-bottom: 36px;
+  position: relative;
+}
+
+.y-axis-unit-label {
+  position: absolute;
+  top: -22px;
+  right: 0;
+  font-family: ui-monospace, "SF Mono", monospace;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: rgba(235, 235, 245, 0.65);
+  white-space: nowrap;
 }
 
 .y-axis-labels {
+  flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   align-items: flex-end;
-  padding-bottom: 36px;
   font-family: ui-monospace, "SF Mono", monospace;
-  font-size: 0.74rem;
-  color: var(--text-muted);
+  font-size: 0.75rem;
+  color: rgba(235, 235, 245, 0.72);
 }
 
 .chart-plot-area {
@@ -1121,10 +1143,11 @@ h1, h2, h3, h4, .q-title, .tetris-title {
   grid-template-columns: repeat(6, 1fr);
   gap: 14px;
   align-items: end;
-  padding: 0 10px 36px;
-  border-left: 1px solid rgba(255, 255, 255, 0.08);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px) 0 0 / 100% 25%;
+  padding: 0 10px;
+  margin-bottom: 36px;
+  border-left: 1px solid rgba(255, 255, 255, 0.16);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.07) 1px, transparent 1px) 0 0 / 100% 25%;
 }
 
 .bar-column {
@@ -1138,29 +1161,32 @@ h1, h2, h3, h4, .q-title, .tetris-title {
 }
 
 .bar-top-value {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
   font-family: ui-monospace, "SF Mono", monospace;
-  font-size: 0.74rem;
+  font-size: 0.73rem;
   font-weight: 600;
-  color: var(--text-secondary);
-  margin-bottom: 6px;
-  transition: all 0.15s ease;
+  color: rgba(245, 245, 247, 0.85);
+  white-space: nowrap;
+  pointer-events: none;
+  transition: color 0.15s ease;
 }
 
 .bar-column:hover .bar-top-value,
 .bar-column.selected .bar-top-value {
   color: #ffffff;
-  transform: translateY(-2px);
 }
 
 .bar-stack {
   width: 100%;
-  max-width: 68px;
+  max-width: 70px;
   display: flex;
   flex-direction: column-reverse;
   border-radius: 6px 6px 0 0;
   overflow: hidden;
   transition: height 0.32s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.18s ease;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .bar-column:hover .bar-stack {
@@ -1491,35 +1517,81 @@ h1, h2, h3, h4, .q-title, .tetris-title {
 }
 
 /* ==========================================================================
-   Floating Bottom Sub-Navigation Bar (Apple Dock Capsule)
+   Unfolding Second Top Navigation Bar (Section Sub-Views)
    ========================================================================== */
-.has-bottom-bar {
-  padding-bottom: 96px;
+.topbar-subnav-drawer {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  visibility: hidden;
+  border-top: 1px solid rgba(255, 255, 255, 0);
+  background: rgba(255, 255, 255, 0.025);
+  transition:
+    grid-template-rows 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.22s ease,
+    border-color 0.25s ease,
+    visibility 0s linear 0.28s;
 }
 
-.bottom-subnav {
-  position: fixed;
-  bottom: 22px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 95;
-  display: inline-flex;
+.topbar-subnav-drawer.is-open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  visibility: visible;
+  border-top-color: rgba(255, 255, 255, 0.08);
+  transition:
+    grid-template-rows 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.22s ease,
+    border-color 0.25s ease,
+    visibility 0s linear 0s;
+}
+
+.topbar-subnav-inner {
+  overflow: hidden;
+  min-height: 0;
+}
+
+.topbar-subnav-bar {
+  padding: 8px 28px 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.section-subnav {
+  display: none;
   align-items: center;
   gap: 5px;
-  max-width: calc(100vw - 32px);
+  max-width: 100%;
   overflow-x: auto;
   scrollbar-width: none;
-  padding: 6px;
-  background: rgba(26, 26, 32, 0.84);
-  backdrop-filter: blur(30px) saturate(210%);
-  -webkit-backdrop-filter: blur(30px) saturate(210%);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  box-shadow: 0 16px 42px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.14);
-  backdrop-filter: blur(28px) saturate(190%);
-  -webkit-backdrop-filter: blur(28px) saturate(190%);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 4px;
+  background: rgba(118, 118, 128, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: var(--radius-full);
-  box-shadow: var(--shadow-dock);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.section-subnav::-webkit-scrollbar {
+  display: none;
+}
+
+.section-subnav.active {
+  display: inline-flex;
+}
+
+.section-subnav.is-animating {
+  animation: subnavUnfold 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes subnavUnfold {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .subnav-btn {
@@ -1528,9 +1600,9 @@ h1, h2, h3, h4, .q-title, .tetris-title {
   background: transparent;
   color: var(--text-secondary);
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", sans-serif;
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   font-weight: 500;
-  padding: 7px 16px;
+  padding: 6px 14px;
   border-radius: var(--radius-full);
   cursor: pointer;
   transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
@@ -1543,10 +1615,11 @@ h1, h2, h3, h4, .q-title, .tetris-title {
 }
 
 .subnav-btn.active,
-.data-bottom-subnav .subnav-btn.active,
-.more-bottom-subnav .subnav-btn.active,
-.fun-bottom-subnav .subnav-btn.active,
-.boring-bottom-subnav .subnav-btn.active {
+.data-subnav .subnav-btn.active,
+.relevant-subnav .subnav-btn.active,
+.more-subnav .subnav-btn.active,
+.fun-subnav .subnav-btn.active,
+.boring-subnav .subnav-btn.active {
   background: var(--apple-blue);
   color: #ffffff;
   box-shadow: 0 2px 10px rgba(10, 132, 255, 0.4);
@@ -1592,7 +1665,7 @@ h1, h2, h3, h4, .q-title, .tetris-title {
 .time-chart-wrapper {
   position: relative;
   width: 100%;
-  height: 380px;
+  height: auto;
   background: rgba(0, 0, 0, 0.25);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: var(--radius-md);
@@ -1603,8 +1676,28 @@ h1, h2, h3, h4, .q-title, .tetris-title {
 .velocity-chart-wrapper svg,
 .time-chart-wrapper svg {
   width: 100%;
-  height: 100%;
+  height: auto;
   display: block;
+}
+
+.chart-inline-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  align-items: center;
+  margin-top: 6px;
+  margin-bottom: 4px;
+  font-size: 0.76rem;
+  color: var(--text-secondary);
+}
+
+.m-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+  vertical-align: middle;
 }
 
 .vel-node,
@@ -1653,15 +1746,16 @@ h1, h2, h3, h4, .q-title, .tetris-title {
   color: var(--text-secondary);
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", sans-serif;
   font-weight: 600;
-  font-size: 0.74rem;
+  font-size: 0.72rem;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  padding: 10px 14px;
+  letter-spacing: 0.03em;
+  padding: 10px 10px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  white-space: nowrap;
+  white-space: normal;
+  line-height: 1.3;
 }
 
-.th-rank { width: 48px; text-align: center; }
+.th-rank { width: 38px; text-align: center; }
 .th-rev, .th-ai, .th-diff { font-weight: 600; }
 
 .vel-comparison-bars {
@@ -1689,9 +1783,23 @@ h1, h2, h3, h4, .q-title, .tetris-title {
 }
 
 .similarity-table td {
-  padding: 11px 14px;
+  padding: 10px 10px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.04);
   color: var(--text-secondary);
+  vertical-align: middle;
+}
+
+.sim-row-overlap td {
+  background: rgba(48, 209, 88, 0.045);
+}
+
+.sim-overlap-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--apple-green);
+  margin-right: 6px;
   vertical-align: middle;
 }
 
@@ -1709,15 +1817,16 @@ h1, h2, h3, h4, .q-title, .tetris-title {
   font-weight: 600;
   color: #ffffff;
   display: flex;
-  align-items: center;
+  flex-wrap: wrap;
+  align-items: baseline;
   justify-content: space-between;
-  gap: 10px;
+  gap: 2px 8px;
 }
 
 .tag-count-sub {
   font-family: ui-monospace, "SF Mono", monospace;
   font-size: 0.72rem;
-  color: var(--text-muted);
+  color: rgba(235, 235, 245, 0.62);
 }
 
 .diff-badge {
@@ -2240,23 +2349,47 @@ h1, h2, h3, h4, .q-title, .tetris-title {
 
 .pie-legend-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
+  grid-template-columns: 1fr;
+  gap: 7px;
   width: 100%;
-  max-width: 500px;
+  max-width: 540px;
 }
 
 .pie-legend-item {
-  display: flex;
+  display: grid;
+  grid-template-columns: 10px minmax(115px, auto) 1fr auto;
   align-items: center;
-  gap: 8px;
-  padding: 6px 10px;
+  gap: 10px;
+  padding: 8px 12px;
   border-radius: var(--radius-sm);
   background: var(--bg-subcard);
   border: 1px solid rgba(255, 255, 255, 0.06);
-  font-size: 0.76rem;
+  font-size: 0.78rem;
   cursor: pointer;
   transition: all 0.14s ease;
+}
+
+.pie-legend-bar-track {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.pie-legend-bar-fill {
+  height: 100%;
+  border-radius: 9999px;
+}
+
+.vs-visual-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: var(--radius-md);
 }
 
 .pie-legend-item:hover,
@@ -2563,12 +2696,19 @@ h1, h2, h3, h4, .q-title, .tetris-title {
 .cost-chart-wrapper {
   position: relative;
   width: 100%;
-  min-height: 380px;
+  min-height: 0;
+  height: auto;
   background: rgba(0, 0, 0, 0.25);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: var(--radius-md);
   overflow: hidden;
   margin-top: 10px;
+}
+
+.cost-chart-wrapper svg {
+  width: 100%;
+  height: auto;
+  display: block;
 }
 
 .boring-tag-checklist {
@@ -2612,6 +2752,27 @@ h1, h2, h3, h4, .q-title, .tetris-title {
   grid-template-columns: repeat(4, 1fr);
   gap: 12px;
   margin-top: 14px;
+}
+
+.pricing-kpi-row .kpi-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+}
+
+.pricing-kpi-row .kpi-value {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", sans-serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.pricing-kpi-row .kpi-sub {
+  font-size: 0.74rem;
+  color: var(--text-secondary);
 }
 
 @media (max-width: 900px) {
@@ -2658,15 +2819,6 @@ h1, h2, h3, h4, .q-title, .tetris-title {
   font-size: 1.8rem;
   line-height: 1;
   margin-bottom: 2px;
-}
-
-.conclusion-badge {
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", sans-serif;
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: var(--apple-blue);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
 }
 
 .conclusion-card h3 {
@@ -3010,9 +3162,26 @@ h1, h2, h3, h4, .q-title, .tetris-title {
 
 .boring-tags-chart-wrapper svg {
   width: 100%;
-  height: 100%;
+  height: auto;
   display: block;
 }
+
+.size-key-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.size-dot {
+  display: inline-block;
+  border-radius: 50%;
+  background: rgba(235, 235, 245, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.size-dot.s-sm { width: 6px; height: 6px; }
+.size-dot.s-md { width: 10px; height: 10px; }
+.size-dot.s-lg { width: 14px; height: 14px; }
 
 .dev-bubble {
   cursor: pointer;
@@ -3087,12 +3256,8 @@ h1, h2, h3, h4, .q-title, .tetris-title {
 }
 
 /* Conclusions: Click-to-Reveal Advice Panels */
-.advice-section-header {
-  margin-top: 28px;
-  margin-bottom: 8px;
-}
-
 .advice-panels-grid {
+  margin-top: 28px;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 18px;
@@ -3359,13 +3524,6 @@ body {
   background-clip: text;
   -webkit-text-fill-color: transparent;
   letter-spacing: -0.02em;
-}
-
-.eyebrow {
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  font-weight: 600;
-  color: rgba(100, 210, 255, 0.85);
 }
 
 /* 4. Segmented Toggles & Interactive Filter Controls */
@@ -3746,8 +3904,6 @@ body {
 
 .trending-cards-scroll {
   padding: 16px 20px;
-  max-height: 480px;
-  overflow-y: auto;
 }
 
 .trending-cards-grid {
@@ -3933,7 +4089,7 @@ body {
   transform: translateY(-1px);
 }
 
-/* 13. Floating Bottom Subnav Pill & Tooltip Glass */
+/* 13. Second-Bar Subnav Pill & Tooltip Glass */
 .subnav-btn {
   border-radius: 9999px;
   transition: color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease, transform 0.14s ease;
@@ -3945,7 +4101,7 @@ body {
 }
 
 .subnav-btn.active,
-.boring-bottom-subnav .subnav-btn.active {
+.boring-subnav .subnav-btn.active {
   background: linear-gradient(180deg, rgba(10, 132, 255, 0.92), rgba(10, 114, 230, 0.92));
   color: #ffffff;
   box-shadow: 0 4px 14px rgba(10, 132, 255, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.28);
