@@ -20,7 +20,7 @@ const INTRO_QUESTIONS = [
     num: "03",
     color: "orange",
     question: "Why?",
-    answer: "Me and many other devs feel overwhelmed by how much polarization AI technology is causing"
+    answer: "I and many other game developers feel overwhelmed by how much polarization AI technology is causing"
   },
   {
     num: "04",
@@ -38,7 +38,7 @@ const INTRO_QUESTIONS = [
     num: "06",
     color: "red",
     question: "Why? (again)",
-    answer: "I choose that date because Steam implemented the AI disclosure tag on Jan-2024 and I need a job, please hire me!"
+    answer: "I choose that date because Steam implemented the AI disclosure tag on Jan-2024, and I'm trying to build my portfolio with a fun data visualization project"
   }
 ];
 
@@ -294,227 +294,6 @@ const fmtInt = (n) => Number(n).toLocaleString("en-US");
 const fmtPct = (n) => `${n.toFixed(2)}%`;
 
 /* =========================================================
-   WEBGL SHADER BACKGROUND: Abstract Latent-Space Silk &
-   Iridescent Caustic Contour Field (Apple Dark Coherent)
-   ========================================================= */
-function initAmbientShaderBackground() {
-  const canvas = document.getElementById("ambient-shader-bg");
-  if (!canvas) return;
-
-  const gl = canvas.getContext("webgl", { alpha: false, antialias: false, powerPreference: "low-power" });
-  if (!gl) return;
-
-  const vsSource = `
-    attribute vec2 a_position;
-    void main() {
-      gl_Position = vec4(a_position, 0.0, 1.0);
-    }
-  `;
-
-  const fsSource = `
-    #ifdef GL_ES
-    precision highp float;
-    #endif
-
-    uniform vec2 u_resolution;
-    uniform float u_time;
-    uniform vec2 u_mouse;
-
-    float hash21(vec2 p) {
-      p = fract(p * vec2(123.34, 456.21));
-      p += dot(p, p + 45.32);
-      return fract(p.x * p.y);
-    }
-
-    float noise(vec2 p) {
-      vec2 i = floor(p);
-      vec2 f = fract(p);
-      vec2 u = f * f * (3.0 - 2.0 * f);
-
-      float a = hash21(i);
-      float b = hash21(i + vec2(1.0, 0.0));
-      float c = hash21(i + vec2(0.0, 1.0));
-      float d = hash21(i + vec2(1.0, 1.0));
-
-      return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
-    }
-
-    float fbm(vec2 p) {
-      float v = 0.0;
-      float amp = 0.5;
-      mat2 rot = mat2(0.80, -0.60, 0.60, 0.80);
-      for (int i = 0; i < 4; i++) {
-        v += amp * noise(p);
-        p = rot * p * 2.02 + vec2(13.1, 7.7);
-        amp *= 0.5;
-      }
-      return v;
-    }
-
-    void main() {
-      vec2 fragNorm = gl_FragCoord.xy / max(u_resolution.xy, vec2(1.0));
-      vec2 uv = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / min(u_resolution.x, u_resolution.y);
-      vec2 mouseUv = (u_mouse - 0.5) * vec2(u_resolution.x / max(u_resolution.y, 1.0), 1.0);
-
-      float t = u_time * 0.09;
-
-      // Subtle mouse gravity/parallax shift
-      vec2 mouseDelta = uv - mouseUv;
-      float mouseDist = length(mouseDelta);
-      vec2 p = uv * 1.45 - mouseDelta * (0.14 * exp(-mouseDist * 1.8));
-
-      // Two-stage domain-warped latent flow field
-      vec2 q = vec2(
-        fbm(p + vec2(0.0, t * 0.45)),
-        fbm(p + vec2(5.2, 1.3) - vec2(t * 0.35, 0.0))
-      );
-
-      vec2 r = vec2(
-        fbm(p + 2.35 * q + vec2(1.7, 9.2) + 0.32 * t),
-        fbm(p + 2.35 * q + vec2(8.3, 2.8) - 0.26 * t)
-      );
-
-      float f = fbm(p + 1.95 * r);
-
-      // Dashboard-coherent Apple Dark obsidian, sapphire, teal & violet palette
-      vec3 colVoid   = vec3(0.012, 0.014, 0.024);
-      vec3 colIndigo = vec3(0.055, 0.065, 0.180);
-      vec3 colBlue   = vec3(0.039, 0.518, 1.000); // #0a84ff
-      vec3 colTeal   = vec3(0.392, 0.824, 1.000); // #64d2ff
-      vec3 colPurple = vec3(0.749, 0.353, 0.949); // #bf5af2
-      vec3 colGreen  = vec3(0.188, 0.820, 0.345); // #30d158 (restrained accent)
-
-      // Base silky aurora blend
-      vec3 col = mix(colVoid, colIndigo, clamp(f * f * 2.1, 0.0, 1.0));
-      col = mix(col, colBlue * 0.52, clamp(length(q) * 0.72, 0.0, 1.0));
-      col = mix(col, colPurple * 0.42, smoothstep(0.35, 0.95, r.x));
-      col += colTeal * (0.24 * pow(clamp(r.y, 0.0, 1.0), 2.4));
-      col += colGreen * (0.06 * smoothstep(0.62, 0.96, q.y * r.x + 0.2));
-
-      // Delicate abstract caustic contour filaments
-      float contourWave = abs(fract(f * 5.5 - u_time * 0.035) - 0.5);
-      float ridge = exp(-contourWave * 22.0);
-      float flowEnergy = smoothstep(0.28, 0.88, length(q - r));
-      vec3 ridgeCol = mix(colTeal, colPurple, smoothstep(0.3, 0.75, r.x));
-      col += ridgeCol * ridge * flowEnergy * 0.26;
-
-      // Secondary wide atmospheric ribbon sweep
-      float ribbon = exp(-pow(abs(uv.y * 0.85 + (f - 0.5) * 1.15), 2.0) * 6.5);
-      col += mix(colBlue, colPurple, clamp(fragNorm.x, 0.0, 1.0)) * ribbon * 0.18;
-
-      // Soft cursor refraction halo
-      float cursorGlow = exp(-mouseDist * mouseDist * 2.6);
-      col += mix(colBlue, colTeal, 0.5) * cursorGlow * 0.09;
-
-      // Balanced contrast & corner grounding vignette for readable glass panels
-      float vig = 1.0 - 0.42 * dot(fragNorm - 0.5, fragNorm - 0.5) * 2.2;
-      col *= clamp(vig, 0.48, 1.0);
-      col = col / (1.0 + col * 0.45); // Soft filmic rolloff
-
-      // Subtle anti-banding dither
-      float dither = (hash21(gl_FragCoord.xy + fract(u_time)) - 0.5) / 255.0;
-      col = max(col + dither, 0.0);
-
-      gl_FragColor = vec4(col, 1.0);
-    }
-  `;
-
-  function compileShader(type, source) {
-    const shader = gl.createShader(type);
-    gl.shaderSource(shader, source);
-    gl.compileShader(shader);
-    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-      console.error("Shader compile error:", gl.getShaderInfoLog(shader));
-      gl.deleteShader(shader);
-      return null;
-    }
-    return shader;
-  }
-
-  const vs = compileShader(gl.VERTEX_SHADER, vsSource);
-  const fs = compileShader(gl.FRAGMENT_SHADER, fsSource);
-  if (!vs || !fs) return;
-
-  const program = gl.createProgram();
-  gl.attachShader(program, vs);
-  gl.attachShader(program, fs);
-  gl.linkProgram(program);
-  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) return;
-
-  const posBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, posBuffer);
-  gl.bufferData(
-    gl.ARRAY_BUFFER,
-    new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]),
-    gl.STATIC_DRAW
-  );
-
-  const posLoc = gl.getAttribLocation(program, "a_position");
-  const resLoc = gl.getUniformLocation(program, "u_resolution");
-  const timeLoc = gl.getUniformLocation(program, "u_time");
-  const mouseLoc = gl.getUniformLocation(program, "u_mouse");
-
-  const targetMouse = { x: 0.5, y: 0.55 };
-  const smoothMouse = { x: 0.5, y: 0.55 };
-
-  window.addEventListener("pointermove", (e) => {
-    targetMouse.x = e.clientX / Math.max(window.innerWidth, 1);
-    targetMouse.y = 1.0 - e.clientY / Math.max(window.innerHeight, 1);
-  }, { passive: true });
-
-  function resize() {
-    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
-    canvas.width = Math.max(1, Math.floor(window.innerWidth * dpr));
-    canvas.height = Math.max(1, Math.floor(window.innerHeight * dpr));
-    gl.viewport(0, 0, canvas.width, canvas.height);
-  }
-  window.addEventListener("resize", resize);
-  resize();
-
-  const reducedMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const startTime = performance.now();
-  let rafId = null;
-
-  function drawFrame(elapsed) {
-    smoothMouse.x += (targetMouse.x - smoothMouse.x) * 0.04;
-    smoothMouse.y += (targetMouse.y - smoothMouse.y) * 0.04;
-
-    gl.useProgram(program);
-    gl.bindBuffer(gl.ARRAY_BUFFER, posBuffer);
-    gl.enableVertexAttribArray(posLoc);
-    gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
-    gl.uniform2f(resLoc, canvas.width, canvas.height);
-    gl.uniform1f(timeLoc, elapsed);
-    gl.uniform2f(mouseLoc, smoothMouse.x, smoothMouse.y);
-    gl.drawArrays(gl.TRIANGLES, 0, 6);
-  }
-
-  function render(now) {
-    if (document.hidden) {
-      rafId = null;
-      return;
-    }
-    const elapsed = (now - startTime) * 0.001;
-    drawFrame(elapsed);
-    if (!reducedMotion) {
-      rafId = requestAnimationFrame(render);
-    }
-  }
-
-  document.addEventListener("visibilitychange", () => {
-    if (!document.hidden && !reducedMotion && rafId === null) {
-      rafId = requestAnimationFrame(render);
-    }
-  });
-
-  if (reducedMotion) {
-    drawFrame(12.0);
-  } else {
-    rafId = requestAnimationFrame(render);
-  }
-}
-
-/* =========================================================
    1. TOPBAR NAVIGATION
    ========================================================= */
 function initTopbarNavigation() {
@@ -537,6 +316,7 @@ function initTopbarNavigation() {
         if (activeSub && activeSub.id === "subview-review-velocity") renderReviewVelocity();
         else if (activeSub && activeSub.id === "subview-similarity") initSimilarityView();
         else if (activeSub && activeSub.id === "subview-over-time") renderOverTimeChart();
+        else if (activeSub && activeSub.id === "subview-price-stratified") renderPriceStratified();
         else renderStackedBarChart();
       } else if (target === "more-info") {
         const activeSub = document.querySelector("#section-more-info .more-subview.active");
@@ -548,7 +328,6 @@ function initTopbarNavigation() {
       } else if (target === "for-fun") {
         const activeSub = document.querySelector("#section-for-fun .fun-subview.active");
         if (activeSub && activeSub.id === "subview-fun-word-ai") renderFunWordAi();
-        else if (activeSub && activeSub.id === "subview-fun-inflation") renderFunInflation();
         else renderFunFoot();
       } else if (target === "boring-stuff") {
         const activeSub = document.querySelector("#section-boring-stuff .boring-subview.active");
@@ -703,6 +482,7 @@ function initRelevantSubnav() {
       else if (target === "review-velocity") renderReviewVelocity();
       else if (target === "similarity") initSimilarityView();
       else if (target === "over-time") renderOverTimeChart();
+      else if (target === "price-stratified") renderPriceStratified();
     });
   });
 }
@@ -2126,13 +1906,11 @@ function initFunSubnav() {
 
       if (target === "fun-foot") renderFunFoot();
       else if (target === "fun-word-ai") renderFunWordAi();
-      else if (target === "fun-inflation") renderFunInflation();
     });
   });
 
   initFunFootView();
   initFunWordAiView();
-  initFunInflationView();
 }
 
 function initFunFootView() {
@@ -2585,146 +2363,289 @@ function renderFunCostVs() {
   }
 }
 
-function initFunInflationView() {
-  renderFunInflation();
+let priceStratMetric = "avgScore";
+let priceStratExcludeMature = false;
+let priceStratSelectedTier = null;
+
+function initPriceStratifiedView() {
+  const metricBtns = document.querySelectorAll("#price-strat-metric-toggle .mode-btn");
+  metricBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      priceStratMetric = btn.getAttribute("data-metric") || "avgScore";
+      metricBtns.forEach((b) => b.classList.toggle("active", b === btn));
+      renderPriceStratified();
+    });
+  });
+
+  const matureBtn = document.getElementById("price-strat-mature-toggle");
+  if (matureBtn) {
+    matureBtn.addEventListener("click", () => {
+      priceStratExcludeMature = !priceStratExcludeMature;
+      matureBtn.classList.toggle("active", priceStratExcludeMature);
+      matureBtn.setAttribute("aria-pressed", priceStratExcludeMature ? "true" : "false");
+      renderPriceStratified();
+    });
+  }
+
+  const resetBtn = document.getElementById("reset-price-strat-btn");
+  if (resetBtn) {
+    resetBtn.addEventListener("click", () => {
+      priceStratSelectedTier = null;
+      renderPriceStratified();
+    });
+  }
+
+  renderPriceStratified();
 }
 
-function renderFunInflation() {
-  const container = document.getElementById("inflation-chart-container");
-  const milestonesContainer = document.getElementById("inflation-milestones-row");
-  const headerToday = document.getElementById("inflation-today-header");
-  if (!container || !window.STUDY_DATA_EXTENDED || !window.STUDY_DATA_EXTENDED.funInflation) return;
+function formatPriceStratVal(val, metric) {
+  if (metric === "medianReviews") return Number.isInteger(val) ? fmtInt(val) : val.toFixed(1);
+  return `${val.toFixed(1)}%`;
+}
 
-  const data = window.STUDY_DATA_EXTENDED.funInflation;
-  const today = new Date();
-  const todayStr = today.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
-  if (headerToday) headerToday.textContent = todayStr;
+function renderPriceStratified() {
+  const container = document.getElementById("price-stratified-chart-container");
+  if (!container || !window.STUDY_DATA_EXTENDED || !window.STUDY_DATA_EXTENDED.priceStratified) return;
 
-  const w = 760;
+  const root = window.STUDY_DATA_EXTENDED.priceStratified;
+  const subset = priceStratExcludeMature ? root.nonMature : root.all;
+  const tiers = subset.tiers;
+
+  const footnoteEl = document.getElementById("price-strat-footnote");
+  if (footnoteEl) {
+    const scopeText = priceStratExcludeMature ? "non-mature games only" : "all games";
+    footnoteEl.innerHTML =
+      `Click any price tier to inspect details (${scopeText}). Avg Score uses rated games (<code>review_score &gt; 0</code>, n = ${fmtInt(subset.regression.olsScore.n)}); Median Reviews &amp; 10+ Rate include all ${fmtInt(subset.regression.logitDiscovery10.n)} FALSE/TRUE releases.`;
+  }
+
+  const w = 740;
   const h = 340;
-  const padL = 60;
-  const padR = 40;
-  const padT = 40;
-  const padB = 45;
+  const padL = 56;
+  const padR = 24;
+  const padT = 32;
+  const padB = 56;
   const plotW = w - padL - padR;
   const plotH = h - padT - padB;
 
-  let svg = `<svg viewBox="0 0 ${w} ${h}" style="overflow: visible;">`;
-  svg += `<defs>
-    <linearGradient id="inflationGrad" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#ffe600"/>
-      <stop offset="65%" stop-color="#ff8800"/>
-      <stop offset="100%" stop-color="#ff2a54"/>
-    </linearGradient>
-    <filter id="hyperGlow" x="-50%" y="-50%" width="200%" height="200%">
-      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
-      <feMerge>
-        <feMergeNode in="coloredBlur"/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
-    </filter>
-  </defs>`;
+  const values = tiers.flatMap((t) => [t.FALSE[priceStratMetric], t.TRUE[priceStratMetric]]);
+  let maxY = 100;
+  let ticks = [0, 25, 50, 75, 100];
+  let yFmt = (v) => `${v}%`;
 
-  // Grid lines
-  for (let i = 0; i <= 4; i++) {
-    const yPos = padT + (plotH / 4) * i;
-    svg += `<line x1="${padL}" y1="${yPos}" x2="${w - padR}" y2="${yPos}" stroke="rgba(255,255,255,0.08)" stroke-dasharray="3,3" />`;
+  if (priceStratMetric === "avgScore") {
+    maxY = 100;
+    ticks = [0, 25, 50, 75, 100];
+  } else if (priceStratMetric === "pct10Plus") {
+    maxY = 100;
+    ticks = [0, 25, 50, 75, 100];
+  } else {
+    const rawMax = Math.max(...values, 10);
+    maxY = Math.ceil(rawMax / 20) * 20;
+    ticks = [0, 0.25, 0.5, 0.75, 1].map((f) => Math.round(f * maxY));
+    yFmt = (v) => fmtInt(v);
   }
 
-  // X Axis line
-  svg += `<line x1="${padL}" y1="${padT + plotH}" x2="${w - padR}" y2="${padT + plotH}" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" />`;
+  let svg = `<svg viewBox="0 0 ${w} ${h}">`;
+  svg += `<defs>
+    <linearGradient id="psGradFalse" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#409cff"/>
+      <stop offset="100%" stop-color="#0a84ff"/>
+    </linearGradient>
+    <linearGradient id="psGradTrue" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffb340"/>
+      <stop offset="100%" stop-color="#ff9f0a"/>
+    </linearGradient>
+  </defs>`;
 
-  const milestones = data.milestones;
-  const numM = milestones.length;
-  const xStep = plotW / (numM - 1);
-
-  // Exponential curve points calculation:
-  // Starts flat, accelerates into vertical ascent, then blasts beyond chart top boundary!
-  const curvePts = milestones.map((m, idx) => {
-    const x = padL + idx * xStep;
-    let normY;
-    if (idx === 0) normY = 0.02;
-    else if (idx === 1) normY = 0.05;
-    else if (idx === 2) normY = 0.09;
-    else if (idx === 3) normY = 0.16;
-    else if (idx === 4) normY = 0.32;
-    else if (idx === 5) normY = 0.54;
-    else if (idx === 6) normY = 0.76;
-    else if (idx === 7) normY = 0.94;
-    else normY = 1.35; // BREAKS OUT past 100%!
-
-    const y = padT + plotH - normY * plotH;
-    return { x, y, m };
+  ticks.forEach((tickVal) => {
+    const yPos = padT + plotH - (tickVal / maxY) * plotH;
+    svg += `<line x1="${padL}" y1="${yPos.toFixed(1)}" x2="${w - padR}" y2="${yPos.toFixed(1)}" stroke="rgba(255,255,255,0.07)" stroke-dasharray="3,3" />`;
+    svg += `<text x="${padL - 10}" y="${(yPos + 4).toFixed(1)}" fill="rgba(235,235,245,0.55)" font-family="ui-monospace, monospace" font-size="10.5" text-anchor="end">${yFmt(tickVal)}</text>`;
   });
 
-  const pathD = curvePts.reduce((acc, pt, i) => {
-    if (i === 0) return `M ${pt.x.toFixed(1)} ${pt.y.toFixed(1)}`;
-    const prev = curvePts[i - 1];
-    const cpx = (prev.x + pt.x) / 2;
-    return `${acc} C ${cpx.toFixed(1)} ${prev.y.toFixed(1)}, ${cpx.toFixed(1)} ${pt.y.toFixed(1)}, ${pt.x.toFixed(1)} ${pt.y.toFixed(1)}`;
-  }, "");
+  svg += `<line x1="${padL}" y1="${padT + plotH}" x2="${w - padR}" y2="${padT + plotH}" stroke="rgba(255,255,255,0.22)" stroke-width="1.5" />`;
 
-  svg += `<path d="${pathD}" fill="none" stroke="url(#inflationGrad)" stroke-width="3.5" filter="url(#hyperGlow)" />`;
+  const groupW = plotW / tiers.length;
+  const barW = Math.min(40, groupW * 0.28);
+  const innerGap = 8;
 
-  curvePts.forEach((pt, idx) => {
-    const isLast = idx === curvePts.length - 1;
-    const r = isLast ? 7 : 4.5;
-    const col = isLast ? "#ff2a54" : "#ffe600";
+  tiers.forEach((tier, idx) => {
+    const cx = padL + idx * groupW + groupW / 2;
+    const isSelected = priceStratSelectedTier === tier.key;
+    const dimOther = priceStratSelectedTier && !isSelected;
 
-    svg += `<circle cx="${pt.x.toFixed(1)}" cy="${pt.y.toFixed(1)}" r="${r}" fill="${col}" stroke="#05070e" stroke-width="2" class="vel-node" data-year="${pt.m.year}" data-label="${pt.m.label}" data-rate="${pt.m.rate}" />`;
-    svg += `<text x="${pt.x.toFixed(1)}" y="${padT + plotH + 20}" fill="rgba(235, 235, 245, 0.55)" font-family="ui-monospace, SFMono-Regular, monospace" font-size="9.5" text-anchor="middle">${pt.m.year}</text>`;
+    const valF = tier.FALSE[priceStratMetric];
+    const valT = tier.TRUE[priceStratMetric];
+    const hF = Math.max(2, (valF / maxY) * plotH);
+    const hT = Math.max(2, (valT / maxY) * plotH);
+    const xF = cx - innerGap / 2 - barW;
+    const xT = cx + innerGap / 2;
+    const yF = padT + plotH - hF;
+    const yT = padT + plotH - hT;
 
-    if (isLast) {
-      svg += `
-        <text x="${pt.x.toFixed(1) - 10}" y="${pt.y.toFixed(1) - 14}" fill="#ff453a" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif" font-size="11.5" font-weight="700" text-anchor="end">🚀 OVERFLOW!</text>
-        <circle cx="${pt.x.toFixed(1)}" cy="${pt.y.toFixed(1)}" r="14" fill="none" stroke="#ff2a54" stroke-width="1.5" stroke-dasharray="3,3" opacity="0.8"/>
-      `;
-    }
+    const bgOpacity = isSelected ? 0.1 : 0.0;
+    const strokeCol = isSelected ? "rgba(100, 210, 255, 0.45)" : "transparent";
+
+    svg += `<g class="price-strat-tier-group" data-tier-key="${tier.key}" style="cursor: pointer; opacity: ${dimOther ? 0.45 : 1}; transition: opacity 0.18s ease;">`;
+    svg += `<rect x="${(cx - groupW * 0.44).toFixed(1)}" y="${padT - 6}" width="${(groupW * 0.88).toFixed(1)}" height="${plotH + 10}" rx="8" fill="rgba(255,255,255,${bgOpacity})" stroke="${strokeCol}" stroke-width="1.2" />`;
+
+    svg += `<rect x="${xF.toFixed(1)}" y="${yF.toFixed(1)}" width="${barW}" height="${hF.toFixed(1)}" rx="4" fill="url(#psGradFalse)" />`;
+    svg += `<rect x="${xT.toFixed(1)}" y="${yT.toFixed(1)}" width="${barW}" height="${hT.toFixed(1)}" rx="4" fill="url(#psGradTrue)" />`;
+
+    svg += `<text x="${(xF + barW / 2).toFixed(1)}" y="${(yF - 6).toFixed(1)}" fill="#64d2ff" font-family="ui-monospace, monospace" font-size="10.5" font-weight="600" text-anchor="middle">${formatPriceStratVal(valF, priceStratMetric)}</text>`;
+    svg += `<text x="${(xT + barW / 2).toFixed(1)}" y="${(yT - 6).toFixed(1)}" fill="#ffb340" font-family="ui-monospace, monospace" font-size="10.5" font-weight="600" text-anchor="middle">${formatPriceStratVal(valT, priceStratMetric)}</text>`;
+
+    svg += `<text x="${cx.toFixed(1)}" y="${padT + plotH + 18}" fill="#f5f5f7" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif" font-size="11" font-weight="600" text-anchor="middle">${tier.shortLabel}</text>`;
+    svg += `<text x="${cx.toFixed(1)}" y="${padT + plotH + 34}" fill="rgba(235,235,245,0.52)" font-family="ui-monospace, monospace" font-size="9.5" text-anchor="middle">${tier.aiSharePct}% AI (n=${fmtInt(tier.totalGames)})</text>`;
+    svg += `</g>`;
   });
 
   svg += `</svg>`;
   container.innerHTML = svg;
 
-  container.querySelectorAll(".vel-node").forEach((node) => {
-    node.addEventListener("mouseenter", (e) => {
-      const year = node.getAttribute("data-year");
-      const label = node.getAttribute("data-label");
-      const rate = node.getAttribute("data-rate");
+  container.querySelectorAll(".price-strat-tier-group").forEach((grp) => {
+    const key = grp.getAttribute("data-tier-key");
+    const tierObj = tiers.find((t) => t.key === key);
+    if (!tierObj) return;
 
+    grp.addEventListener("click", () => {
+      priceStratSelectedTier = priceStratSelectedTier === key ? null : key;
+      renderPriceStratified();
+    });
+
+    grp.addEventListener("mouseenter", (e) => {
       const tooltip = document.getElementById("chart-tooltip");
       if (!tooltip) return;
+      const metricLabel =
+        priceStratMetric === "avgScore"
+          ? "Avg Score"
+          : priceStratMetric === "medianReviews"
+            ? "Median Reviews"
+            : "10+ Review Rate";
+      const valF = tierObj.FALSE[priceStratMetric];
+      const valT = tierObj.TRUE[priceStratMetric];
+      const diff = valT - valF;
+      const diffStr =
+        priceStratMetric === "medianReviews"
+          ? `${diff >= 0 ? "+" : ""}${diff.toFixed(1)}`
+          : `${diff >= 0 ? "+" : ""}${diff.toFixed(2)} ${priceStratMetric === "avgScore" ? "pts" : "pp"}`;
+
       tooltip.innerHTML = `
-        <div class="tooltip-title">${year} &bull; Hyperinflation Event</div>
+        <div class="tooltip-title">${tierObj.label} (${tierObj.aiSharePct}% AI)</div>
         <div class="tooltip-row">
-          <span>Historical Event:</span>
-          <strong style="color: #ffffff;">${label}</strong>
+          <span>Non-AI ${metricLabel}:</span>
+          <strong style="color: #64d2ff;">${formatPriceStratVal(valF, priceStratMetric)} (n=${fmtInt(tierObj.FALSE.count)})</strong>
         </div>
         <div class="tooltip-row">
-          <span>Reported Rate:</span>
-          <strong style="color: var(--tetris-red);">${rate}</strong>
+          <span>In-Game AI ${metricLabel}:</span>
+          <strong style="color: #ffb340;">${formatPriceStratVal(valT, priceStratMetric)} (n=${fmtInt(tierObj.TRUE.count)})</strong>
+        </div>
+        <div class="tooltip-row">
+          <span>Within-Tier Gap:</span>
+          <strong style="color: var(--apple-red);">${diffStr}</strong>
         </div>
       `;
       tooltip.classList.remove("hidden");
       moveTooltip(e);
     });
 
-    node.addEventListener("mousemove", (e) => moveTooltip(e));
-    node.addEventListener("mouseleave", () => hideTooltip());
+    grp.addEventListener("mousemove", (e) => moveTooltip(e));
+    grp.addEventListener("mouseleave", () => hideTooltip());
   });
 
-  if (milestonesContainer) {
-    milestonesContainer.innerHTML = milestones
-      .map((m) => `
-        <div class="milestone-item">
-          <div class="milestone-year-row">
-            <span class="milestone-year">${m.year}</span>
-            <span class="milestone-rate">${m.rate}</span>
-          </div>
-          <div class="milestone-label">${m.label}</div>
-        </div>
-      `)
-      .join("");
+  renderPriceStratifiedInspector(subset);
+}
+
+function renderPriceStratifiedInspector(subset) {
+  const titleEl = document.getElementById("price-strat-title");
+  const eyebrowEl = document.getElementById("price-strat-eyebrow");
+  const insightEl = document.getElementById("price-strat-insight");
+  const kpisEl = document.getElementById("price-strat-kpis");
+  const resetBtn = document.getElementById("reset-price-strat-btn");
+  const regDescEl = document.getElementById("price-strat-reg-desc");
+  const regGridEl = document.getElementById("price-strat-reg-grid");
+  if (!titleEl || !insightEl || !kpisEl || !regGridEl) return;
+
+  const reg = subset.regression;
+  const scopeLabel = priceStratExcludeMature ? "Non-Mature Games" : "All Games";
+
+  if (priceStratSelectedTier) {
+    const t = subset.tiers.find((item) => item.key === priceStratSelectedTier) || subset.tiers[0];
+    if (eyebrowEl) eyebrowEl.textContent = `SELECTED TIER // ${scopeLabel.toUpperCase()}`;
+    titleEl.textContent = `${t.label} (${fmtInt(t.totalGames)} Games)`;
+    if (resetBtn) resetBtn.classList.remove("hidden");
+
+    const scoreDiff = (t.TRUE.avgScore - t.FALSE.avgScore).toFixed(2);
+    const discDiff = (t.TRUE.pct10Plus - t.FALSE.pct10Plus).toFixed(2);
+    insightEl.innerHTML =
+      `Inside <strong>${t.label}</strong> (${t.aiSharePct}% In-Game AI), Non-AI games average <strong>${t.FALSE.avgScore.toFixed(1)}%</strong> vs. <strong>${t.TRUE.avgScore.toFixed(1)}%</strong> for AI (<strong>${scoreDiff} pts</strong>), with median reviews of <strong>${formatPriceStratVal(t.FALSE.medianReviews, "medianReviews")}</strong> vs. <strong>${formatPriceStratVal(t.TRUE.medianReviews, "medianReviews")}</strong>.`;
+
+    kpisEl.innerHTML = `
+      <div class="kpi-box kpi-false">
+        <span class="kpi-label">Non-AI (FALSE)</span>
+        <span class="kpi-value">${t.FALSE.avgScore.toFixed(1)}% <small>score</small></span>
+        <span class="kpi-sub">${fmtInt(t.FALSE.count)} games &bull; Med ${formatPriceStratVal(t.FALSE.medianReviews, "medianReviews")} rev &bull; ${t.FALSE.pct10Plus.toFixed(1)}% (10+)</span>
+      </div>
+      <div class="kpi-box kpi-true">
+        <span class="kpi-label">In-Game AI (TRUE)</span>
+        <span class="kpi-value">${t.TRUE.avgScore.toFixed(1)}% <small>score</small></span>
+        <span class="kpi-sub">${fmtInt(t.TRUE.count)} games &bull; Med ${formatPriceStratVal(t.TRUE.medianReviews, "medianReviews")} rev &bull; ${t.TRUE.pct10Plus.toFixed(1)}% (10+)</span>
+      </div>
+      <div class="kpi-box kpi-maybe" style="grid-column: 1 / -1;">
+        <span class="kpi-label">Within-Tier Delta (AI minus Non-AI)</span>
+        <span class="kpi-value">${scoreDiff} pts <small>score</small> &bull; ${discDiff} pp <small>10+ discovery</small></span>
+        <span class="kpi-sub">Rated sample: ${fmtInt(t.FALSE.ratedCount)} Non-AI / ${fmtInt(t.TRUE.ratedCount)} AI</span>
+      </div>
+    `;
+  } else {
+    if (eyebrowEl) eyebrowEl.textContent = `TIER & CONFOUNDING SUMMARY // ${scopeLabel.toUpperCase()}`;
+    titleEl.textContent = `All Price Tiers (${scopeLabel})`;
+    if (resetBtn) resetBtn.classList.add("hidden");
+
+    const aaTier = subset.tiers.find((t) => t.key.startsWith("AA"));
+    const microTier = subset.tiers.find((t) => t.key.startsWith("Micro-Indie"));
+    insightEl.innerHTML =
+      `<strong>No Simpson's Paradox:</strong> AI usage concentrates in <strong>${microTier.shortLabel}</strong> (${microTier.aiSharePct}% AI), but the AI penalty holds inside <em>every</em> price tier&mdash;including funded <strong>${aaTier.shortLabel}</strong> games (<strong>${aaTier.TRUE.avgScore.toFixed(1)}% vs. ${aaTier.FALSE.avgScore.toFixed(1)}%</strong>, median <strong>${formatPriceStratVal(aaTier.TRUE.medianReviews, "medianReviews")} vs. ${formatPriceStratVal(aaTier.FALSE.medianReviews, "medianReviews")}</strong> reviews).`;
+
+    kpisEl.innerHTML = `
+      <div class="kpi-box kpi-false">
+        <span class="kpi-label">Raw Avg Score (Non-AI)</span>
+        <span class="kpi-value">${reg.olsScore.rawNonAi.toFixed(2)}%</span>
+        <span class="kpi-sub">Across ${fmtInt(reg.olsScore.n)} rated games total</span>
+      </div>
+      <div class="kpi-box kpi-true">
+        <span class="kpi-label">Raw Avg Score (AI)</span>
+        <span class="kpi-value">${reg.olsScore.rawAi.toFixed(2)}%</span>
+        <span class="kpi-sub">Raw gap: ${reg.olsScore.rawDelta.toFixed(2)} pts</span>
+      </div>
+    `;
   }
+
+  if (regDescEl) {
+    const matureText = priceStratExcludeMature ? "" : "<code>mature_content</code>, ";
+    regDescEl.innerHTML = `Controlling for price, <code>log1p(age_days)</code>, ${matureText}and top 20 Steam tags (${scopeLabel.toLowerCase()}):`;
+  }
+
+  const ols = reg.olsScore;
+  const logit = reg.logitDiscovery10;
+  regGridEl.innerHTML = `
+    <div class="reg-stat-card">
+      <div class="reg-stat-top">
+        <span class="reg-stat-label">OLS Review Score Effect</span>
+        <span class="reg-stat-p">p = ${ols.pLogPrice}</span>
+      </div>
+      <div class="reg-stat-val">${ols.betaLogPrice.toFixed(2)} pts <small>95% CI [${ols.ciLowLogPrice.toFixed(2)}, ${ols.ciHighLogPrice.toFixed(2)}]</small></div>
+      <div class="reg-stat-sub">Raw: ${ols.rawDelta.toFixed(2)} pts &bull; Price-tier dummies: ${ols.betaTier.toFixed(2)} pts (R&sup2;=${ols.r2Tier.toFixed(3)})</div>
+    </div>
+    <div class="reg-stat-card">
+      <div class="reg-stat-top">
+        <span class="reg-stat-label">Logistic Odds of 10+ Reviews</span>
+        <span class="reg-stat-p">p = ${logit.pTier}</span>
+      </div>
+      <div class="reg-stat-val">OR = ${logit.orTier.toFixed(3)} <small>95% CI [${logit.orCiLowTier.toFixed(3)}, ${logit.orCiHighTier.toFixed(3)}]</small></div>
+      <div class="reg-stat-sub">Raw 10+ rate: ${logit.rawAiPct.toFixed(1)}% vs ${logit.rawNonAiPct.toFixed(1)}% (${logit.rawDeltaPp.toFixed(1)} pp)</div>
+    </div>
+  `;
 }
 
 /* =========================================================
@@ -3192,7 +3113,6 @@ function initAdvicePanels() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  initAmbientShaderBackground();
   initTopbarNavigation();
   initIntroQuestions();
   renderDataTabStats();
@@ -3206,6 +3126,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initReviewVelocityView();
   initSimilarityView();
   initOverTimeView();
+  initPriceStratifiedView();
   initMoreInfoSubnav();
   initFunSubnav();
   initBoringSubnav();

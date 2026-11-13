@@ -79431,74 +79431,6 @@ window.STUDY_DATA_EXTENDED = {
       }
     ]
   },
-  "funInflation": {
-    "startDate": "1999-02-02",
-    "milestones": [
-      {
-        "year": "1999",
-        "date": "1999-02-02",
-        "label": "Hugo Chávez Inauguration",
-        "rate": "23.6%",
-        "index": 100
-      },
-      {
-        "year": "2007",
-        "date": "2007-12-31",
-        "label": "Bolívar Fuerte Introduced (1 Bs.F = 1,000 Bs)",
-        "rate": "31.4%",
-        "index": 540
-      },
-      {
-        "year": "2013",
-        "date": "2013-12-31",
-        "label": "Nicolás Maduro Takes Office",
-        "rate": "56.2%",
-        "index": 1420
-      },
-      {
-        "year": "2016",
-        "date": "2016-12-31",
-        "label": "Hyperinflation Begins (IMF: 800%)",
-        "rate": "800%",
-        "index": 12800
-      },
-      {
-        "year": "2018",
-        "date": "2018-08-20",
-        "label": "Bolívar Soberano (1 Bs.S = 100,000 Bs.F; 5 Zeros Cut)",
-        "rate": "1,370,000%",
-        "index": 18500000
-      },
-      {
-        "year": "2019",
-        "date": "2019-12-31",
-        "label": "Peak Crisis & De Facto Dollarization",
-        "rate": "19,906%",
-        "index": 380000000
-      },
-      {
-        "year": "2021",
-        "date": "2021-10-01",
-        "label": "Bolívar Digital (6 Zeros Cut; 14 Zeros Total Since 2007)",
-        "rate": "686%",
-        "index": 2600000000
-      },
-      {
-        "year": "2024",
-        "date": "2024-01-01",
-        "label": "Steam Introduces AI Disclosure Tag",
-        "rate": "189%",
-        "index": 7400000000
-      },
-      {
-        "year": "2026",
-        "date": "2026-11-12",
-        "label": "Today (Dashboard Release)",
-        "rate": "Exponential Overflow 🚀",
-        "index": 28000000000
-      }
-    ]
-  },
   "boringBestTags": {
     "tags": [
       {
@@ -86231,6 +86163,354 @@ window.STUDY_DATA_EXTENDED = {
         "avgRevPerDay": 0.55,
         "devScore": 29.3
       }
+    ]
+  },
+  "priceStratified": {
+    "all": {
+      "tiers": [
+        {
+          "key": "Free ($0)",
+          "label": "Free ($0)",
+          "shortLabel": "Free ($0)",
+          "totalGames": 9029,
+          "aiSharePct": 19.15,
+          "FALSE": {
+            "count": 7284,
+            "medianReviews": 23.0,
+            "meanReviews": 302.5,
+            "pct10Plus": 76.07,
+            "ratedCount": 5541,
+            "avgScore": 79.43
+          },
+          "TRUE": {
+            "count": 1729,
+            "medianReviews": 15,
+            "meanReviews": 233.4,
+            "pct10Plus": 63.27,
+            "ratedCount": 1094,
+            "avgScore": 70.91
+          }
+        },
+        {
+          "key": "Micro-Indie ($0.01-$4.99)",
+          "label": "Micro-Indie ($0.01–$4.99)",
+          "shortLabel": "$0.01–$4.99",
+          "totalGames": 27731,
+          "aiSharePct": 28.08,
+          "FALSE": {
+            "count": 19893,
+            "medianReviews": 3,
+            "meanReviews": 43.2,
+            "pct10Plus": 32.18,
+            "ratedCount": 6397,
+            "avgScore": 83.53
+          },
+          "TRUE": {
+            "count": 7788,
+            "medianReviews": 2.0,
+            "meanReviews": 21.4,
+            "pct10Plus": 23.19,
+            "ratedCount": 1805,
+            "avgScore": 80.01
+          }
+        },
+        {
+          "key": "Core Indie ($5.00-$14.99)",
+          "label": "Core Indie ($5.00–$14.99)",
+          "shortLabel": "$5.00–$14.99",
+          "totalGames": 21332,
+          "aiSharePct": 22.99,
+          "FALSE": {
+            "count": 16389,
+            "medianReviews": 13,
+            "meanReviews": 193.5,
+            "pct10Plus": 55.68,
+            "ratedCount": 9119,
+            "avgScore": 82.46
+          },
+          "TRUE": {
+            "count": 4904,
+            "medianReviews": 4.0,
+            "meanReviews": 78.6,
+            "pct10Plus": 38.21,
+            "ratedCount": 1872,
+            "avgScore": 77.39
+          }
+        },
+        {
+          "key": "AA / Premium ($15.00-$29.99)",
+          "label": "AA / Premium ($15.00–$29.99)",
+          "shortLabel": "$15.00–$29.99",
+          "totalGames": 4495,
+          "aiSharePct": 15.17,
+          "FALSE": {
+            "count": 3809,
+            "medianReviews": 95,
+            "meanReviews": 1122.7,
+            "pct10Plus": 78.94,
+            "ratedCount": 3007,
+            "avgScore": 80.98
+          },
+          "TRUE": {
+            "count": 682,
+            "medianReviews": 13.5,
+            "meanReviews": 307.3,
+            "pct10Plus": 53.81,
+            "ratedCount": 365,
+            "avgScore": 76.69
+          }
+        },
+        {
+          "key": "Full Price ($30+)",
+          "label": "Full Price ($30+)",
+          "shortLabel": "$30+",
+          "totalGames": 1211,
+          "aiSharePct": 9.5,
+          "FALSE": {
+            "count": 1095,
+            "medianReviews": 30,
+            "meanReviews": 3488.7,
+            "pct10Plus": 64.11,
+            "ratedCount": 702,
+            "avgScore": 79.7
+          },
+          "TRUE": {
+            "count": 115,
+            "medianReviews": 3,
+            "meanReviews": 3790.0,
+            "pct10Plus": 45.22,
+            "ratedCount": 52,
+            "avgScore": 72.94
+          }
+        }
+      ],
+      "regression": {
+        "olsScore": {
+          "n": 29954,
+          "rawAi": 76.84,
+          "rawNonAi": 81.8,
+          "rawDelta": -4.96,
+          "betaLogPrice": -4.07,
+          "ciLowLogPrice": -4.6,
+          "ciHighLogPrice": -3.55,
+          "pLogPrice": "6.05e-52",
+          "r2LogPrice": 0.1115,
+          "betaTier": -4.32,
+          "ciLowTier": -4.85,
+          "ciHighTier": -3.8,
+          "pTier": "1.36e-58",
+          "r2Tier": 0.1153
+        },
+        "logitDiscovery10": {
+          "n": 63688,
+          "rawAiPct": 34.12,
+          "rawNonAiPct": 51.12,
+          "rawDeltaPp": -16.99,
+          "orLogPrice": 0.538,
+          "orCiLowLogPrice": 0.516,
+          "orCiHighLogPrice": 0.561,
+          "pLogPrice": "4.04e-186",
+          "orTier": 0.584,
+          "orCiLowTier": 0.559,
+          "orCiHighTier": 0.61,
+          "pTier": "4.21e-127"
+        },
+        "olsLogReviews": {
+          "n": 63688,
+          "beta": -0.607,
+          "ciLow": -0.641,
+          "ciHigh": -0.574,
+          "p": "4.54e-275",
+          "r2": 0.1409
+        }
+      }
+    },
+    "nonMature": {
+      "tiers": [
+        {
+          "key": "Free ($0)",
+          "label": "Free ($0)",
+          "shortLabel": "Free ($0)",
+          "totalGames": 7293,
+          "aiSharePct": 18.69,
+          "FALSE": {
+            "count": 5921,
+            "medianReviews": 22,
+            "meanReviews": 303.1,
+            "pct10Plus": 74.85,
+            "ratedCount": 4432,
+            "avgScore": 79.46
+          },
+          "TRUE": {
+            "count": 1363,
+            "medianReviews": 13,
+            "meanReviews": 167.8,
+            "pct10Plus": 59.5,
+            "ratedCount": 811,
+            "avgScore": 70.98
+          }
+        },
+        {
+          "key": "Micro-Indie ($0.01-$4.99)",
+          "label": "Micro-Indie ($0.01–$4.99)",
+          "shortLabel": "$0.01–$4.99",
+          "totalGames": 20780,
+          "aiSharePct": 24.23,
+          "FALSE": {
+            "count": 15705,
+            "medianReviews": 3,
+            "meanReviews": 35.8,
+            "pct10Plus": 29.16,
+            "ratedCount": 4577,
+            "avgScore": 85.17
+          },
+          "TRUE": {
+            "count": 5034,
+            "medianReviews": 1.0,
+            "meanReviews": 20.5,
+            "pct10Plus": 18.0,
+            "ratedCount": 905,
+            "avgScore": 80.5
+          }
+        },
+        {
+          "key": "Core Indie ($5.00-$14.99)",
+          "label": "Core Indie ($5.00–$14.99)",
+          "shortLabel": "$5.00–$14.99",
+          "totalGames": 15520,
+          "aiSharePct": 21.8,
+          "FALSE": {
+            "count": 12107,
+            "medianReviews": 11,
+            "meanReviews": 188.8,
+            "pct10Plus": 52.29,
+            "ratedCount": 6326,
+            "avgScore": 83.53
+          },
+          "TRUE": {
+            "count": 3384,
+            "medianReviews": 3.0,
+            "meanReviews": 53.6,
+            "pct10Plus": 32.39,
+            "ratedCount": 1095,
+            "avgScore": 77.91
+          }
+        },
+        {
+          "key": "AA / Premium ($15.00-$29.99)",
+          "label": "AA / Premium ($15.00–$29.99)",
+          "shortLabel": "$15.00–$29.99",
+          "totalGames": 3286,
+          "aiSharePct": 15.0,
+          "FALSE": {
+            "count": 2789,
+            "medianReviews": 81,
+            "meanReviews": 999.4,
+            "pct10Plus": 76.3,
+            "ratedCount": 2128,
+            "avgScore": 81.68
+          },
+          "TRUE": {
+            "count": 493,
+            "medianReviews": 13,
+            "meanReviews": 275.4,
+            "pct10Plus": 51.52,
+            "ratedCount": 254,
+            "avgScore": 77.88
+          }
+        },
+        {
+          "key": "Full Price ($30+)",
+          "label": "Full Price ($30+)",
+          "shortLabel": "$30+",
+          "totalGames": 899,
+          "aiSharePct": 9.01,
+          "FALSE": {
+            "count": 817,
+            "medianReviews": 11,
+            "meanReviews": 1447.9,
+            "pct10Plus": 58.63,
+            "ratedCount": 479,
+            "avgScore": 80.63
+          },
+          "TRUE": {
+            "count": 81,
+            "medianReviews": 10,
+            "meanReviews": 3756.5,
+            "pct10Plus": 50.62,
+            "ratedCount": 41,
+            "avgScore": 74.8
+          }
+        }
+      ],
+      "regression": {
+        "olsScore": {
+          "n": 21048,
+          "rawAi": 76.81,
+          "rawNonAi": 82.65,
+          "rawDelta": -5.83,
+          "betaLogPrice": -4.33,
+          "ciLowLogPrice": -5.01,
+          "ciHighLogPrice": -3.66,
+          "pLogPrice": "3.00e-36",
+          "r2LogPrice": 0.1249,
+          "betaTier": -4.51,
+          "ciLowTier": -5.18,
+          "ciHighTier": -3.83,
+          "pTier": "1.86e-39",
+          "r2Tier": 0.1309
+        },
+        "logitDiscovery10": {
+          "n": 47694,
+          "rawAiPct": 30.01,
+          "rawNonAiPct": 48.07,
+          "rawDeltaPp": -18.06,
+          "orLogPrice": 0.55,
+          "orCiLowLogPrice": 0.523,
+          "orCiHighLogPrice": 0.579,
+          "pLogPrice": "2.42e-118",
+          "orTier": 0.573,
+          "orCiLowTier": 0.543,
+          "orCiHighTier": 0.605,
+          "pTier": "2.15e-91"
+        },
+        "olsLogReviews": {
+          "n": 47694,
+          "beta": -0.553,
+          "ciLow": -0.593,
+          "ciHigh": -0.514,
+          "p": "3.86e-167",
+          "r2": 0.1279
+        }
+      }
+    },
+    "controls": [
+      "log1p(base_price_usd) / price-tier fixed effects",
+      "log1p(age_days)",
+      "mature_content",
+      "Top 20 Steam tags"
+    ],
+    "topTagsControlled": [
+      "Singleplayer",
+      "Indie",
+      "Casual",
+      "2D",
+      "Adventure",
+      "Action",
+      "3D",
+      "Simulation",
+      "Colorful",
+      "Atmospheric",
+      "Strategy",
+      "Cute",
+      "Exploration",
+      "Puzzle",
+      "Pixel Graphics",
+      "First-Person",
+      "RPG",
+      "Story Rich",
+      "Relaxing",
+      "Fantasy"
     ]
   }
 };

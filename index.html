@@ -14,8 +14,8 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <!-- Abstract Ambient WebGL Shader Backdrop -->
-  <canvas id="ambient-shader-bg" aria-hidden="true"></canvas>
+  <!-- Static Ambient Backdrop -->
+  <div id="ambient-bg" aria-hidden="true"></div>
 
   <!-- Top Navigation Bar -->
   <header class="topbar">
@@ -34,6 +34,18 @@
       <button class="nav-btn" data-section="conclusions" type="button">Conclusions</button>
       <button class="nav-btn" data-section="contact" type="button">Contact</button>
     </nav>
+    <a
+      class="github-repo-btn"
+      href="https://github.com/josehzz/Steam-AI-Tag-Study"
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="View repository on GitHub"
+    >
+      <svg class="github-icon" viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">
+        <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/>
+      </svg>
+      <span>GitHub</span>
+    </a>
   </header>
 
   <!-- Main Content Container -->
@@ -290,6 +302,12 @@
                 <p>Turned most of the data into .json so it is easier to graph most things</p>
               </div>
             </li>
+            <li class="data-note-item neon-border-cyan">
+              <span class="note-block-icon" aria-hidden="true"></span>
+              <div class="note-body">
+                <p>Audited Gemini's multi-label tags against 300 randomly sampled disclosures tagged manually (<strong>87.7% Micro F1</strong>, <strong>77.3% exact match</strong> — see the <strong>Validation &amp; Accuracy</strong> tab below).</p>
+              </div>
+            </li>
           </ul>
         </aside>
       </div>
@@ -318,11 +336,237 @@
               <span class="note-block-icon" aria-hidden="true"></span>
               <p>AI Disclosures are self reported meaning that there might be games that did not disclosure their AI use, I think most developers are truthful but in practice the true amount of AI usage must be a little bit more</p>
             </li>
+            <li class="data-note-item neon-border-yellow">
+              <span class="note-block-icon" aria-hidden="true"></span>
+              <p>In the 300-game manual audit, core modality tags (<code>Visual</code>, <code>Audio</code>, <code>Marketing</code>, <code>Code</code>, <code>Text</code>) achieved <strong>83.6%–94.7% F1</strong>, while <code>Prototyping</code> (20.6% recall) and <code>Unspecified</code> (28.6% recall) are conservative lower bounds in the full dataset.</p>
+            </li>
+            <li class="data-note-item neon-border-cyan">
+              <span class="note-block-icon" aria-hidden="true"></span>
+              <p><strong>Price &amp; Mature-Content Confounding:</strong> AI-tagged games skew heavily toward low price tiers (avg <strong>$6.03</strong> vs <strong>$7.90</strong>) and mature-flagged titles (<strong>30.36%</strong> AI share). Rather than filtering out or down-weighting cheap entries, the <strong>Price-Stratified</strong> view in <em>Is it Relevant?</em> keeps all games intact and pairs within-tier comparisons with a multivariate OLS/logistic regression controlling for price, age, mature content, and top 20 tags.</p>
+            </li>
           </ul>
         </aside>
       </div>
 
-      <!-- Bottom Navigation Bar for "Data" (3 Sections) -->
+      <!-- Sub-view 4: Validation & Accuracy -->
+      <div id="subview-data-validation" class="data-subview">
+        <div class="tetris-panel data-left-panel">
+          <div class="panel-header">
+            <span class="eyebrow">DATA &bull; MANUAL AUDIT (N = 300)</span>
+            <h3>LLM Classification Validation</h3>
+            <p class="panel-subtitle">Per-category Precision, Recall, and F1 comparing Gemini's <code>ai_tags</code> against 300 randomly sampled disclosures tagged manually (<code>ai_tags_manual</code>).</p>
+          </div>
+
+          <div class="data-kpi-grid">
+            <div class="data-kpi-card neon-cyan">
+              <span class="data-kpi-label">Manual Audit Sample</span>
+              <span class="data-kpi-val">300</span>
+              <span class="data-kpi-sub">Randomly sampled disclosed games</span>
+            </div>
+            <div class="data-kpi-card neon-purple">
+              <span class="data-kpi-label">Exact Tag-Set Match</span>
+              <span class="data-kpi-val">77.3%</span>
+              <span class="data-kpi-sub">232 / 300 identical tag sets</span>
+            </div>
+            <div class="data-kpi-card neon-green">
+              <span class="data-kpi-label">Micro-Averaged F1</span>
+              <span class="data-kpi-val">87.7%</span>
+              <span class="data-kpi-sub">Precision: 87.1% &bull; Recall: 88.3%</span>
+            </div>
+          </div>
+
+          <div class="data-subbox validation-table-card">
+            <div class="subcard-title-row">
+              <h4>Per-Category Precision, Recall &amp; F1</h4>
+              <span class="subcard-caption">Macro Avg (9 present tags): P 87.7% &bull; R 74.5% &bull; F1 76.8%</span>
+            </div>
+
+            <div class="validation-table-wrap">
+              <table class="validation-table">
+                <thead>
+                  <tr>
+                    <th>Category</th>
+                    <th class="num-col">Support</th>
+                    <th class="num-col">Predicted</th>
+                    <th class="num-col">TP / FP / FN</th>
+                    <th class="num-col">Precision</th>
+                    <th class="num-col">Recall</th>
+                    <th>F1 Score</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><code>Visual</code></td>
+                    <td class="num-col">195</td>
+                    <td class="num-col">204</td>
+                    <td class="num-col muted-cell">189 / 15 / 6</td>
+                    <td class="num-col">92.6%</td>
+                    <td class="num-col">96.9%</td>
+                    <td>
+                      <div class="f1-cell">
+                        <span class="f1-val">94.7%</span>
+                        <div class="tag-bar-track"><div class="tag-bar-fill fill-green" style="width: 94.7%;"></div></div>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><code>Audio</code></td>
+                    <td class="num-col">71</td>
+                    <td class="num-col">78</td>
+                    <td class="num-col muted-cell">69 / 9 / 2</td>
+                    <td class="num-col">88.5%</td>
+                    <td class="num-col">97.2%</td>
+                    <td>
+                      <div class="f1-cell">
+                        <span class="f1-val">92.6%</span>
+                        <div class="tag-bar-track"><div class="tag-bar-fill fill-green" style="width: 92.6%;"></div></div>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><code>Marketing</code></td>
+                    <td class="num-col">74</td>
+                    <td class="num-col">82</td>
+                    <td class="num-col muted-cell">72 / 10 / 2</td>
+                    <td class="num-col">87.8%</td>
+                    <td class="num-col">97.3%</td>
+                    <td>
+                      <div class="f1-cell">
+                        <span class="f1-val">92.3%</span>
+                        <div class="tag-bar-track"><div class="tag-bar-fill fill-green" style="width: 92.3%;"></div></div>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><code>Code</code></td>
+                    <td class="num-col">34</td>
+                    <td class="num-col">33</td>
+                    <td class="num-col muted-cell">29 / 4 / 5</td>
+                    <td class="num-col">87.9%</td>
+                    <td class="num-col">85.3%</td>
+                    <td>
+                      <div class="f1-cell">
+                        <span class="f1-val">86.6%</span>
+                        <div class="tag-bar-track"><div class="tag-bar-fill fill-cyan" style="width: 86.6%;"></div></div>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><code>Text</code></td>
+                    <td class="num-col">54</td>
+                    <td class="num-col">68</td>
+                    <td class="num-col muted-cell">51 / 17 / 3</td>
+                    <td class="num-col">75.0%</td>
+                    <td class="num-col">94.4%</td>
+                    <td>
+                      <div class="f1-cell">
+                        <span class="f1-val">83.6%</span>
+                        <div class="tag-bar-track"><div class="tag-bar-fill fill-cyan" style="width: 83.6%;"></div></div>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><code>Unspecified</code></td>
+                    <td class="num-col">14</td>
+                    <td class="num-col">5</td>
+                    <td class="num-col muted-cell">4 / 1 / 10</td>
+                    <td class="num-col">80.0%</td>
+                    <td class="num-col">28.6%</td>
+                    <td>
+                      <div class="f1-cell">
+                        <span class="f1-val">42.1%</span>
+                        <div class="tag-bar-track"><div class="tag-bar-fill fill-yellow" style="width: 42.1%;"></div></div>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><code>Prototyping</code></td>
+                    <td class="num-col">34</td>
+                    <td class="num-col">9</td>
+                    <td class="num-col muted-cell">7 / 2 / 27</td>
+                    <td class="num-col">77.8%</td>
+                    <td class="num-col">20.6%</td>
+                    <td>
+                      <div class="f1-cell">
+                        <span class="f1-val">32.6%</span>
+                        <div class="tag-bar-track"><div class="tag-bar-fill fill-orange" style="width: 32.6%;"></div></div>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr class="low-support-row">
+                    <td><code>External_Ai_service</code> <span class="low-sample-badge">n=2</span></td>
+                    <td class="num-col">2</td>
+                    <td class="num-col">2</td>
+                    <td class="num-col muted-cell">2 / 0 / 0</td>
+                    <td class="num-col">100.0%</td>
+                    <td class="num-col">100.0%</td>
+                    <td>
+                      <div class="f1-cell">
+                        <span class="f1-val">100.0%</span>
+                        <div class="tag-bar-track"><div class="tag-bar-fill fill-muted" style="width: 100%;"></div></div>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr class="low-support-row">
+                    <td><code>Declares_No_Ai</code> <span class="low-sample-badge">n=2</span></td>
+                    <td class="num-col">2</td>
+                    <td class="num-col">1</td>
+                    <td class="num-col muted-cell">1 / 0 / 1</td>
+                    <td class="num-col">100.0%</td>
+                    <td class="num-col">50.0%</td>
+                    <td>
+                      <div class="f1-cell">
+                        <span class="f1-val">66.7%</span>
+                        <div class="tag-bar-track"><div class="tag-bar-fill fill-muted" style="width: 66.7%;"></div></div>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr class="low-support-row">
+                    <td><code>Live_Generated</code> <span class="low-sample-badge">n=0</span></td>
+                    <td class="num-col">0</td>
+                    <td class="num-col">5</td>
+                    <td class="num-col muted-cell">0 / 5 / 0</td>
+                    <td class="num-col">0.0%</td>
+                    <td class="num-col">&mdash;</td>
+                    <td>
+                      <div class="f1-cell">
+                        <span class="f1-val">0.0%</span>
+                        <div class="tag-bar-track"><div class="tag-bar-fill fill-muted" style="width: 0%;"></div></div>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="validation-footnote">
+              <strong>Support</strong> = manual count in the 300-game sample. Rows badged <code>n&le;2</code> appear too rarely in the random sample for reliable per-class scoring.
+            </p>
+          </div>
+
+          <div class="validation-failures-block">
+            <div class="subcard-title-row">
+              <h4>Common Failure Modes Spotted (n = 300)</h4>
+              <span class="subcard-caption">68 mismatches analyzed</span>
+            </div>
+            <ul class="data-notes-list">
+              <li class="data-note-item neon-border-orange">
+                <span class="note-block-icon" aria-hidden="true"></span>
+                <div class="note-body">
+                  <p><strong>1. Under-tagging <code>Prototyping</code> (27 of 34 missed &bull; 20.6% Recall):</strong> When disclosures describe AI used <em>"during development"</em>, temporary demo copy (<em>Hostile Takeover, Inc.</em>), or hybrid pipelines where AI drafts are manually edited (<em>A Night With: Spirit</em>, <em>Esports Godfather</em>), the classifier usually applied only the final asset modality (<code>Visual</code>/<code>Text</code>) and omitted <code>Prototyping</code>.</p>
+                </div>
+              </li>
+              <li class="data-note-item neon-border-yellow">
+                <span class="note-block-icon" aria-hidden="true"></span>
+                <div class="note-body">
+                  <p><strong>2. Over-tagging on negations, vague wording &amp; classic game AI (17 FP <code>Text</code>, 15 FP <code>Visual</code>, 9 FP <code>Audio</code>, 5 FP <code>Live_Generated</code>):</strong> Negated clauses (<em>"does not use AI to generate images"</em>), generic statements (<em>"some assets"</em> guessed as <code>Visual</code> instead of <code>Unspecified</code>, missing 10 of 14), and non-generative bot AI (<em>"Enemy Bots and Turrets are A.I. Powered"</em> tagged <code>Live_Generated</code>) produced the bulk of false positives.</p>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Navigation Bar for "Data" (4 Sections) -->
       <div class="bottom-subnav data-bottom-subnav" role="tablist" aria-label="Data Sub-sections">
         <button type="button" class="subnav-btn active" data-datasubview="data-overview" role="tab" aria-selected="true">
           Overall Statistics
@@ -332,6 +576,9 @@
         </button>
         <button type="button" class="subnav-btn" data-datasubview="data-limitations" role="tab" aria-selected="false">
           Limitations
+        </button>
+        <button type="button" class="subnav-btn" data-datasubview="data-validation" role="tab" aria-selected="false">
+          Validation &amp; Accuracy
         </button>
       </div>
     </section>
@@ -725,7 +972,87 @@
         </div>
       </div>
 
-      <!-- Bottom Navigation Bar for "Is it Relevant?" (4 Sections) -->
+      <!-- Sub-view 5: Price-Stratified Confounding Check -->
+      <div id="subview-price-stratified" class="relevant-subview">
+        <div class="relevant-split-layout">
+          <!-- Left: Grouped Bar Chart by Price Tier -->
+          <div class="chart-card tetris-panel">
+            <div class="chart-card-header">
+              <div>
+                <span class="eyebrow">IS IT RELEVANT? &bull; CONFOUNDING CHECK</span>
+                <h2>Price-Stratified Comparison: AI vs. Non-AI</h2>
+                <p class="chart-subtitle">Comparing games inside each <code>base_price_usd</code> tier &mdash; zero low-budget entries removed or down-weighted.</p>
+              </div>
+              <div class="chart-controls">
+                <div class="mode-toggle-group" id="price-strat-metric-toggle" role="group" aria-label="Metric Selection">
+                  <button type="button" class="mode-btn active" data-metric="avgScore">Avg Score (%)</button>
+                  <button type="button" class="mode-btn" data-metric="medianReviews">Median Reviews</button>
+                  <button type="button" class="mode-btn" data-metric="pct10Plus">10+ Review Rate</button>
+                </div>
+                <button type="button" class="mode-btn price-strat-mature-btn" id="price-strat-mature-toggle" aria-pressed="false">
+                  Exclude Mature
+                </button>
+              </div>
+            </div>
+
+            <!-- Legend -->
+            <div class="chart-legend" id="price-strat-legend">
+              <span class="legend-item active">
+                <span class="legend-swatch swatch-false"></span>
+                <span class="legend-label">Non-AI (<code>ai_used = FALSE</code>)</span>
+              </span>
+              <span class="legend-item active">
+                <span class="legend-swatch swatch-true"></span>
+                <span class="legend-label">In-Game AI (<code>ai_used = TRUE</code>)</span>
+              </span>
+            </div>
+
+            <!-- Grouped Bar Chart Container -->
+            <div class="time-chart-wrapper" id="price-stratified-chart-container">
+              <!-- Dynamically populated SVG -->
+            </div>
+            <p class="price-strat-footnote" id="price-strat-footnote">
+              Click any price tier to inspect details. Avg Score uses rated games (<code>review_score &gt; 0</code>, n = 29,954); Median Reviews &amp; 10+ Rate include all 63,688 FALSE/TRUE releases.
+            </p>
+          </div>
+
+          <!-- Right: Tier Inspector + Controlled Regression Card -->
+          <aside class="inspector-card tetris-panel" id="price-strat-inspector">
+            <div class="inspector-header">
+              <div>
+                <span class="eyebrow" id="price-strat-eyebrow">TIER &amp; CONFOUNDING SUMMARY</span>
+                <h3 id="price-strat-title">All Price Tiers Overview</h3>
+              </div>
+              <button type="button" class="reset-tier-btn hidden" id="reset-price-strat-btn">All Tiers</button>
+            </div>
+
+            <p class="inspector-insight" id="price-strat-insight">
+              Loading price-stratified analysis...
+            </p>
+
+            <!-- Tier KPI Comparison -->
+            <div class="kpi-grid" id="price-strat-kpis">
+              <!-- Populated by app.js -->
+            </div>
+
+            <!-- Controlled Multivariate Regression Summary -->
+            <div class="inspector-subcard" id="price-strat-regression-card">
+              <div class="subcard-title-row">
+                <h4>Multivariate Regression Check</h4>
+                <span class="subcard-caption">All data, controlled</span>
+              </div>
+              <p class="price-strat-reg-desc" id="price-strat-reg-desc">
+                Controlling for <code>log1p(price)</code>, <code>log1p(age_days)</code>, <code>mature_content</code>, and top 20 Steam tags:
+              </p>
+              <div class="price-strat-reg-grid" id="price-strat-reg-grid">
+                <!-- Populated by app.js -->
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
+
+      <!-- Bottom Navigation Bar for "Is it Relevant?" (5 Sections) -->
       <div class="bottom-subnav" role="tablist" aria-label="Is it Relevant Sub-sections">
         <button type="button" class="subnav-btn active" data-subview="review-count" role="tab" aria-selected="true">
           Review Count
@@ -738,6 +1065,9 @@
         </button>
         <button type="button" class="subnav-btn" data-subview="over-time" role="tab" aria-selected="false">
           Over Time
+        </button>
+        <button type="button" class="subnav-btn" data-subview="price-stratified" role="tab" aria-selected="false">
+          Price-Stratified
         </button>
       </div>
     </section>
@@ -1107,9 +1437,6 @@
         </div>
       </div>
 
-      <!-- Subview 5: Inflation (Feb 2, 1999 to Today, Exponential Overshoot) -->
-      
-
       <!-- Bottom Navigation Bar for "More Info" (5 Sections) -->
       <div class="bottom-subnav more-bottom-subnav" role="tablist" aria-label="More Info Sub-sections">
         <button type="button" class="subnav-btn active" data-moresubview="more-best-ai" role="tab" aria-selected="true">
@@ -1276,56 +1603,13 @@
         </div>
       </div>
 
-      <!-- Subview 4: Average AI Cost (VS Panel) -->
-      <div id="subview-fun-inflation" class="fun-subview">
-        <div class="chart-card tetris-panel fun-inflation-card">
-          <div class="chart-card-header">
-            <div>
-              <span class="eyebrow">FOR FUN &bull; HYPERINFLATION GRAPH OVERFLOW</span>
-              <h2>Time vs. Inflation (Feb 2, 1999 &mdash; <span id="inflation-today-header">Today</span>)</h2>
-              <p class="chart-subtitle">An exponential curve charting hyperinflation from February 2, 1999 up to today. Watch the line blast through the chart ceiling.</p>
-            </div>
-            <div class="chart-controls">
-              <span class="games-count-badge badge-overflow">⚠️ EXPONENTIAL BREAKOUT</span>
-            </div>
-          </div>
-
-          <!-- Therapist Note -->
-          <div class="inflation-therapist-note">
-            <span class="therapist-emoji">🛋️</span>
-            <span class="therapist-text">(Ignore this graph, this is something I want to show my therapist)</span>
-          </div>
-
-          <!-- Chart Box with Overflowing Visual Line -->
-          <div class="inflation-chart-outer">
-            <div class="inflation-overflow-banner">
-              <span class="overflow-pulse-dot"></span>
-              <strong>SYSTEM WARNING // GRAPH BOUNDARY EXCEEDED:</strong>
-              <span>Curve has escaped the coordinate plane (+28,000,000,000% Cumulative)</span>
-            </div>
-
-            <div class="inflation-chart-wrapper" id="inflation-chart-container">
-              <!-- Dynamically populated SVG with overshoot path -->
-            </div>
-          </div>
-
-          <!-- Milestone Timeline Row -->
-          <div class="inflation-milestones-row" id="inflation-milestones-row">
-            <!-- Dynamically populated milestones -->
-          </div>
-        </div>
-      </div>
-
-      <!-- Bottom Navigation Bar for "For Fun" (3 Sections) -->
+      <!-- Bottom Navigation Bar for "For Fun" (2 Sections) -->
       <div class="bottom-subnav fun-bottom-subnav" role="tablist" aria-label="For Fun Sub-sections">
         <button type="button" class="subnav-btn active" data-funsubview="fun-foot" role="tab" aria-selected="true">
           Devs shooting themselves in the foot
         </button>
         <button type="button" class="subnav-btn" data-funsubview="fun-word-ai" role="tab" aria-selected="false">
           Games with word AI
-        </button>
-        <button type="button" class="subnav-btn" data-funsubview="fun-inflation" role="tab" aria-selected="false">
-          Inflation
         </button>
       </div>
     </section>
@@ -1515,7 +1799,7 @@
           <span class="conclusion-badge">FINDING 01 // MARKET ADOPTION</span>
           <h3>The Disclosure Surge vs. Discovery Bottleneck</h3>
           <p>
-            Generative AI disclosure in new Steam games exploded from <strong>1.5% in January 2024</strong> to <strong>47.2% by late 2026</strong>. However, AI presence plummets as review counts rise: AI games account for <strong>35.6% of zero-review titles</strong>, but shrink to just <strong>9.48% of games reaching 1,000+ reviews</strong>. AI lowers barriers to launch, but does not solve player retention or virality.
+            Generative AI disclosure in new Steam games exploded from <strong>1.5% in January 2024</strong> to <strong>47.2% by late 2026</strong>, yet AI games shrink from <strong>35.6% of zero-review titles</strong> to <strong>9.48% of games reaching 1,000+ reviews</strong>. Even after controlling for price tier, game age, mature content, and top 20 tags, AI titles still have <strong>41.6% lower odds</strong> of reaching 10+ reviews (<code>OR = 0.584</code>, 95% CI [0.559, 0.610]).
           </p>
         </div>
 
@@ -1529,13 +1813,13 @@
           </p>
         </div>
 
-        <!-- Card 3: Pricing Discount -->
+        <!-- Card 3: Pricing & Confounding Check -->
         <div class="conclusion-card tetris-panel">
           <div class="conclusion-icon">🏷️</div>
-          <span class="conclusion-badge">FINDING 03 // PRICING PSYCHOLOGY</span>
-          <h3>The 23.7% Average Price Discount</h3>
+          <span class="conclusion-badge">FINDING 03 // PRICING &amp; CONFOUNDING</span>
+          <h3>Not Just Cheap Shovelware (-4.07 pts Controlled)</h3>
           <p>
-            The average price of AI-tagged games is <strong>$6.03</strong> versus <strong>$7.90</strong> for non-AI titles (-23.7%). Across major genres like RPGs ($6.93 vs $10.54) and Action ($6.38 vs $8.62), AI titles are discounted by 20–35%. Under-pricing can backfire by signaling shovelware to discerning Steam shoppers.
+            AI games average <strong>$6.03</strong> vs <strong>$7.90</strong> (-23.7%) and peak at <strong>28.1% share</strong> in <code>$0.01–$4.99</code>, but budget mix is not the whole story. The score gap persists inside <em>every</em> price tier (including <strong>-4.29 pts</strong> in <code>$15–$29.99</code>). Controlling for price, age, mature content, and genre via OLS leaves a <strong>-4.07 pt</strong> score penalty (95% CI [-4.60, -3.55]) vs <strong>-4.96 pts</strong> raw.
           </p>
         </div>
 
@@ -1578,7 +1862,7 @@
           </div>
           <div class="advice-panel-body">
             <p>
-              Across 63,798 releases, AI disclosures surged from <strong>1.5% in Jan 2024</strong> to <strong>47.2% by Oct 2026</strong>, yet games with in-game AI drop to just <strong>9.48%</strong> of titles reaching 1,000+ reviews and average lower scores (<strong>76.6%</strong> vs <strong>81.6%</strong>). Use AI as an iteration multiplier—to unblock prototyping, boilerplate, or solo-dev scope—never as a substitute for art direction, game feel, or core loop craft. Don't put "AI" in your title, don't underprice yourself into shovelware tiers, and never type "No AI" into Steam's disclosure form.
+              Across 63,798 releases, AI disclosures surged from <strong>1.5% in Jan 2024</strong> to <strong>47.2% by Oct 2026</strong>, yet games with in-game AI drop to just <strong>9.48%</strong> of titles reaching 1,000+ reviews and average lower scores (<strong>76.8% vs 81.8%</strong> raw; <strong>-4.07 pts</strong> after controlling for price, age, mature content, and genre). Use AI as an iteration multiplier—to unblock prototyping, boilerplate, or solo-dev scope—never as a substitute for art direction, game feel, or core loop craft. Don't put "AI" in your title, don't underprice yourself into shovelware tiers, and never type "No AI" into Steam's disclosure form.
             </p>
           </div>
         </button>
