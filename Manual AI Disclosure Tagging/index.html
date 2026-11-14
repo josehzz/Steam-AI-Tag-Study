@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manual AI Disclosure Tagger</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Top Header Bar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <div class="brand">
+          <span class="brand-dot" aria-hidden="true"></span>
+          <div>
+            <h1>Manual AI Disclosure Tagger</h1>
+            <div class="file-meta">
+              <span id="file-name-badge" class="pill pill-neutral">Loading…</span>
+              <span id="save-mode-badge" class="pill pill-mode">Initializing</span>
+              <span id="dirty-indicator" class="pill pill-unsaved hidden">Unsaved changes</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="topbar-center">
+        <div class="progress-block">
+          <div class="progress-text-row">
+            <span id="progress-label">0 / 0 tagged</span>
+            <span id="progress-pct">0%</span>
+          </div>
+          <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+            <div id="progress-fill" class="progress-fill" style="width: 0%;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="topbar-right">
+        <button id="btn-summary" class="btn btn-ghost" type="button" title="View tag stats and full table">
+          Summary &amp; Table
+        </button>
+        <button id="btn-open-csv" class="btn btn-secondary" type="button" title="Load a different CSV file">
+          Open CSV
+        </button>
+        <input id="file-input-fallback" type="file" accept=".csv,text/csv" class="hidden" />
+        <button id="btn-download-csv" class="btn btn-secondary" type="button" title="Download a copy of the updated CSV">
+          Download CSV
+        </button>
+        <button id="btn-save-csv" class="btn btn-primary" type="button" title="Save results into the CSV's ai_tags_manual column (Cmd/Ctrl+S)">
+          Save to CSV
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Split Workspace -->
+    <main class="workspace">
+      <!-- Left Sidebar: Game Queue -->
+      <aside class="sidebar" aria-label="Games list">
+        <div class="sidebar-controls">
+          <div class="search-wrap">
+            <input
+              id="search-input"
+              type="search"
+              placeholder="Search AppId, Name, or Disclosure…"
+              autocomplete="off"
+            />
+          </div>
+          <div class="filter-tabs" role="tablist" aria-label="Filter entries">
+            <button class="filter-tab active" data-filter="all" type="button">
+              All <span id="count-all" class="tab-count">0</span>
+            </button>
+            <button class="filter-tab" data-filter="untagged" type="button">
+              Untagged <span id="count-untagged" class="tab-count">0</span>
+            </button>
+            <button class="filter-tab" data-filter="tagged" type="button">
+              Tagged <span id="count-tagged" class="tab-count">0</span>
+            </button>
+          </div>
+          <div class="tag-filter-row">
+            <select id="tag-filter-select" aria-label="Filter by assigned tag">
+              <option value="">Filter by assigned tag: Any</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="queue-list" class="queue-list" role="listbox" aria-label="CSV rows"></div>
+      </aside>
+
+      <!-- Main Tagging Card -->
+      <section class="editor-pane" aria-label="Current game tagging">
+        <div id="empty-state" class="card empty-state hidden">
+          <h2>No matching entries</h2>
+          <p>Try clearing your search or switching the filter tab.</p>
+          <button id="btn-reset-filters" class="btn btn-secondary" type="button">Reset Filters</button>
+        </div>
+
+        <div id="editor-content" class="editor-content">
+          <!-- Game Header Card -->
+          <div class="card game-header-card">
+            <div class="game-header-top">
+              <div class="game-identity">
+                <div class="appid-row">
+                  <span class="entry-position" id="entry-position">#1 of 150</span>
+                  <button id="copy-appid-btn" class="appid-badge" type="button" title="Click to copy AppId">
+                    AppId: <strong id="game-appid">—</strong>
+                    <span class="copy-hint">Copy</span>
+                  </button>
+                  <a id="steam-link" class="steam-link" href="#" target="_blank" rel="noopener noreferrer">
+                    Steam Store ↗
+                  </a>
+                </div>
+                <h2 id="game-name" class="game-title">—</h2>
+              </div>
+
+              <div class="nav-controls">
+                <button id="btn-prev" class="btn btn-secondary" type="button" title="Previous entry (← or K)">
+                  ← Prev
+                </button>
+                <button id="btn-next" class="btn btn-secondary" type="button" title="Next entry (→ or J)">
+                  Next →
+                </button>
+                <button id="btn-next-untagged" class="btn btn-accent" type="button" title="Jump to next untagged entry (Enter or N)">
+                  Next Untagged ⏭
+                </button>
+              </div>
+            </div>
+
+            <div id="game-extra-meta" class="game-extra-meta"></div>
+          </div>
+
+          <!-- AI Disclosure Card -->
+          <div class="card disclosure-card">
+            <div class="section-header">
+              <div>
+                <span class="eyebrow">AI DISCLOSURE TEXT</span>
+                <span id="disclosure-stats" class="meta-subtle"></span>
+              </div>
+            </div>
+            <div id="disclosure-body" class="disclosure-body"></div>
+          </div>
+
+          <!-- Tagging Palette Card -->
+          <div class="card tagging-card">
+            <div class="section-header">
+              <div>
+                <span class="eyebrow">MANUAL AI TAGS (<code>ai_tags_manual</code>)</span>
+                <p class="section-sub">Click tags or press keys <code>1</code>–<code>9</code>, <code>0</code> to toggle multiple tags per game.</p>
+              </div>
+              <div class="tag-actions-right">
+                <button id="btn-clear-tags" class="btn btn-ghost btn-sm" type="button" title="Clear tags for this entry (C)">
+                  Clear Tags
+                </button>
+              </div>
+            </div>
+
+            <div id="tag-grid" class="tag-grid"></div>
+
+            <div class="tagging-footer">
+              <form id="custom-tag-form" class="custom-tag-form">
+                <input
+                  id="custom-tag-input"
+                  type="text"
+                  placeholder="Add custom tag (optional)…"
+                  autocomplete="off"
+                />
+                <button class="btn btn-secondary btn-sm" type="submit">+ Add</button>
+              </form>
+
+              <div class="csv-value-preview">
+                <span class="preview-label">CSV value:</span>
+                <code id="csv-value-output" class="preview-code">(empty)</code>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer Shortcut Bar -->
+    <footer class="shortcut-bar">
+      <span><kbd>1</kbd>–<kbd>9</kbd>, <kbd>0</kbd> Toggle tag</span>
+      <span><kbd>←</kbd> / <kbd>→</kbd> or <kbd>K</kbd> / <kbd>J</kbd> Prev / Next</span>
+      <span><kbd>Enter</kbd> or <kbd>N</kbd> Next untagged</span>
+      <span><kbd>C</kbd> Clear tags</span>
+      <span><kbd>/</kbd> Search</span>
+      <span><kbd>⌘/Ctrl</kbd>+<kbd>S</kbd> Save CSV</span>
+    </footer>
+  </div>
+
+  <!-- Summary & Table Modal -->
+  <div id="summary-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="summary-modal-title">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <h2 id="summary-modal-title">Tagging Summary &amp; Full Table</h2>
+          <p id="summary-modal-sub" class="section-sub"></p>
+        </div>
+        <button id="btn-close-modal" class="btn btn-secondary btn-sm" type="button">Close</button>
+      </div>
+      <div id="summary-stats-grid" class="summary-stats-grid"></div>
+      <div class="summary-table-wrap">
+        <table class="summary-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>AppId</th>
+              <th>Name</th>
+              <th>AI Disclosure</th>
+              <th>ai_tags_manual</th>
+            </tr>
+          </thead>
+          <tbody id="summary-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+
+  <script src="./default_csv.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>

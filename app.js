@@ -286,7 +286,6 @@ const STUDY_DATA = {
 let chartMode = "percentage"; // "percentage" | "count"
 let visibleSeries = { FALSE: true, TRUE: true, MAYBE: true };
 let selectedTierId = null; // null = All Tiers overview
-let notableGamesAiFilter = "TRUE";
 let activeQuestionIndex = 0;
 
 // Format helpers
@@ -596,12 +595,12 @@ function renderStackedBarChart() {
     col.innerHTML = `
       <div class="bar-top-value" style="bottom: calc(${clampedH.toFixed(2)}% + 6px);">${topLabelText}</div>
       <div class="bar-stack" style="height: ${clampedH.toFixed(2)}%;">
-        <div class="bar-segment seg-true" style="height: ${tPct}%;">
-          ${showTrueInline ? `<span class="seg-inline-label" style="color:#111318;">${tPct.toFixed(1)}%</span>` : ""}
-        </div>
-        <div class="bar-segment seg-maybe" style="height: ${mPct}%;"></div>
         <div class="bar-segment seg-false" style="height: ${fPct}%;">
           ${showFalseInline && chartMode === "percentage" ? `<span class="seg-inline-label">${fPct.toFixed(0)}%</span>` : ""}
+        </div>
+        <div class="bar-segment seg-maybe" style="height: ${mPct}%;"></div>
+        <div class="bar-segment seg-true" style="height: ${tPct}%;">
+          ${showTrueInline ? `<span class="seg-inline-label" style="color:#111318;">${tPct.toFixed(1)}%</span>` : ""}
         </div>
       </div>
       <div class="bar-x-label">${tier.shortLabel}</div>
@@ -687,7 +686,6 @@ function renderInspector() {
   const kpiContainer = document.getElementById("inspector-kpis");
   const tagCaption = document.getElementById("tag-breakdown-caption");
   const tagBars = document.getElementById("inspector-tag-bars");
-  const gamesList = document.getElementById("notable-games-list");
 
   const source = tier || STUDY_DATA.overall;
   const tot = source.total;
@@ -719,19 +717,19 @@ function renderInspector() {
 
   kpiContainer.innerHTML = `
     <div class="kpi-box kpi-true">
-      <div class="kpi-label">ai_used: TRUE</div>
+      <div class="kpi-label">In-Game AI</div>
       <div class="kpi-value">${fmtInt(tCnt)} <small>(${fmtPct((tCnt / tot) * 100)})</small></div>
       <div class="kpi-sub">${scoreSubTrue}</div>
     </div>
     <div class="kpi-box kpi-false">
-      <div class="kpi-label">ai_used: FALSE</div>
+      <div class="kpi-label">No AI Used</div>
       <div class="kpi-value">${fmtInt(fCnt)} <small>(${fmtPct((fCnt / tot) * 100)})</small></div>
       <div class="kpi-sub">${scoreSubFalse}</div>
     </div>
     <div class="kpi-box kpi-maybe">
-      <div class="kpi-label">ai_used: MAYBE</div>
+      <div class="kpi-label">May Have Used AI</div>
       <div class="kpi-value">${fmtInt(mCnt)} <small>(${fmtPct((mCnt / tot) * 100)})</small></div>
-      <div class="kpi-sub">Prototyping only</div>
+      <div class="kpi-sub">Sample too small</div>
     </div>
   `;
 
@@ -751,28 +749,6 @@ function renderInspector() {
       `;
     })
     .join("");
-
-  const games = (source.topGames && source.topGames[notableGamesAiFilter]) || [];
-  if (games.length === 0) {
-    gamesList.innerHTML = `<div class="notable-game-item"><span class="notable-game-tags">No games in this category.</span></div>`;
-  } else {
-    gamesList.innerHTML = games
-      .map((g) => {
-        const scoreBadge = g.score > 0 ? ` • ${g.score}%` : "";
-        return `
-          <div class="notable-game-item">
-            <div>
-              <a class="notable-game-title" href="https://store.steampowered.com/app/${g.appid}" target="_blank" rel="noopener noreferrer">${g.name}</a>
-              <span class="notable-game-tags">${g.ai_tags ? `ai_tags: ${g.ai_tags}` : "No AI disclosure"}</span>
-            </div>
-            <div class="notable-game-meta">
-              ${fmtInt(g.reviews)} reviews${scoreBadge}
-            </div>
-          </div>
-        `;
-      })
-      .join("");
-  }
 }
 
 function initChartControls() {
@@ -805,15 +781,6 @@ function initChartControls() {
       renderInspector();
     });
   }
-
-  const miniPills = document.querySelectorAll("#top-games-filter .mini-pill");
-  miniPills.forEach((pill) => {
-    pill.addEventListener("click", () => {
-      notableGamesAiFilter = pill.getAttribute("data-ai");
-      miniPills.forEach((p) => p.classList.toggle("active", p === pill));
-      renderInspector();
-    });
-  });
 }
 
 /* =========================================================
