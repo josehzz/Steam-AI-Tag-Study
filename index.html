@@ -86,6 +86,9 @@
             <button type="button" class="subnav-btn" data-subview="price-stratified" role="tab" aria-selected="false">
               Price-Stratified
             </button>
+            <button type="button" class="subnav-btn" data-subview="tag-ai-share" role="tab" aria-selected="false">
+              Tag AI Share
+            </button>
           </div>
 
           <!-- More Info Sub-sections (5) -->
@@ -641,13 +644,13 @@
               <li class="data-note-item neon-border-orange">
                 <span class="note-block-icon" aria-hidden="true"></span>
                 <div class="note-body">
-                  <p><strong>Prototyping Tagging:</strong> When disclosures describe AI used <em>"during development"</em>, temporary demo copy, or hybrid pipelines where AI drafts are manually edited the classifier usually applied only the final asset modality (<code>Visual</code>/<code>Text</code>) and omitted <code>Prototyping</code>.</p>
+                  <p><strong>Prototyping Tag:</strong> When disclosures describe AI used <em>"during development"</em>, temporary demo copy, or hybrid pipelines where AI drafts are manually edited the classifier usually applied only the final asset modality (<code>Visual</code>/<code>Text</code>) and omitted <code>Prototyping</code>.</p>
                 </div>
               </li>
               <li class="data-note-item neon-border-yellow">
                 <span class="note-block-icon" aria-hidden="true"></span>
                 <div class="note-body">
-                  <p><strong>Unspecified Tagging:</strong> Negated clauses (<em>"does not use AI to generate images"</em>), generic statements (<em>"some assets"</em> guessed as <code>Visual</code> instead of <code>Unspecified</code>, missing 10 of 14), and non-generative AI produced the bulk of false positives.</p>
+                  <p><strong>Unspecified Tag:</strong> Negated clauses (<em>"does not use AI to generate images"</em>), generic statements (<em>"some assets"</em> guessed as <code>Visual</code> instead of <code>Unspecified</code>, missing 10 of 14), and non-generative AI produced the bulk of false positives.</p>
                 </div>
               </li>
             </ul>
@@ -732,7 +735,7 @@
             </div>
 
             <p class="inspector-insight" id="inspector-insight">
-              Across all 63,798 Steam releases since Jan 2024, <strong>23.85%</strong> use AI in-game (<code>ai_used = TRUE</code>). As review counts climb, the share of AI-tagged games steadily drops from <strong>35.61%</strong> (at 0 reviews) down to <strong>9.48%</strong> (at 1,000+ reviews).
+              Across all 63,798 Steam releases since Jan 2024, <strong>23.85%</strong> use AI in-game. As review counts climb, the share of AI-tagged games steadily drops from <strong>35.61%</strong> (at 0 reviews) down to <strong>9.48%</strong> (at 1,000+ reviews).
             </p>
 
             <!-- KPI Stat Boxes -->
@@ -806,7 +809,7 @@
             </div>
 
             <p class="inspector-insight" id="vel-inspector-insight">
-              Games with <code>ai_used = FALSE</code> reach the crucial 10-review threshold <strong>18% faster</strong> on average than <code>ai_used = TRUE</code> games. The gap widens dramatically at 1,000 reviews, where non-AI titles average <strong>1.8&times; faster review velocity</strong>.
+              Games with no AI used reach the crucial 10-review threshold <strong>18% faster</strong> on average than game that used AI.<br>This dataset is a static snapshot so <strong>take this with a grain of salt</strong>, but it is consistent with the overall trend that games using AI are less likely to reach higher review counts.
             </p>
 
             <div class="kpi-grid" id="vel-kpis">
@@ -872,6 +875,10 @@
                 <h3>Similarity Calculation</h3>
               </div>
             </div>
+
+            <p class="inspector-insight" id="sim-inspector-insight">
+              The top 10 global tags by review count match with the top 10 tags with AI used at <strong>33%</strong>, and at <strong>55%</strong> when all tags are considered. <strong>So no high correlation found</strong>between review count and AI usage.
+            </p>
 
             <div class="sim-scores-dual-grid">
               <div class="similarity-score-hero">
@@ -1059,11 +1066,11 @@
             <div class="chart-legend" id="price-strat-legend">
               <span class="legend-item active">
                 <span class="legend-swatch swatch-false"></span>
-                <span class="legend-label">Non-AI (<code>ai_used = FALSE</code>)</span>
+                <span class="legend-label">Non-AI</span>
               </span>
               <span class="legend-item active">
                 <span class="legend-swatch swatch-true"></span>
-                <span class="legend-label">In-Game AI (<code>ai_used = TRUE</code>)</span>
+                <span class="legend-label">In-Game AI</span>
               </span>
               <span class="legend-item active" id="price-strat-axis-note">
                 <span class="legend-label" style="color: var(--text-secondary);">Y-axis zoomed (50%&ndash;90%) to show within-tier score gap</span>
@@ -1108,6 +1115,102 @@
               </p>
               <div class="price-strat-reg-grid" id="price-strat-reg-grid">
                 <!-- Populated by app.js -->
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
+
+      <!-- Sub-view 6: Tag AI Share (All 429 Tags Sorted by % AI Used) -->
+      <div id="subview-tag-ai-share" class="relevant-subview">
+        <div class="relevant-split-layout">
+          <!-- Left: Horizontal Ranked Bar Chart -->
+          <div class="chart-card tetris-panel">
+            <div class="chart-card-header">
+              <div>
+                <h2>AI Usage Share (%) by Steam Tag</h2>
+                <p class="chart-subtitle">All 429 Steam tags sorted highest-to-lowest by % of games using AI (<code>AI Games &divide; Total Games</code>). Dashed line marks the 23.85% overall AI rate.</p>
+              </div>
+              <div class="chart-controls">
+                <div class="mode-toggle" id="tag-share-view-toggle" role="group" aria-label="Tag Share Chart Slice">
+                  <button type="button" class="mode-btn active" data-slice="top25">Top 25 (%)</button>
+                  <button type="button" class="mode-btn" data-slice="bottom25">Bottom 25 (%)</button>
+                  <button type="button" class="mode-btn" data-slice="volume25">Top 25 AI Vol</button>
+                  <button type="button" class="mode-btn" data-slice="all">All Ranked</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="tag-share-controls-bar">
+              <div class="chart-legend" id="tag-share-legend" style="margin: 0;">
+                <span class="legend-item active">
+                  <span class="legend-swatch" style="background: #ff9f0a;"></span>
+                  <span class="legend-label">Above 23.85% Baseline</span>
+                </span>
+                <span class="legend-item active">
+                  <span class="legend-swatch" style="background: #64d2ff;"></span>
+                  <span class="legend-label">At / Below 23.85% Baseline</span>
+                </span>
+              </div>
+
+              <div class="tag-share-min-filter">
+                <span class="filter-label" style="margin: 0; white-space: nowrap;">Min Total Games:</span>
+                <div class="mini-filter-pills" id="tag-share-min-pills" role="group" aria-label="Minimum Total Games">
+                  <button type="button" class="mini-pill active" data-min="1">All (1+)</button>
+                  <button type="button" class="mini-pill" data-min="50">50+</button>
+                  <button type="button" class="mini-pill" data-min="250">250+</button>
+                  <button type="button" class="mini-pill" data-min="1000">1,000+</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Horizontal Bar Chart Container -->
+            <div class="time-chart-wrapper tag-share-chart-scroll" id="tag-share-chart-container">
+              <!-- Dynamically rendered SVG chart -->
+            </div>
+            <div class="x-axis-title" id="tag-share-caption">
+              Click any bar or table row to inspect tag totals &bull; Sorted highest to lowest by % AI Used
+            </div>
+          </div>
+
+          <!-- Right: Tag Inspector & Full Searchable Ranked Table -->
+          <aside class="inspector-card tetris-panel" id="tag-share-inspector">
+            <div class="inspector-header">
+              <div>
+                <h3 id="tag-share-title">#1 Artificial Intelligence</h3>
+              </div>
+              <button type="button" class="reset-tier-btn hidden" id="reset-tag-share-btn">Reset</button>
+            </div>
+
+            <p class="inspector-insight" id="tag-share-insight">
+              Loading tag AI breakdown...
+            </p>
+
+            <div class="kpi-grid" id="tag-share-kpis">
+              <!-- Populated by app.js -->
+            </div>
+
+            <div class="inspector-subcard" style="margin-top: 12px;">
+              <div class="subcard-title-row">
+                <h4>All Matching Tags (<span id="tag-share-match-count">429</span>)</h4>
+                <span class="subcard-caption">Sorted by % AI Used</span>
+              </div>
+              <input type="text" id="tag-share-search" class="filter-input" placeholder="Search all 429 tags (e.g. Hentai, Co-op, RPG)..." style="margin: 8px 0;" />
+              <div class="similarity-table-wrapper tag-share-table-scroll">
+                <table class="similarity-table tag-share-mini-table">
+                  <thead>
+                    <tr>
+                      <th class="th-rank">#</th>
+                      <th>Tag</th>
+                      <th style="text-align:right;">Total</th>
+                      <th style="text-align:right;">AI</th>
+                      <th style="text-align:right;">% AI</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tag-share-table-body">
+                    <!-- Populated by app.js -->
+                  </tbody>
+                </table>
               </div>
             </div>
           </aside>
@@ -1417,7 +1520,7 @@
             <!-- VS Hero Arena -->
             <div class="vs-arena-card">
               <div class="vs-col vs-col-ai">
-                <span class="vs-label">AI GAMES (ai_used = TRUE)</span>
+                <span class="vs-label">AI GAMES</span>
                 <div class="vs-price-huge" id="vs-ai-price">$6.03</div>
                 <span class="vs-meta" id="vs-ai-count">15,218 games</span>
               </div>
@@ -1429,7 +1532,7 @@
               </div>
 
               <div class="vs-col vs-col-non-ai">
-                <span class="vs-label">NON-AI GAMES (ai_used = FALSE)</span>
+                <span class="vs-label">NON-AI GAMES</span>
                 <div class="vs-price-huge" id="vs-non-ai-price">$7.90</div>
                 <span class="vs-meta" id="vs-non-ai-count">48,470 games</span>
               </div>
@@ -1610,7 +1713,7 @@
                 <div class="kpi-sub">Across 35 months (2024–2026)</div>
               </div>
               <div class="kpi-box kpi-false">
-                <div class="kpi-label">DECLARED AI_USED = TRUE</div>
+                <div class="kpi-label">DECLARED GAME USED AI</div>
                 <div class="kpi-value" id="fun-word-ai-declared-val">55 <small>(64.7%)</small></div>
                 <div class="kpi-sub">30 games use AI as a sci-fi theme only</div>
               </div>
@@ -1799,58 +1902,50 @@
           <span class="vb-yellow"></span>
         </div>
         <div class="verdict-content">
-          <h2 class="verdict-title">Conclusions &amp; Key Developer Takeaways</h2>
+          <h2 class="verdict-title">Insights &amp; Takeaways</h2>
         </div>
       </div>
 
       <!-- Conclusions Grid of Cards -->
       <div class="conclusions-grid">
-        <!-- Card 1: Adoption vs Bottleneck -->
+        <!-- Card 1: Can AI games be successful? -->
         <div class="conclusion-card tetris-panel">
           <div class="conclusion-icon">📈</div>
-          <h3>The Disclosure Surge vs. Discovery Bottleneck</h3>
+          <h3>Can a game that disclosed its AI usage be successful?</h3>
           <p>
-            Generative AI disclosure in new Steam games exploded from <strong>1.5% in January 2024</strong> to <strong>47.2% by late 2026</strong>, yet AI games shrink from <strong>35.6% of zero-review titles</strong> to <strong>9.48% of games reaching 1,000+ reviews</strong>. Even after controlling for price tier, game age, mature content, and top 20 tags, AI titles still have <strong>41.6% lower odds</strong> of reaching 10+ reviews (<code>OR = 0.584</code>, 95% CI [0.559, 0.610]).
+            <strong>Yes (maybe).</strong> On average Non-AI games reach +10 reviews at <strong>142.1 days</strong> vs <strong>168.4</strong> for games with AI. Also the more reviews a game has the <strong>less likely it is to have an AI tag</strong>. Regardless we see successful games with <strong>+1000 reviews</strong>, with a positive score with the AI tag and many others on the far opposite side without the AI tag. I think this reflects that <strong>Steam users like to buy good quality games, just like it always has been.</strong>
           </p>
         </div>
 
-        <!-- Card 2: Review Velocity Friction -->
-        <div class="conclusion-card tetris-panel">
-          <div class="conclusion-icon">⏱️</div>
-          <h3>The 18.5% Review Velocity Friction</h3>
-          <p>
-            Non-AI games reach Steam's critical 10-review visibility threshold in an average of <strong>142.1 days</strong>, whereas AI games require <strong>168.4 days</strong> &mdash; an 18.5% delay. While hit AI games prove players will embrace great titles regardless of disclosure, the average AI game faces greater community skepticism and slower word-of-mouth.
-          </p>
-        </div>
-
-        <!-- Card 3: Pricing & Confounding Check -->
+        <!-- Card 2: Why so many games made with AI? -->
         <div class="conclusion-card tetris-panel">
           <div class="conclusion-icon">🏷️</div>
-          <h3>Not Just Cheap Shovelware (-4.07 pts Controlled)</h3>
+          <h3>Why so many games made with AI?</h3>
           <p>
-            AI games average <strong>$6.03</strong> vs <strong>$7.90</strong> (-23.7%) and peak at <strong>28.1% share</strong> in <code>$0.01–$4.99</code>, but budget mix is not the whole story. The score gap persists inside <em>every</em> price tier (including <strong>-4.29 pts</strong> in <code>$15–$29.99</code>). Controlling for price, age, mature content, and genre via OLS leaves a <strong>-4.07 pt</strong> score penalty (95% CI [-4.60, -3.55]) vs <strong>-4.96 pts</strong> raw.
+            AI usage concentrates in the <strong>$0.01-$4.99 price range</strong>, also <strong>the lower the price the lower the score and review count</strong>. I read this as <strong>AI lowering the bar for people to get into game development</strong> but also making the Steam store be filled with <strong>more shovelware than usual</strong>. Also we have to consider that AI development is a new trend and when something is popular a lot of people are going to try it, just because.
           </p>
         </div>
 
-        <!-- Card 4: Genre Mismatch (33.3% Similarity) -->
+        <!-- Card 3: AI Disclosure Penalty -->
+        <div class="conclusion-card tetris-panel">
+          <div class="conclusion-icon">⚖️</div>
+          <h3>So why does it feel like a penalty to have the AI Disclosure?</h3>
+          <p>
+            The data suggest a penalty for AI usage, and sadly even though it is small for score (<strong>-4.07 on average</strong>) and review count (<strong>41.46% lower odds of reaching +10 reviews</strong>), I don&rsquo;t think is just because AI. I think this <strong>&ldquo;penalty&rdquo; is mostly because of inexperienced developers flooding the store and skewing the averages.</strong>
+          </p>
+        </div>
+
+        <!-- Card 4: Multiplayer Tag Divide -->
         <div class="conclusion-card tetris-panel">
           <div class="conclusion-icon">🧩</div>
-          <h3>The Multiplayer vs. Solo Divide (33.3% Similarity)</h3>
+          <h3>Why the Multiplayer tag is rarely seen linked to AI Usage?</h3>
           <p>
-            Steam's biggest review drivers &mdash; <code>Multiplayer</code> (#3), <code>Co-op</code> (#6), <code>Open World</code> (#7), and <code>Online Co-Op</code> (#10) &mdash; account for over <strong>24 million reviews</strong>, but developers rarely disclose AI in them (AI ranks #32 to #92). Generative AI remains heavily siloed in solo, casual, and 2D games.
-          </p>
-        </div>
-
-        <!-- Card 5: The "Declares No AI" Blunder -->
-        <div class="conclusion-card tetris-panel">
-          <div class="conclusion-icon">⚠️</div>
-          <h3>The "Declares No AI" Self-Inflicted Tag</h3>
-          <p>
-            Over <strong>116 developers</strong> typed <em>"We do NOT use AI"</em> into Steam's AI disclosure form. Because Steam's system flags any game with text in that field, these games received the AI disclosure badge anyway &mdash; subjecting them to automated filters, user skepticism, and browser extensions designed to blur AI content.
+            This is an interesting one where seems like <strong>developers that use AI are not making multiplayer, co-op, open world or similar tagged games</strong> when <strong>these tags are the biggest drivers of review count for Steam games</strong>. <strong>Singleplayer, Casual, Indie, Simulation and Strategy</strong> rank high on AI usage which are often popular tags for small development teams. So I wonder if this is because <strong>AI is still new and can&rsquo;t handle Multiplayer code</strong> or developers of this type of games are slow at incorporating this technology, or maybe a little bit of both.
           </p>
         </div>
       </div>
-      <!-- 3 Collapsible Advice Panels (Click to Reveal) -->
+
+      <!-- 2 Collapsible Advice Panels (Click to Reveal) -->
       <div class="advice-panels-grid">
         <button type="button" class="advice-panel tetris-panel" aria-expanded="false">
           <div class="advice-panel-header">
@@ -1882,23 +1977,6 @@
           <div class="advice-panel-body">
             <p>
               AI is very relevant, using it lowers the barrier to entry but people are still the one playing the games, so bad quality/taste is not being rewarded. If you are going to use it, have it help you get to a polished MVP faster. Players that auto dislike a game because of the AI tag don't seem to be a substantially sized group, so don't worry about telling your players if you used AI. In general I think honesty is the best policy.
-            </p>
-          </div>
-        </button>
-
-        <button type="button" class="advice-panel tetris-panel" aria-expanded="false">
-          <div class="advice-panel-header">
-            <div class="advice-title-group">
-              <span class="advice-icon">🧥</span>
-              <div>
-                <h3>Jensen Huang Advice</h3>
-              </div>
-            </div>
-            <span class="advice-toggle-pill">Click to reveal</span>
-          </div>
-          <div class="advice-panel-body">
-            <p>
-              If you cheat make sure she's not a spy
             </p>
           </div>
         </button>

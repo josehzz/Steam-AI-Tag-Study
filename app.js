@@ -94,7 +94,7 @@ const STUDY_DATA = {
         Visual: 2818, Marketing: 1344, Audio: 1072, Text: 1041, Code: 628,
         Prototyping: 128, Live_Generated: 52, Unspecified: 52, External_Ai_service: 19, Declares_No_Ai: 17
       },
-      insight: "In the 0-review tier (9,887 games), AI-used games reach their highest concentration at 35.61%—nearly 1.5× their overall dataset average (23.85%).",
+      insight: "AI-used games reach their highest concentration at 35.61%, this is nearly 1.5× their overall dataset average (23.85%).",
       topGames: {
         TRUE: [
           { name: "Sea and Adventure", appid: "2724020", reviews: 0, score: 0.0, ai_tags: "Visual", desc: "0 user reviews" },
@@ -127,7 +127,7 @@ const STUDY_DATA = {
         Visual: 5186, Marketing: 2001, Audio: 1901, Text: 1742, Code: 897,
         Prototyping: 237, Live_Generated: 166, External_Ai_service: 84, Unspecified: 81, Declares_No_Ai: 39
       },
-      insight: "The largest volume bucket on Steam (23,900 games). 27.21% use in-game AI (6,504 games). Combined with the 0-review bucket, 65.88% of all AI-used games never reach 10 reviews.",
+      insight: "The largest volume bucket on Steam (23,900 games). 27.21% use in-game AI (6,504 games).<br>Combined with the 0-review bucket, 65.88% of all AI-used games have not reached 10 reviews.",
       topGames: {
         TRUE: [
           { name: "EcoGenesis", appid: "2788330", reviews: 9, score: 0.0, ai_tags: "Visual", desc: "9 user reviews" },
@@ -160,7 +160,7 @@ const STUDY_DATA = {
         Visual: 2494, Audio: 861, Marketing: 851, Text: 802, Code: 348,
         Prototyping: 113, Live_Generated: 88, External_Ai_service: 49, Unspecified: 37, Declares_No_Ai: 23
       },
-      insight: "Once games cross Steam's 10-review rating threshold (16,271 games), the AI-used share drops below 20% (19.75%), and non-AI games average a 4.7-point higher positive review score (81.6% vs 76.9%).",
+      insight: "Once games cross Steam's 10-review rating threshold (16,271 games), the AI-used share drops below 20%.",
       topGames: {
         TRUE: [
           { name: "RINO RUSH", appid: "4486610", reviews: 49, score: 100.0, ai_tags: "Visual|Audio|Text", desc: "Positive" },
@@ -347,6 +347,7 @@ function initTopbarNavigation() {
         else if (activeSub && activeSub.id === "subview-similarity") initSimilarityView();
         else if (activeSub && activeSub.id === "subview-over-time") renderOverTimeChart();
         else if (activeSub && activeSub.id === "subview-price-stratified") renderPriceStratified();
+        else if (activeSub && activeSub.id === "subview-tag-ai-share") renderTagAiShare();
         else renderStackedBarChart();
       } else if (target === "more-info") {
         const activeSub = document.querySelector("#section-more-info .more-subview.active");
@@ -515,6 +516,7 @@ function initRelevantSubnav() {
       else if (target === "similarity") initSimilarityView();
       else if (target === "over-time") renderOverTimeChart();
       else if (target === "price-stratified") renderPriceStratified();
+      else if (target === "tag-ai-share") renderTagAiShare();
     });
   });
 }
@@ -702,7 +704,7 @@ function renderInspector() {
     title.textContent = "All Games Overview (63,798 Games)";
     resetBtn.classList.add("hidden");
     insight.innerHTML =
-      "Across all 63,798 Steam releases since Jan 2024, <strong>23.85%</strong> use AI in-game (<code>ai_used = TRUE</code>). As review counts climb, the share of AI-tagged games steadily drops from <strong>35.61%</strong> (at 0 reviews) down to <strong>9.48%</strong> (at 1,000+ reviews).";
+      "Across all 63,798 Steam releases since Jan 2024, <strong>23.85%</strong> use AI in-game.<br>As review counts climb, the share of AI-tagged games steadily drops from <strong>35.61%</strong> (0 reviews) down to <strong>9.48%</strong> (1,000+ reviews).";
     tagCaption.textContent = "Across all 63,798 games";
   }
 
@@ -1037,10 +1039,6 @@ function renderReviewVelocity() {
       <div class="kpi-card">
         <span class="kpi-label">AI DEFICIT</span>
         <span class="kpi-val" style="color: var(--tetris-red);">-18.5%</span>
-      </div>
-      <div class="kpi-card">
-        <span class="kpi-label">1K AI RECORD</span>
-        <span class="kpi-val" style="color: var(--tetris-cyan);">45 days</span>
       </div>
     `;
   }
@@ -1516,6 +1514,282 @@ function renderOverTimeChart() {
         <span class="kpi-val" style="color: var(--tetris-yellow);">2,009 games</span>
       </div>
     `;
+  }
+}
+
+/* =========================================================
+   9B. TAG AI SHARE (ALL 429 TAGS SORTED BY % AI USED)
+   ========================================================= */
+let tagShareSlice = "top25"; // "top25" | "bottom25" | "volume25" | "all"
+let tagShareMinGames = 1;
+let tagShareQuery = "";
+let tagShareSelectedTag = "Artificial Intelligence";
+
+function escapeTagHtml(str) {
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function initTagAiShareView() {
+  const sliceBtns = document.querySelectorAll("#tag-share-view-toggle .mode-btn");
+  const minPills = document.querySelectorAll("#tag-share-min-pills .mini-pill");
+  const searchInput = document.getElementById("tag-share-search");
+  const resetBtn = document.getElementById("reset-tag-share-btn");
+
+  sliceBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      tagShareSlice = btn.getAttribute("data-slice") || "top25";
+      sliceBtns.forEach((b) => b.classList.toggle("active", b === btn));
+      renderTagAiShare();
+    });
+  });
+
+  minPills.forEach((pill) => {
+    pill.addEventListener("click", () => {
+      tagShareMinGames = parseInt(pill.getAttribute("data-min"), 10) || 1;
+      minPills.forEach((p) => p.classList.toggle("active", p === pill));
+      renderTagAiShare();
+    });
+  });
+
+  if (searchInput) {
+    searchInput.addEventListener("input", () => {
+      tagShareQuery = searchInput.value.trim().toLowerCase();
+      renderTagAiShare();
+    });
+  }
+
+  if (resetBtn) {
+    resetBtn.addEventListener("click", () => {
+      tagShareSlice = "top25";
+      tagShareMinGames = 1;
+      tagShareQuery = "";
+      tagShareSelectedTag = "Artificial Intelligence";
+      if (searchInput) searchInput.value = "";
+      sliceBtns.forEach((b) => b.classList.toggle("active", b.getAttribute("data-slice") === "top25"));
+      minPills.forEach((p) => p.classList.toggle("active", p.getAttribute("data-min") === "1"));
+      renderTagAiShare();
+    });
+  }
+
+  renderTagAiShare();
+}
+
+function renderTagAiShare() {
+  const container = document.getElementById("tag-share-chart-container");
+  const captionEl = document.getElementById("tag-share-caption");
+  const resetBtn = document.getElementById("reset-tag-share-btn");
+  const root = window.STUDY_DATA_EXTENDED && window.STUDY_DATA_EXTENDED.tagAiShare;
+  if (!container || !root) return;
+
+  const allTags = root.tags || [];
+  const baselinePct = (root.overall && root.overall.aiPct) || 23.85;
+
+  const isModified =
+    tagShareSlice !== "top25" ||
+    tagShareMinGames !== 1 ||
+    tagShareQuery !== "" ||
+    tagShareSelectedTag !== "Artificial Intelligence";
+  if (resetBtn) resetBtn.classList.toggle("hidden", !isModified);
+
+  const filtered = allTags.filter((item) => {
+    if (item.totalGames < tagShareMinGames) return false;
+    if (tagShareQuery && !item.tag.toLowerCase().includes(tagShareQuery)) return false;
+    return true;
+  });
+
+  let displayRows = filtered;
+  if (tagShareSlice === "top25") {
+    displayRows = filtered.slice(0, 25);
+  } else if (tagShareSlice === "bottom25") {
+    displayRows = filtered.slice(-25).reverse();
+  } else if (tagShareSlice === "volume25") {
+    displayRows = [...filtered]
+      .sort((a, b) => b.aiGames - a.aiGames || b.aiPct - a.aiPct)
+      .slice(0, 25);
+  }
+
+  if (
+    displayRows.length > 0 &&
+    !filtered.some((item) => item.tag === tagShareSelectedTag)
+  ) {
+    tagShareSelectedTag = displayRows[0].tag;
+  }
+
+  if (captionEl) {
+    captionEl.textContent = `Showing ${displayRows.length} of ${filtered.length} matching tags (min ${fmtInt(tagShareMinGames)} total games) • Sorted highest to lowest by % AI Used`;
+  }
+
+  if (displayRows.length === 0) {
+    container.innerHTML = `<div style="padding:36px;text-align:center;color:var(--text-muted);">No tags match the current minimum games and search filter.</div>`;
+    renderTagAiShareInspector(allTags, filtered, baselinePct);
+    return;
+  }
+
+  const rowH = 26;
+  const padL = 178;
+  const padR = 148;
+  const padT = 34;
+  const padB = 20;
+  const w = 780;
+  const h = Math.max(240, padT + padB + displayRows.length * rowH);
+  const plotW = w - padL - padR;
+
+  const maxPct = Math.max(...displayRows.map((d) => d.aiPct), baselinePct, 10);
+  const niceMax = Math.min(100, Math.ceil(maxPct / 10) * 10);
+  const ticks = [];
+  const stepTick = niceMax <= 40 ? 10 : 20;
+  for (let v = 0; v <= niceMax; v += stepTick) ticks.push(v);
+  if (ticks[ticks.length - 1] !== niceMax) ticks.push(niceMax);
+
+  let svg = `<svg viewBox="0 0 ${w} ${h}" style="min-height:${h}px;">`;
+
+  // Vertical gridlines & top percentage labels
+  ticks.forEach((v) => {
+    const x = padL + (v / niceMax) * plotW;
+    svg += `<line x1="${x.toFixed(1)}" y1="${padT - 6}" x2="${x.toFixed(1)}" y2="${h - padB}" stroke="rgba(255,255,255,0.08)" stroke-dasharray="3,3" />`;
+    svg += `<text x="${x.toFixed(1)}" y="${padT - 12}" fill="rgba(235,235,245,0.68)" font-family="ui-monospace, monospace" font-size="10" text-anchor="middle">${v}%</text>`;
+  });
+
+  // Baseline vertical dashed line (23.85%)
+  const baseX = padL + (baselinePct / niceMax) * plotW;
+  svg += `<line x1="${baseX.toFixed(1)}" y1="${padT - 6}" x2="${baseX.toFixed(1)}" y2="${h - padB}" stroke="#ffd60a" stroke-width="1.4" stroke-dasharray="4,3" />`;
+  svg += `<text x="${(baseX + 4).toFixed(1)}" y="${padT - 12}" fill="#ffd60a" font-family="ui-monospace, monospace" font-size="10" font-weight="700" text-anchor="start">${baselinePct}% Avg</text>`;
+
+  displayRows.forEach((item, idx) => {
+    const yCenter = padT + idx * rowH + rowH / 2;
+    const barH = 15;
+    const barY = yCenter - barH / 2;
+    const barW = Math.max(2, (item.aiPct / niceMax) * plotW);
+    const isAbove = item.aiPct > baselinePct;
+    const col = isAbove ? "#ff9f0a" : "#64d2ff";
+    const isSel = item.tag === tagShareSelectedTag;
+    const rawLabel = `#${item.rank} ${item.tag}`;
+    const shortLabel = rawLabel.length > 23 ? rawLabel.slice(0, 21) + "..." : rawLabel;
+
+    if (isSel) {
+      svg += `<rect x="4" y="${(yCenter - rowH / 2 + 1).toFixed(1)}" width="${w - 8}" height="${rowH - 2}" rx="4" fill="rgba(255, 159, 10, 0.12)" stroke="rgba(255, 159, 10, 0.45)" stroke-width="1" />`;
+    }
+
+    svg += `<text x="${padL - 10}" y="${(yCenter + 3.5).toFixed(1)}" fill="${isSel ? "#ffffff" : "rgba(235,235,245,0.88)"}" font-family="-apple-system, sans-serif" font-size="11" font-weight="${isSel ? "700" : "500"}" text-anchor="end">${escapeTagHtml(shortLabel)}</text>`;
+    svg += `<rect x="${padL}" y="${barY.toFixed(1)}" width="${plotW}" height="${barH}" rx="3" fill="rgba(255,255,255,0.04)" />`;
+    svg += `<rect x="${padL}" y="${barY.toFixed(1)}" width="${barW.toFixed(1)}" height="${barH}" rx="3" fill="${col}" fill-opacity="${isSel ? "1" : "0.86"}" />`;
+
+    const rightTxt = `${item.aiPct.toFixed(2)}%  (${fmtInt(item.aiGames)} / ${fmtInt(item.totalGames)})`;
+    svg += `<text x="${padL + plotW + 10}" y="${(yCenter + 3.5).toFixed(1)}" fill="${isSel ? "#ffffff" : "rgba(235,235,245,0.8)"}" font-family="ui-monospace, monospace" font-size="10.2" font-weight="${isSel ? "700" : "500"}" text-anchor="start">${escapeTagHtml(rightTxt)}</text>`;
+
+    svg += `<rect class="tag-share-bar-hit" x="4" y="${(yCenter - rowH / 2).toFixed(1)}" width="${w - 8}" height="${rowH}" fill="transparent" data-tag="${escapeTagHtml(item.tag)}" style="cursor:pointer;" />`;
+  });
+
+  svg += `</svg>`;
+  container.innerHTML = svg;
+
+  const byTag = new Map(allTags.map((t) => [t.tag, t]));
+  container.querySelectorAll(".tag-share-bar-hit").forEach((el) => {
+    el.addEventListener("mouseenter", (e) => {
+      const t = byTag.get(el.getAttribute("data-tag"));
+      if (!t) return;
+      const tooltip = document.getElementById("chart-tooltip");
+      if (!tooltip) return;
+      const deltaNum = t.aiPct - baselinePct;
+      const sign = deltaNum >= 0 ? "+" : "";
+      tooltip.innerHTML = `
+        <div class="tooltip-title">#${t.rank} ${escapeTagHtml(t.tag)}</div>
+        <div class="tooltip-row"><span>Total Games:</span><strong>${fmtInt(t.totalGames)}</strong></div>
+        <div class="tooltip-row"><span>AI Games:</span><strong style="color:#ff9f0a;">${fmtInt(t.aiGames)}</strong></div>
+        <div class="tooltip-row"><span>% AI Used:</span><strong>${t.aiPct.toFixed(2)}% (${sign}${deltaNum.toFixed(2)} pts vs avg)</strong></div>
+      `;
+      tooltip.classList.remove("hidden");
+      moveTooltip(e);
+    });
+    el.addEventListener("mousemove", (e) => moveTooltip(e));
+    el.addEventListener("mouseleave", () => hideTooltip());
+    el.addEventListener("click", () => {
+      tagShareSelectedTag = el.getAttribute("data-tag");
+      renderTagAiShare();
+    });
+  });
+
+  renderTagAiShareInspector(allTags, filtered, baselinePct);
+}
+
+function renderTagAiShareInspector(allTags, filtered, baselinePct) {
+  const titleEl = document.getElementById("tag-share-title");
+  const insightEl = document.getElementById("tag-share-insight");
+  const kpisEl = document.getElementById("tag-share-kpis");
+  const countEl = document.getElementById("tag-share-match-count");
+  const tbodyEl = document.getElementById("tag-share-table-body");
+
+  const selected =
+    allTags.find((t) => t.tag === tagShareSelectedTag) ||
+    filtered[0] ||
+    allTags[0];
+
+  if (selected) {
+    const nonAi = selected.totalGames - selected.aiGames;
+    const delta = selected.aiPct - baselinePct;
+    const dir = selected.aiPct >= baselinePct ? "above" : "below";
+
+    if (titleEl) titleEl.textContent = `#${selected.rank} ${selected.tag}`;
+    if (insightEl) {
+      insightEl.innerHTML = `<strong>${selected.aiPct.toFixed(2)}%</strong> of <strong>${escapeTagHtml(selected.tag)}</strong> games use in-game AI (<strong>${fmtInt(selected.aiGames)}</strong> of <strong>${fmtInt(selected.totalGames)}</strong> games), which is <strong>${Math.abs(delta).toFixed(2)} pts ${dir}</strong> the ${baselinePct}% dataset baseline.`;
+    }
+    if (kpisEl) {
+      kpisEl.innerHTML = `
+        <div class="kpi-card">
+          <span class="kpi-label">TOTAL GAMES</span>
+          <span class="kpi-val">${fmtInt(selected.totalGames)}</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">AI GAMES</span>
+          <span class="kpi-val" style="color: var(--tetris-orange);">${fmtInt(selected.aiGames)}</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">NON-AI GAMES</span>
+          <span class="kpi-val" style="color: var(--tetris-cyan);">${fmtInt(nonAi)}</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">% AI USED (RANK)</span>
+          <span class="kpi-val">${selected.aiPct.toFixed(2)}% <small style="color:var(--text-muted);font-weight:500;">(#${selected.rank}/429)</small></span>
+        </div>
+      `;
+    }
+  }
+
+  if (countEl) countEl.textContent = fmtInt(filtered.length);
+
+  if (tbodyEl) {
+    if (filtered.length === 0) {
+      tbodyEl.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:16px;">No matching tags.</td></tr>`;
+      return;
+    }
+
+    tbodyEl.innerHTML = filtered
+      .map((item) => {
+        const isSel = selected && item.tag === selected.tag;
+        const pctCol = item.aiPct > baselinePct ? "#ff9f0a" : "#64d2ff";
+        return `
+          <tr class="tag-share-row${isSel ? " selected" : ""}" data-tag="${escapeTagHtml(item.tag)}">
+            <td class="rank-badge-cell">${item.rank}</td>
+            <td><strong>${escapeTagHtml(item.tag)}</strong></td>
+            <td style="text-align:right;font-family:ui-monospace,monospace;">${fmtInt(item.totalGames)}</td>
+            <td style="text-align:right;font-family:ui-monospace,monospace;">${fmtInt(item.aiGames)}</td>
+            <td style="text-align:right;font-family:ui-monospace,monospace;font-weight:700;color:${pctCol};">${item.aiPct.toFixed(2)}%</td>
+          </tr>
+        `;
+      })
+      .join("");
+
+    tbodyEl.querySelectorAll("tr.tag-share-row").forEach((rowEl) => {
+      rowEl.addEventListener("click", () => {
+        tagShareSelectedTag = rowEl.getAttribute("data-tag");
+        renderTagAiShare();
+      });
+    });
   }
 }
 
@@ -3510,6 +3784,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initSimilarityView();
   initOverTimeView();
   initPriceStratifiedView();
+  initTagAiShareView();
   initMoreInfoSubnav();
   initFunSubnav();
   initBoringSubnav();

@@ -1291,20 +1291,40 @@ h1, h2, h3, h4, .q-title, .tetris-title {
 }
 
 .inspector-insight {
-  font-size: 0.88rem;
-  line-height: 1.55;
-  color: var(--text-secondary);
-  background: rgba(10, 132, 255, 0.08);
-  border-left: 3px solid var(--apple-blue);
-  padding: 10px 14px;
-  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-  margin-bottom: 16px;
+  position: relative;
+  font-size: 0.94rem;
+  font-weight: 450;
+  line-height: 1.6;
+  color: #f3f7ff;
+  background: linear-gradient(135deg, rgba(10, 132, 255, 0.19) 0%, rgba(100, 210, 255, 0.09) 100%);
+  border: 1px solid rgba(100, 210, 255, 0.34);
+  border-left: 4px solid #64d2ff;
+  padding: 13px 16px;
+  border-radius: 12px;
+  margin-bottom: 18px;
+  box-shadow:
+    0 8px 24px rgba(10, 132, 255, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+.inspector-insight strong {
+  color: #ffffff;
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-color: rgba(100, 210, 255, 0.62);
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1.5px;
 }
 
 .inspector-insight code {
   font-family: ui-monospace, "SF Mono", monospace;
-  font-size: 0.8rem;
-  color: var(--apple-blue);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #8ee3ff;
+  background: rgba(10, 132, 255, 0.22);
+  border: 1px solid rgba(100, 210, 255, 0.28);
+  padding: 1px 6px;
+  border-radius: 5px;
 }
 
 .kpi-grid {
@@ -2835,6 +2855,11 @@ h1, h2, h3, h4, .q-title, .tetris-title {
   margin: 0;
 }
 
+.conclusion-card p strong {
+  color: #ffffff;
+  font-weight: 600;
+}
+
 .conclusion-card.card-highlight {
   border-color: rgba(10, 132, 255, 0.35);
   background: rgba(10, 132, 255, 0.06);
@@ -3259,7 +3284,7 @@ h1, h2, h3, h4, .q-title, .tetris-title {
 .advice-panels-grid {
   margin-top: 28px;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 18px;
   align-items: start;
 }
@@ -4045,12 +4070,6 @@ body {
   box-shadow: 0 16px 36px rgba(48, 209, 88, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
-#advice-jensen:hover,
-#advice-jensen.revealed {
-  border-color: rgba(255, 159, 10, 0.45);
-  box-shadow: 0 16px 36px rgba(255, 159, 10, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.12);
-}
-
 /* 12. Contact Card Elevation */
 .contact-card {
   background:
@@ -4220,4 +4239,60 @@ body {
 
 .validation-failures-block {
   margin-top: 4px;
+}
+
+/* ==========================================================================
+   Tag AI Share Sub-section
+   ========================================================================== */
+.tag-share-controls-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  margin-top: 10px;
+}
+
+.tag-share-min-filter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tag-share-chart-scroll {
+  max-height: 620px;
+  overflow-y: auto;
+}
+
+.tag-share-table-scroll {
+  max-height: 310px;
+  overflow-y: auto;
+  margin-top: 0;
+}
+
+.tag-share-mini-table th,
+.tag-share-mini-table td {
+  padding: 7px 8px;
+  font-size: 0.78rem;
+}
+
+.tag-share-mini-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: rgba(24, 25, 32, 0.96);
+}
+
+tr.tag-share-row {
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+tr.tag-share-row:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+tr.tag-share-row.selected {
+  background: rgba(255, 159, 10, 0.16);
 }
