@@ -377,6 +377,12 @@
                 </ul>
               </div>
             </li>
+            <li class="data-note-item neon-border-cyan">
+              <span class="note-block-icon" aria-hidden="true"></span>
+              <div class="note-body">
+                <p>This dataset is available here: <a href="https://www.kaggle.com/datasets/josehzz/steam-games-jan2024-nov2026-with-ai-tags/data" target="_blank" rel="noopener noreferrer" class="support-link">https://www.kaggle.com/datasets/josehzz/steam-games-jan2024-nov2026-with-ai-tags/data</a></p>
+              </div>
+            </li>
             <li class="data-note-item neon-border-green">
               <span class="note-block-icon" aria-hidden="true"></span>
               <div class="note-body">
@@ -877,7 +883,7 @@
             </div>
 
             <p class="inspector-insight" id="sim-inspector-insight">
-              The top 10 global tags by review count match with the top 10 tags with AI used at <strong>33%</strong>, and at <strong>55%</strong> when all tags are considered. <strong>So no high correlation found</strong>between review count and AI usage.
+              The top 10 global tags by review count match with the top 10 tags with AI used at <strong>33%</strong>, and at <strong>55%</strong> when all tags are considered. <strong>So no high correlation found </strong>between review count and AI usage.
             </p>
 
             <div class="sim-scores-dual-grid">
@@ -1000,6 +1006,10 @@
                 <h3>Adoption Milestones</h3>
               </div>
             </div>
+
+            <p class="inspector-insight" id="time-inspector-insight">
+              Plotting the AI tag usage over time gives us a clear view on <strong>how fast</strong> Steam devs are including AI tools into their pipeline, specially this past month.<br>I overlayed the releases of the most popular AI models and it shows a <strong>small correlation</strong>, specially in the later months
+            </p>
 
             <div class="kpi-grid" id="time-kpis">
               <!-- Dynamically populated -->
@@ -1702,7 +1712,7 @@
           <aside class="inspector-card tetris-panel" id="fun-word-ai-inspector">
             <div class="inspector-header">
               <div>
-                <h3>The "AI" In Title Phenomenon</h3>
+                <h3>The "AI" Word In Title</h3>
               </div>
             </div>
 
@@ -1802,6 +1812,13 @@
               </div>
               <span class="selected-tags-badge" id="boring-tags-selected-count">345 Tags</span>
             </div>
+
+            <p class="inspector-insight" id="boring-tags-insight">
+              My top picks as a <strong>solo indie dev</strong> who's mainly a programmer are:<br>
+              - Best tags overall: Turn-based, Roguelike Deckbuilder and Cleaning<br>
+              - Best tags niche: Sokoban, Falling Blocks, Match3<br>
+              If the game I'm making is targetting a <strong>broad audience</strong> I would make something that has the overall tags (top right), or if I'm targetting a <strong>small passionate community</strong> (top left)
+            </p>
 
             <!-- Selected Tag Detail Card -->
             <div class="dev-tag-detail-card" id="boring-dev-detail-card">

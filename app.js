@@ -3137,7 +3137,7 @@ function renderPriceStratifiedInspector(subset) {
     const aaTier = subset.tiers.find((t) => t.key.startsWith("AA"));
     const microTier = subset.tiers.find((t) => t.key.startsWith("Micro-Indie"));
     insightEl.innerHTML =
-      `<strong>No Simpson's Paradox:</strong> AI usage concentrates in <strong>${microTier.shortLabel}</strong> (${microTier.aiSharePct}% AI), but the AI penalty holds inside <em>every</em> price tier&mdash;including funded <strong>${aaTier.shortLabel}</strong> games (<strong>${aaTier.TRUE.avgScore.toFixed(1)}% vs. ${aaTier.FALSE.avgScore.toFixed(1)}%</strong>, median <strong>${formatPriceStratVal(aaTier.TRUE.medianReviews, "medianReviews")} vs. ${formatPriceStratVal(aaTier.FALSE.medianReviews, "medianReviews")}</strong> reviews).`;
+      `AI usage concentrates in <strong>${microTier.shortLabel}</strong> (${microTier.aiSharePct}% AI), but the AI penalty holds inside <strong>every</strong> price tier (<strong>${aaTier.TRUE.avgScore.toFixed(1)}% vs. ${aaTier.FALSE.avgScore.toFixed(1)}%</strong>, median <strong>${formatPriceStratVal(aaTier.TRUE.medianReviews, "medianReviews")} vs. ${formatPriceStratVal(aaTier.FALSE.medianReviews, "medianReviews")}</strong> reviews).`;
 
     kpisEl.innerHTML = `
       <div class="kpi-box kpi-false">
