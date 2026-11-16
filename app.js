@@ -47,7 +47,7 @@ const STUDY_DATA = {
     total: 63798,
     disclosedTotal: 17014,
     counts: { FALSE: 48470, TRUE: 15218, MAYBE: 110 },
-    avgScore: { FALSE: 81.6, TRUE: 76.6, MAYBE: 76.2 },
+    avgScore: { FALSE: 81.8, TRUE: 76.8, MAYBE: 76.4 },
     medianReviews: { FALSE: 10, TRUE: 3, MAYBE: 5 },
     tagCounts: {
       Visual: 12006,
@@ -343,8 +343,7 @@ function initTopbarNavigation() {
         selectIntroQuestion(0, false); // Don't trigger drop when merely switching tabs
       } else if (target === "relevant") {
         const activeSub = document.querySelector("#section-relevant .relevant-subview.active");
-        if (activeSub && activeSub.id === "subview-review-velocity") renderReviewVelocity();
-        else if (activeSub && activeSub.id === "subview-similarity") initSimilarityView();
+        if (activeSub && activeSub.id === "subview-similarity") initSimilarityView();
         else if (activeSub && activeSub.id === "subview-over-time") renderOverTimeChart();
         else if (activeSub && activeSub.id === "subview-price-stratified") renderPriceStratified();
         else if (activeSub && activeSub.id === "subview-tag-ai-share") renderTagAiShare();
@@ -352,13 +351,14 @@ function initTopbarNavigation() {
       } else if (target === "more-info") {
         const activeSub = document.querySelector("#section-more-info .more-subview.active");
         if (activeSub && activeSub.id === "subview-more-vis-aud") renderFunVisAud();
-        else if (activeSub && activeSub.id === "subview-more-ai-usage") renderAiUsagePie();
+        else if (activeSub && activeSub.id === "subview-more-ai-usage") renderAiUsage();
         else if (activeSub && activeSub.id === "subview-more-best-tags") renderBestPerformingTags();
-        else if (activeSub && activeSub.id === "subview-more-cost-vs") renderFunCostVs();
+        else if (activeSub && activeSub.id === "subview-more-cost-vs") renderGlobalCost();
         else renderBestAiGames();
       } else if (target === "for-fun") {
         const activeSub = document.querySelector("#section-for-fun .fun-subview.active");
         if (activeSub && activeSub.id === "subview-fun-word-ai") renderFunWordAi();
+        else if (activeSub && activeSub.id === "subview-fun-disclosure-tropes") renderFunDisclosureTropes();
         else renderFunFoot();
       } else if (target === "boring-stuff") {
         const activeSub = document.querySelector("#section-boring-stuff .boring-subview.active");
@@ -512,7 +512,6 @@ function initRelevantSubnav() {
       if (window.scrollY > 40) window.scrollTo({ top: 0, behavior: "smooth" });
 
       if (target === "review-count") renderStackedBarChart();
-      else if (target === "review-velocity") renderReviewVelocity();
       else if (target === "similarity") initSimilarityView();
       else if (target === "over-time") renderOverTimeChart();
       else if (target === "price-stratified") renderPriceStratified();
@@ -591,18 +590,26 @@ function renderStackedBarChart() {
           : `${fmtInt(visTotal)}`
         : `${fmtInt(visTotal)}`;
 
-    const showTrueInline = tPct > 11 && clampedH > 18;
-    const showFalseInline = fPct > 16 && clampedH > 22;
+    const falsePlotPct = (clampedH * fPct) / 100;
+    const truePlotPct = (clampedH * tPct) / 100;
+    const showTrueInline = chartMode === "count" && tVal > 0 && truePlotPct >= 4.5;
+    const showFalseInline =
+      fVal > 0 &&
+      fPct > 16 &&
+      (chartMode === "percentage" ? clampedH > 22 : falsePlotPct >= 5);
+
+    const falseLabelText = chartMode === "percentage" ? `${fPct.toFixed(0)}%` : fmtInt(fVal);
+    const trueLabelText = fmtInt(tVal);
 
     col.innerHTML = `
       <div class="bar-top-value" style="bottom: calc(${clampedH.toFixed(2)}% + 6px);">${topLabelText}</div>
       <div class="bar-stack" style="height: ${clampedH.toFixed(2)}%;">
         <div class="bar-segment seg-false" style="height: ${fPct}%;">
-          ${showFalseInline && chartMode === "percentage" ? `<span class="seg-inline-label">${fPct.toFixed(0)}%</span>` : ""}
+          ${showFalseInline ? `<span class="seg-inline-label">${falseLabelText}</span>` : ""}
         </div>
         <div class="bar-segment seg-maybe" style="height: ${mPct}%;"></div>
         <div class="bar-segment seg-true" style="height: ${tPct}%;">
-          ${showTrueInline ? `<span class="seg-inline-label" style="color:#111318;">${tPct.toFixed(1)}%</span>` : ""}
+          ${showTrueInline ? `<span class="seg-inline-label" style="color:#111318;">${trueLabelText}</span>` : ""}
         </div>
       </div>
       <div class="bar-x-label">${tier.shortLabel}</div>
@@ -782,317 +789,6 @@ function initChartControls() {
       renderStackedBarChart();
       renderInspector();
     });
-  }
-}
-
-/* =========================================================
-   7. REVIEW VELOCITY SUBVIEW (Time vs Milestone Achievement)
-   ========================================================= */
-let velAiFilter = "VS";
-let velMilestoneFilter = "10";
-
-function initReviewVelocityView() {
-  const aiPills = document.querySelectorAll("#vel-ai-filter .mini-pill");
-  const mPills = document.querySelectorAll("#vel-milestone-pills .milestone-pill");
-
-  const syncPills = () => {
-    aiPills.forEach((p) => p.classList.toggle("active", p.getAttribute("data-ai") === velAiFilter));
-    mPills.forEach((p) => p.classList.toggle("active", p.getAttribute("data-milestone") === velMilestoneFilter));
-  };
-
-  aiPills.forEach((pill) => {
-    pill.addEventListener("click", () => {
-      velAiFilter = pill.getAttribute("data-ai");
-      if (velAiFilter === "VS" && velMilestoneFilter === "all") {
-        velMilestoneFilter = "10";
-      }
-      syncPills();
-      renderReviewVelocity();
-    });
-  });
-
-  mPills.forEach((pill) => {
-    pill.addEventListener("click", () => {
-      velMilestoneFilter = pill.getAttribute("data-milestone");
-      if (velMilestoneFilter === "all" && velAiFilter === "VS") {
-        velAiFilter = "ALL";
-      }
-      syncPills();
-      renderReviewVelocity();
-    });
-  });
-
-  syncPills();
-  renderReviewVelocity();
-}
-
-function renderReviewVelocity() {
-  const container = document.getElementById("velocity-chart-container");
-  const legendEl = document.getElementById("vel-chart-legend");
-  if (!container || !window.STUDY_DATA_EXTENDED) return;
-
-  const milestones = [
-    { id: 1, label: "1 Review", color: "#64d2ff" },
-    { id: 10, label: "10 Reviews", color: "#30d158" },
-    { id: 50, label: "50 Reviews", color: "#ffd60a" },
-    { id: 200, label: "200 Reviews", color: "#ff9f0a" },
-    { id: 1000, label: "1,000 Reviews", color: "#bf5af2" }
-  ];
-
-  const isCompare = velAiFilter === "VS";
-  const scrapeDateMs = Date.UTC(2026, 10, 2); // Nov 2, 2026
-
-  let seriesList = [];
-  let baseData = [];
-
-  if (isCompare) {
-    const mId = velMilestoneFilter === "all" ? "10" : velMilestoneFilter;
-    const mObj = milestones.find((m) => String(m.id) === String(mId)) || milestones[1];
-    const falseData = window.STUDY_DATA_EXTENDED.velocity.FALSE || [];
-    const trueData = window.STUDY_DATA_EXTENDED.velocity.TRUE || [];
-    baseData = falseData;
-    seriesList = [
-      { key: "FALSE", label: `Non-AI (FALSE) — ${mObj.label}`, color: "#0a84ff", rows: falseData, m: mObj },
-      { key: "TRUE", label: `In-Game AI (TRUE) — ${mObj.label}`, color: "#ff9f0a", rows: trueData, m: mObj }
-    ];
-  } else {
-    baseData = window.STUDY_DATA_EXTENDED.velocity[velAiFilter] || [];
-    const activeMilestones = milestones.filter(
-      (m) => velMilestoneFilter === "all" || velMilestoneFilter == m.id
-    );
-    seriesList = activeMilestones.map((m) => ({
-      key: m.id,
-      label: m.label,
-      color: m.color,
-      rows: baseData,
-      m
-    }));
-  }
-
-  if (legendEl) {
-    const swatches = seriesList
-      .map((s) => `<span class="legend-item active" style="cursor:default;padding:4px 10px;"><span class="legend-swatch" style="background:${s.color};"></span><span class="legend-label">${s.label}</span></span>`)
-      .join("");
-    legendEl.innerHTML = `${swatches}<span class="legend-item active" style="cursor:default;padding:4px 10px;"><span class="evt-line-swatch" style="border-top-color:rgba(235,235,245,0.45);"></span><span class="legend-label">Max Age at Scrape (Nov '26) &mdash; newer cohorts have less time elapsed</span></span>`;
-  }
-
-  const w = 760;
-  const h = 360;
-  const padL = 64;
-  const padR = 26;
-  const padT = 26;
-  const padB = 48;
-  const plotW = w - padL - padR;
-  const plotH = h - padT - padB;
-
-  let maxDays = 400;
-  seriesList.forEach((s) => {
-    s.rows.forEach((row) => {
-      const val = row[`m${s.m.id}_days`];
-      if (val && val > maxDays) maxDays = val;
-    });
-  });
-  maxDays = Math.ceil(maxDays / 100) * 100;
-
-  const numPoints = baseData.length;
-  const xStep = numPoints > 1 ? plotW / (numPoints - 1) : plotW;
-
-  let svg = `<svg viewBox="0 0 ${w} ${h}">`;
-  svg += `<defs>
-    <filter id="neon-glow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.28"/>
-    </filter>
-    <clipPath id="vel-plot-clip">
-      <rect x="${padL}" y="${padT}" width="${plotW}" height="${plotH}" />
-    </clipPath>
-  </defs>`;
-
-  // Y Axis Title
-  svg += `<text x="16" y="${padT + plotH / 2}" fill="rgba(235,235,245,0.72)" font-family="-apple-system, sans-serif" font-size="11" font-weight="600" text-anchor="middle" transform="rotate(-90 16 ${padT + plotH / 2})">Avg Days Since Release</text>`;
-
-  // Y Gridlines and labels
-  const yTicks = 5;
-  for (let i = 0; i <= yTicks; i++) {
-    const val = Math.round((maxDays / yTicks) * i);
-    const yPos = padT + plotH - (val / maxDays) * plotH;
-    svg += `<line x1="${padL}" y1="${yPos}" x2="${w - padR}" y2="${yPos}" stroke="rgba(255,255,255,0.09)" stroke-dasharray="3,3" />`;
-    svg += `<text x="${padL - 8}" y="${yPos + 4}" fill="rgba(235,235,245,0.72)" font-family="ui-monospace, monospace" font-size="11" text-anchor="end">${val}d</text>`;
-  }
-
-  // X Axis Baseline & Labels
-  svg += `<line x1="${padL}" y1="${padT + plotH}" x2="${w - padR}" y2="${padT + plotH}" stroke="rgba(255,255,255,0.2)" />`;
-  baseData.forEach((row, idx) => {
-    if (idx % 6 === 0 || idx === numPoints - 1) {
-      const xPos = padL + idx * xStep;
-      const label = row.month.slice(2);
-      svg += `<text x="${xPos}" y="${h - 14}" fill="rgba(235,235,245,0.72)" font-family="ui-monospace, monospace" font-size="11" text-anchor="middle">${label}</text>`;
-      svg += `<line x1="${xPos}" y1="${padT + plotH}" x2="${xPos}" y2="${padT + plotH + 5}" stroke="rgba(255,255,255,0.2)" />`;
-    }
-  });
-
-  // Observation window reference line (max possible age at Nov 2, 2026)
-  const capPts = baseData.map((row, idx) => {
-    const [yr, mo] = row.month.split("-").map(Number);
-    const midMs = Date.UTC(yr, mo - 1, 1);
-    const maxAgeDays = Math.max(2, (scrapeDateMs - midMs) / 86400000);
-    const x = padL + idx * xStep;
-    const y = padT + plotH - (maxAgeDays / maxDays) * plotH;
-    return { x, y };
-  });
-  const capD = capPts.reduce((acc, pt, i) => `${acc} ${i === 0 ? "M" : "L"} ${pt.x.toFixed(1)} ${pt.y.toFixed(1)}`, "");
-  svg += `<path d="${capD}" fill="none" stroke="rgba(235,235,245,0.32)" stroke-width="1.5" stroke-dasharray="5,4" clip-path="url(#vel-plot-clip)" />`;
-
-  // Shaded area between Non-AI and AI in Compare mode
-  if (isCompare && seriesList.length === 2) {
-    const r0 = seriesList[0].rows;
-    const r1 = seriesList[1].rows;
-    const mId = seriesList[0].m.id;
-    const topPts = [];
-    const botPts = [];
-    baseData.forEach((_, idx) => {
-      const d0 = r0[idx] && r0[idx][`m${mId}_days`];
-      const d1 = r1[idx] && r1[idx][`m${mId}_days`];
-      if (d0 != null && d1 != null) {
-        const x = padL + idx * xStep;
-        topPts.push({ x, y: padT + plotH - (d0 / maxDays) * plotH });
-        botPts.unshift({ x, y: padT + plotH - (d1 / maxDays) * plotH });
-      }
-    });
-    if (topPts.length > 1) {
-      const polyPts = [...topPts, ...botPts].map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
-      svg += `<polygon points="${polyPts}" fill="rgba(255, 159, 10, 0.1)" />`;
-    }
-  }
-
-  // Curves
-  seriesList.forEach((s) => {
-    const pts = [];
-    s.rows.forEach((row, idx) => {
-      const days = row[`m${s.m.id}_days`];
-      if (days !== null && days !== undefined) {
-        const x = padL + idx * xStep;
-        const y = padT + plotH - (days / maxDays) * plotH;
-        pts.push({ x, y, days, count: row[`m${s.m.id}_count`], month: row.month, seriesLabel: s.label, m: s.m });
-      }
-    });
-
-    if (pts.length > 1) {
-      const pathD = pts.reduce((acc, pt, i) => `${acc} ${i === 0 ? "M" : "L"} ${pt.x.toFixed(1)} ${pt.y.toFixed(1)}`, "");
-      svg += `<path d="${pathD}" fill="none" stroke="${s.color}" stroke-width="2.6" filter="url(#neon-glow)" />`;
-    }
-
-    pts.forEach((pt) => {
-      svg += `<circle cx="${pt.x.toFixed(1)}" cy="${pt.y.toFixed(1)}" r="3.8" fill="${s.color}" stroke="#1c1c1e" stroke-width="1.5" class="vel-node" data-month="${pt.month}" data-milestone="${pt.seriesLabel}" data-num="${pt.m.id}" data-days="${pt.days}" data-count="${pt.count}" />`;
-    });
-  });
-
-  svg += `</svg>`;
-  container.innerHTML = svg;
-
-  // Tooltip
-  container.querySelectorAll(".vel-node").forEach((node) => {
-    node.addEventListener("mouseenter", (e) => {
-      const month = node.getAttribute("data-month");
-      const milestone = node.getAttribute("data-milestone");
-      const days = node.getAttribute("data-days");
-      const count = node.getAttribute("data-count");
-      const numM = parseInt(node.getAttribute("data-num"), 10) || 10;
-      const rate = (numM / parseFloat(days)).toFixed(2);
-
-      const tooltip = document.getElementById("chart-tooltip");
-      if (!tooltip) return;
-      tooltip.innerHTML = `
-        <div class="tooltip-title">${month} &bull; ${milestone}</div>
-        <div class="tooltip-row">
-          <span>Avg Age / Days to Reach:</span>
-          <strong style="color:var(--apple-blue, #0a84ff);">${days} days</strong>
-        </div>
-        <div class="tooltip-row">
-          <span>Games Qualified:</span>
-          <strong>${fmtInt(count)} games</strong>
-        </div>
-        <div class="tooltip-row">
-          <span>Estimated Velocity:</span>
-          <strong style="color:var(--apple-yellow, #ffd60a);">~${rate} rev/day</strong>
-        </div>
-      `;
-      tooltip.classList.remove("hidden");
-      moveTooltip(e);
-    });
-
-    node.addEventListener("mousemove", (e) => moveTooltip(e));
-    node.addEventListener("mouseleave", () => hideTooltip());
-  });
-
-  // KPIs
-  const kpis = document.getElementById("vel-kpis");
-  if (kpis) {
-    kpis.innerHTML = `
-      <div class="kpi-card">
-        <span class="kpi-label">NON-AI AVG (10 REV)</span>
-        <span class="kpi-val" style="color: var(--color-false);">142.1 days</span>
-      </div>
-      <div class="kpi-card">
-        <span class="kpi-label">AI AVG (10 REV)</span>
-        <span class="kpi-val" style="color: var(--color-true);">168.4 days</span>
-      </div>
-      <div class="kpi-card">
-        <span class="kpi-label">AI DEFICIT</span>
-        <span class="kpi-val" style="color: var(--tetris-red);">-18.5%</span>
-      </div>
-    `;
-  }
-
-  // Threshold comparison bars
-  const comp = document.getElementById("vel-thresh-comparison");
-  if (comp) {
-    comp.innerHTML = `
-      <div class="tag-bar-row">
-        <span class="tag-bar-name">FALSE (Non-AI)</span>
-        <div class="tag-bar-track">
-          <div class="tag-bar-fill" style="width: 75%; background: var(--color-false);"></div>
-        </div>
-        <span class="tag-bar-count">142 days</span>
-      </div>
-      <div class="tag-bar-row">
-        <span class="tag-bar-name">TRUE (AI Used)</span>
-        <div class="tag-bar-track">
-          <div class="tag-bar-fill" style="width: 89%; background: var(--color-true);"></div>
-        </div>
-        <span class="tag-bar-count">168 days (+18%)</span>
-      </div>
-      <div class="tag-bar-row">
-        <span class="tag-bar-name">MAYBE (Prototyping)</span>
-        <div class="tag-bar-track">
-          <div class="tag-bar-fill" style="width: 100%; background: var(--color-maybe);"></div>
-        </div>
-        <span class="tag-bar-count">189 days (+33%)</span>
-      </div>
-    `;
-  }
-
-  // Fastest AI games list
-  const fastestContainer = document.getElementById("vel-fastest-games");
-  if (fastestContainer) {
-    const fastestList = [
-      { name: "ARC Raiders", reviews: 204642, score: 81, days: "~45d to 1K" },
-      { name: "The Outlast Trials", reviews: 45170, score: 93, days: "~32d to 1K" },
-      { name: "Where Winds Meet", reviews: 65041, score: 86, days: "~50d to 1K" },
-      { name: "Crimson Desert Enhanced", reviews: 64035, score: 86, days: "~52d to 1K" }
-    ];
-    fastestContainer.innerHTML = fastestList
-      .map(
-        (g) => `
-        <div class="notable-game-item">
-          <div class="notable-game-left">
-            <span class="notable-game-title">${g.name}</span>
-            <span class="notable-game-sub">${fmtInt(g.reviews)} reviews &bull; ${g.score}% Positive</span>
-          </div>
-          <span class="notable-game-meta" style="color: var(--tetris-green);">${g.days}</span>
-        </div>
-      `
-      )
-      .join("");
   }
 }
 
@@ -1802,7 +1498,8 @@ let bestAiMatchMode = "all"; // "all" | "any"
 let moreMinScore = 0;
 let moreSortPriority = "reviews";
 
-let activeAiUsageSlice = "Visual";
+let activeAiUsageTag = "Visual";
+let aiUsageMetricMode = "count"; // "count" | "pct"
 
 let tagScoreDirection = "beyond";
 let tagScoreThreshold = 80;
@@ -1827,17 +1524,17 @@ function initMoreInfoSubnav() {
 
       if (target === "more-best-ai") renderBestAiGames();
       else if (target === "more-vis-aud") renderFunVisAud();
-      else if (target === "more-ai-usage") renderAiUsagePie();
+      else if (target === "more-ai-usage") renderAiUsage();
       else if (target === "more-best-tags") renderBestPerformingTags();
-      else if (target === "more-cost-vs") renderFunCostVs();
+      else if (target === "more-cost-vs") renderGlobalCost();
     });
   });
 
   initBestAiGamesView();
   initFunVisAudView();
-  initAiUsagePieView();
+  initAiUsageView();
   initBestPerformingTagsView();
-  initFunCostVsView();
+  initGlobalCostView();
 }
 
 function initBestAiGamesView() {
@@ -1990,15 +1687,16 @@ function renderBestAiGames() {
       const aiTagsPills = g.ai_tags
         ? g.ai_tags
             .split("|")
-            .map((t) => `<span class="game-ai-tag-pill">${t}</span>`)
+            .map((t) => `<span class="game-ai-tag-pill">${escapeTagHtml(t)}</span>`)
             .join("")
         : "";
 
       const gameTagsPills = g.tags
         .slice(0, 4)
-        .map((t) => `<span class="game-tag-pill">${t}</span>`)
+        .map((t) => `<span class="game-tag-pill">${escapeTagHtml(t)}</span>`)
         .join("");
 
+      const safeName = escapeTagHtml(g.name);
       return `
         <div class="best-game-card">
           <span class="best-game-rank">#${idx + 1}</span>
@@ -2006,19 +1704,19 @@ function renderBestAiGames() {
             <img 
               class="best-game-capsule" 
               src="${capsuleUrl}" 
-              alt="${g.name} Capsule Art" 
+              alt="${safeName} Capsule Art" 
               loading="lazy"
               onerror="this.onerror=null; this.src='${fallbackUrl}'; this.onerror=function(){this.parentElement.style.display='none';};"
             />
           </div>
           <div class="best-game-info">
             <a href="https://store.steampowered.com/app/${g.appid}/" target="_blank" rel="noopener noreferrer" class="best-game-title">
-              ${g.name} &nearr;
+              ${safeName} &nearr;
             </a>
             <div class="best-game-meta-row">
               <span class="game-reviews-badge">&starf; ${fmtInt(g.reviews)} reviews</span>
               <span class="game-score-badge">${g.score}% Positive</span>
-              ${g.desc ? `<span class="tag-count-sub">${g.desc}</span>` : ""}
+              ${g.desc ? `<span class="tag-count-sub">${escapeTagHtml(g.desc)}</span>` : ""}
             </div>
             <div class="best-game-tags">
               ${aiTagsPills}
@@ -2031,152 +1729,209 @@ function renderBestAiGames() {
     .join("");
 }
 
-function initAiUsagePieView() {
-  renderAiUsagePie();
+function initAiUsageView() {
+  const modeBtns = document.querySelectorAll("#ai-usage-mode-toggle .mode-btn");
+  modeBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      aiUsageMetricMode = btn.getAttribute("data-mode") || "count";
+      modeBtns.forEach((b) => b.classList.toggle("active", b === btn));
+      renderAiUsage();
+    });
+  });
+  renderAiUsage();
 }
 
-function renderAiUsagePie() {
-  const container = document.getElementById("ai-pie-svg-container");
-  const legend = document.getElementById("ai-pie-legend");
-  if (!container || !window.STUDY_DATA_EXTENDED) return;
+function renderAiUsage() {
+  const container = document.getElementById("ai-usage-chart-container");
+  const tableBody = document.getElementById("ai-usage-ranked-table-body");
+  const root = window.STUDY_DATA_EXTENDED && window.STUDY_DATA_EXTENDED.aiUsageRanked;
+  if (!container || !root || !root.tags) return;
 
-  const pieData = window.STUDY_DATA_EXTENDED.aiUsagePie;
-  const slices = pieData.slices;
-  const total = pieData.totalDisclosures;
-  const maxSliceCount = Math.max(...slices.map((s) => s.count), 1);
-
+  const tags = root.tags;
+  const totalDisclosed = root.totalDisclosed || 17014;
   const palette = [
-    "#64d2ff", // Visual (Apple Teal)
-    "#ff9f0a", // Marketing (Apple Orange)
-    "#bf5af2", // Audio (Apple Purple)
-    "#30d158", // Text (Apple Green)
-    "#ffd60a", // Code (Apple Yellow)
-    "#ff453a", // Prototyping (Apple Red)
-    "#0a84ff", // Live_Generated (Apple Blue)
-    "#5e5ce6", // Unspecified (Apple Indigo)
-    "#ff375f", // External_Ai_service (Apple Pink)
-    "#8e8e93"  // Declares_No_Ai (Apple Gray)
+    "#64d2ff", // #1 Visual
+    "#ff9f0a", // #2 Marketing
+    "#bf5af2", // #3 Audio
+    "#30d158", // #4 Text
+    "#ffd60a", // #5 Code
+    "#ff453a", // #6 Prototyping
+    "#0a84ff", // #7 Live_Generated
+    "#5e5ce6", // #8 Unspecified
+    "#ff375f", // #9 External_Ai_service
+    "#8e8e93"  // #10 Declares_No_Ai
   ];
 
-  let currentAngle = -Math.PI / 2; // Start cleanly at 12 o'clock
-  const cx = 160;
-  const cy = 160;
-  const r = 122;
-  const innerR = 66;
+  const activeObj = tags.find((t) => t.ai_tag === activeAiUsageTag) || tags[0];
+  activeAiUsageTag = activeObj.ai_tag;
 
-  let svg = `<svg viewBox="0 0 320 320" style="overflow: visible;">`;
+  const isPct = aiUsageMetricMode === "pct";
+  const maxVal = isPct ? 80 : 14000;
+  const ticks = isPct ? [0, 20, 40, 60, 80] : [0, 3500, 7000, 10500, 14000];
 
-  slices.forEach((sl, idx) => {
-    const fraction = sl.count / total;
-    const angle = fraction * 2 * Math.PI;
-    const startAngle = currentAngle;
-    const endAngle = currentAngle + angle;
-    const midAngle = startAngle + angle / 2;
-    currentAngle = endAngle;
+  const w = 780;
+  const rowH = 32;
+  const padL = 175;
+  const padR = 148;
+  const padT = 32;
+  const padB = 22;
+  const h = padT + padB + tags.length * rowH;
+  const plotW = w - padL - padR;
 
-    const isAct = sl.ai_tag === activeAiUsageSlice;
-    const pop = isAct ? 6 : 0;
-    const scx = cx + pop * Math.cos(midAngle);
-    const scy = cy + pop * Math.sin(midAngle);
+  let svg = `<svg viewBox="0 0 ${w} ${h}">`;
 
-    const x1 = scx + r * Math.cos(startAngle);
-    const y1 = scy + r * Math.sin(startAngle);
-    const x2 = scx + r * Math.cos(endAngle);
-    const y2 = scy + r * Math.sin(endAngle);
-
-    const ix1 = scx + innerR * Math.cos(endAngle);
-    const iy1 = scy + innerR * Math.sin(endAngle);
-    const ix2 = scx + innerR * Math.cos(startAngle);
-    const iy2 = scy + innerR * Math.sin(startAngle);
-
-    const largeArc = angle > Math.PI ? 1 : 0;
-    const pathD = `M ${x1.toFixed(2)} ${y1.toFixed(2)} A ${r} ${r} 0 ${largeArc} 1 ${x2.toFixed(2)} ${y2.toFixed(2)} L ${ix1.toFixed(2)} ${iy1.toFixed(2)} A ${innerR} ${innerR} 0 ${largeArc} 0 ${ix2.toFixed(2)} ${iy2.toFixed(2)} Z`;
-
-    const color = palette[idx % palette.length];
-
-    svg += `<path d="${pathD}" fill="${color}" fill-opacity="${isAct ? "1" : "0.8"}" stroke="${isAct ? "#ffffff" : "#0b0d14"}" stroke-width="${isAct ? "2.4" : "1.2"}" class="pie-slice ${isAct ? "active" : ""}" data-tag="${sl.ai_tag}" data-count="${sl.count}" data-pct="${sl.pct}" />`;
+  ticks.forEach((v) => {
+    const x = padL + (v / maxVal) * plotW;
+    svg += `<line x1="${x.toFixed(1)}" y1="${padT - 6}" x2="${x.toFixed(1)}" y2="${h - padB}" stroke="rgba(255,255,255,0.08)" stroke-dasharray="3,3" />`;
+    const lbl = isPct ? `${v}%` : fmtInt(v);
+    svg += `<text x="${x.toFixed(1)}" y="${padT - 12}" fill="rgba(235,235,245,0.68)" font-family="ui-monospace, monospace" font-size="10" text-anchor="middle">${lbl}</text>`;
   });
 
-  // Center Text in Donut
-  const activeObj = slices.find((s) => s.ai_tag === activeAiUsageSlice) || slices[0];
-  svg += `
-    <text x="${cx}" y="${cy - 10}" fill="#f5f5f7" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif" font-size="13" font-weight="700" text-anchor="middle">${activeObj.ai_tag}</text>
-    <text x="${cx}" y="${cy + 10}" fill="#64d2ff" font-family="ui-monospace, monospace" font-size="14" font-weight="700" text-anchor="middle">${activeObj.pct}%</text>
-    <text x="${cx}" y="${cy + 26}" fill="rgba(235,235,245,0.68)" font-family="ui-monospace, monospace" font-size="10" text-anchor="middle">${fmtInt(activeObj.count)} games</text>
-  `;
+  tags.forEach((item, idx) => {
+    const yCenter = padT + idx * rowH + rowH / 2;
+    const barH = 18;
+    const barY = yCenter - barH / 2;
+    const val = isPct ? item.disclosedPct : item.count;
+    const barW = Math.max(3, (val / maxVal) * plotW);
+    const col = palette[idx % palette.length];
+    const isSel = item.ai_tag === activeAiUsageTag;
+
+    if (isSel) {
+      svg += `<rect x="4" y="${(yCenter - rowH / 2 + 1).toFixed(1)}" width="${w - 8}" height="${rowH - 2}" rx="6" fill="rgba(100, 210, 255, 0.11)" stroke="rgba(100, 210, 255, 0.45)" stroke-width="1" />`;
+    }
+
+    svg += `<text x="${padL - 10}" y="${(yCenter + 4).toFixed(1)}" fill="${isSel ? "#ffffff" : "rgba(235,235,245,0.88)"}" font-family="ui-monospace, monospace" font-size="11" font-weight="${isSel ? "700" : "500"}" text-anchor="end">#${item.rank} ${escapeTagHtml(item.ai_tag)}</text>`;
+    svg += `<rect x="${padL}" y="${barY.toFixed(1)}" width="${plotW}" height="${barH}" rx="4" fill="rgba(255,255,255,0.045)" />`;
+    svg += `<rect x="${padL}" y="${barY.toFixed(1)}" width="${barW.toFixed(1)}" height="${barH}" rx="4" fill="${col}" fill-opacity="${isSel ? "1" : "0.86"}" />`;
+
+    const rightTxt = isPct
+      ? `${item.disclosedPct.toFixed(2)}%  (${fmtInt(item.count)})`
+      : `${fmtInt(item.count)}  (${item.disclosedPct.toFixed(1)}%)`;
+    svg += `<text x="${padL + plotW + 10}" y="${(yCenter + 4).toFixed(1)}" fill="${isSel ? "#ffffff" : "rgba(235,235,245,0.82)"}" font-family="ui-monospace, monospace" font-size="10.5" font-weight="${isSel ? "700" : "500"}" text-anchor="start">${escapeTagHtml(rightTxt)}</text>`;
+
+    svg += `<rect class="ai-usage-bar-hit" x="4" y="${(yCenter - rowH / 2).toFixed(1)}" width="${w - 8}" height="${rowH}" fill="transparent" data-tag="${escapeTagHtml(item.ai_tag)}" style="cursor:pointer;" />`;
+  });
 
   svg += `</svg>`;
   container.innerHTML = svg;
 
-  // Ranked Interactive Bar-Legend (makes even 0.4% slices effortless to inspect & click)
-  if (legend) {
-    legend.innerHTML = slices
-      .map((sl, idx) => {
-        const color = palette[idx % palette.length];
-        const isAct = sl.ai_tag === activeAiUsageSlice;
-        const barW = Math.max(2, (sl.count / maxSliceCount) * 100);
-        return `
-          <div class="pie-legend-item ${isAct ? "active" : ""}" data-tag="${sl.ai_tag}">
-            <span class="pie-swatch" style="background: ${color};"></span>
-            <span style="font-weight: 600; color: #ffffff;">${sl.ai_tag}</span>
-            <div class="pie-legend-bar-track">
-              <div class="pie-legend-bar-fill" style="width: ${barW.toFixed(1)}%; background: ${color};"></div>
-            </div>
-            <span style="color: rgba(235,235,245,0.78); font-family: ui-monospace, SFMono-Regular, monospace; font-size: 0.78em; white-space: nowrap;">${fmtInt(sl.count)} (${sl.pct}%)</span>
-          </div>
-        `;
-      })
-      .join("");
-
-    legend.querySelectorAll(".pie-legend-item").forEach((item) => {
-      item.addEventListener("click", () => {
-        activeAiUsageSlice = item.getAttribute("data-tag");
-        renderAiUsagePie();
-      });
-    });
-  }
-
-  // Slice click & hover events
-  container.querySelectorAll(".pie-slice").forEach((slice) => {
-    slice.addEventListener("click", () => {
-      activeAiUsageSlice = slice.getAttribute("data-tag");
-      renderAiUsagePie();
+  const byTag = new Map(tags.map((t) => [t.ai_tag, t]));
+  container.querySelectorAll(".ai-usage-bar-hit").forEach((el) => {
+    el.addEventListener("click", () => {
+      activeAiUsageTag = el.getAttribute("data-tag");
+      renderAiUsage();
     });
 
-    slice.addEventListener("mouseenter", (e) => {
-      const tag = slice.getAttribute("data-tag");
-      const count = slice.getAttribute("data-count");
-      const pct = slice.getAttribute("data-pct");
-
+    el.addEventListener("mouseenter", (e) => {
+      const item = byTag.get(el.getAttribute("data-tag"));
+      if (!item) return;
       const tooltip = document.getElementById("chart-tooltip");
       if (!tooltip) return;
       tooltip.innerHTML = `
-        <div class="tooltip-title">${tag} AI Disclosure</div>
-        <div class="tooltip-row"><span>Games Disclosing:</span><strong>${fmtInt(count)}</strong></div>
-        <div class="tooltip-row" style="color:#64d2ff;"><span>Share of Tag Mentions:</span><strong>${pct}%</strong></div>
+        <div class="tooltip-title">#${item.rank} ${escapeTagHtml(item.ai_tag)}</div>
+        <div class="tooltip-row"><span>Games with Tag:</span><strong>${fmtInt(item.count)} / ${fmtInt(totalDisclosed)}</strong></div>
+        <div class="tooltip-row" style="color:#64d2ff;"><span>% of Disclosed Games:</span><strong>${item.disclosedPct.toFixed(2)}%</strong></div>
+        <div class="tooltip-row"><span>% of All Steam Releases:</span><strong>${item.catalogPct.toFixed(2)}%</strong></div>
+        <div class="tooltip-row"><span>Avg Score / Avg Price:</span><strong>${item.avgScore}% &bull; $${item.avgPrice.toFixed(2)}</strong></div>
       `;
       tooltip.classList.remove("hidden");
       moveTooltip(e);
     });
-    slice.addEventListener("mousemove", (e) => moveTooltip(e));
-    slice.addEventListener("mouseleave", () => hideTooltip());
+    el.addEventListener("mousemove", (e) => moveTooltip(e));
+    el.addEventListener("mouseleave", () => hideTooltip());
   });
 
-  renderAiUsageLeftPanel(activeObj);
+  if (tableBody) {
+    tableBody.innerHTML = tags
+      .map((item, idx) => {
+        const isSel = item.ai_tag === activeAiUsageTag;
+        const col = palette[idx % palette.length];
+        return `
+          <tr class="tag-share-row${isSel ? " selected" : ""}" data-tag="${escapeTagHtml(item.ai_tag)}">
+            <td class="rank-badge-cell">${String(item.rank).padStart(2, "0")}</td>
+            <td><span class="legend-swatch" style="background:${col};display:inline-block;margin-right:6px;vertical-align:middle;"></span><strong>${escapeTagHtml(item.ai_tag)}</strong></td>
+            <td style="text-align:right;font-family:ui-monospace,monospace;font-weight:700;">${fmtInt(item.count)}</td>
+            <td style="text-align:right;font-family:ui-monospace,monospace;color:#64d2ff;">${item.disclosedPct.toFixed(2)}%</td>
+            <td style="text-align:right;font-family:ui-monospace,monospace;color:var(--text-secondary);">${item.catalogPct.toFixed(2)}%</td>
+            <td style="text-align:right;font-family:ui-monospace,monospace;">${item.avgScore.toFixed(1)}%</td>
+            <td style="text-align:right;font-family:ui-monospace,monospace;">$${item.avgPrice.toFixed(2)}</td>
+          </tr>
+        `;
+      })
+      .join("");
+
+    tableBody.querySelectorAll("tr.tag-share-row").forEach((row) => {
+      row.addEventListener("click", () => {
+        activeAiUsageTag = row.getAttribute("data-tag");
+        renderAiUsage();
+      });
+    });
+  }
+
+  renderAiUsageInspector(activeObj, root);
 }
 
-function renderAiUsageLeftPanel(activeObj) {
+function renderAiUsageInspector(activeObj, root) {
   const title = document.getElementById("ai-usage-tag-title");
   const countPill = document.getElementById("ai-usage-count-pill");
   const insight = document.getElementById("ai-usage-insight");
+  const kpisEl = document.getElementById("ai-usage-kpis");
+  const coTagsEl = document.getElementById("ai-usage-co-tags");
   const crossTags = document.getElementById("ai-usage-cross-tags");
   const notable = document.getElementById("ai-usage-notable-games");
 
-  if (title) title.textContent = `${activeObj.ai_tag} Disclosures`;
-  if (countPill) countPill.textContent = `${fmtInt(activeObj.count)} games (${activeObj.pct}%)`;
+  if (title) title.textContent = `#${activeObj.rank} ${activeObj.ai_tag}`;
+  if (countPill) countPill.textContent = `${fmtInt(activeObj.count)} games (${activeObj.disclosedPct.toFixed(2)}%)`;
 
   if (insight) {
-    insight.innerHTML = `Games disclosing <strong>${activeObj.ai_tag} AI</strong> make up <strong>${activeObj.pct}%</strong> of all disclosures. The list below reveals the most frequent gameplay tags developers pair with this AI technology.`;
+    insight.innerHTML = `<strong>${escapeTagHtml(activeObj.ai_tag)}</strong> appears in <strong>${fmtInt(activeObj.count)}</strong> of <strong>${fmtInt(root.totalDisclosed)}</strong> disclosed games (<strong>${activeObj.disclosedPct.toFixed(2)}%</strong>), representing <strong>${activeObj.catalogPct.toFixed(2)}%</strong> of all 63,798 Steam releases. Only <strong>${activeObj.soloPct}%</strong> carry this tag alone.`;
+  }
+
+  if (kpisEl) {
+    kpisEl.innerHTML = `
+      <div class="kpi-card">
+        <span class="kpi-label">% OF DISCLOSED</span>
+        <span class="kpi-val" style="color: var(--tetris-cyan);">${activeObj.disclosedPct.toFixed(2)}%</span>
+        <span class="kpi-sub">${activeObj.catalogPct.toFixed(2)}% of all 63,798 games</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-label">AVG REVIEW SCORE</span>
+        <span class="kpi-val" style="color: var(--tetris-green);">${activeObj.avgScore.toFixed(1)}%</span>
+        <span class="kpi-sub">${fmtInt(activeObj.ratedCount)} rated games</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-label">10+ REVIEW RATE</span>
+        <span class="kpi-val" style="color: var(--tetris-yellow);">${activeObj.pct10Plus.toFixed(1)}%</span>
+        <span class="kpi-sub">Median ${fmtInt(activeObj.medReviews)} reviews</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-label">AVG BASE PRICE</span>
+        <span class="kpi-val" style="color: var(--tetris-orange);">$${activeObj.avgPrice.toFixed(2)}</span>
+        <span class="kpi-sub">${activeObj.soloPct.toFixed(1)}% solo-tag rate</span>
+      </div>
+    `;
+  }
+
+  if (coTagsEl) {
+    if (!activeObj.coTags || activeObj.coTags.length === 0) {
+      coTagsEl.innerHTML = `<div style="font-size:0.78rem;color:var(--text-muted);padding:4px 0;">Never paired with other AI tags (100% standalone).</div>`;
+    } else {
+      const maxCo = Math.max(...activeObj.coTags.map((t) => t.count), 1);
+      coTagsEl.innerHTML = activeObj.coTags
+        .map((t) => {
+          const w = ((t.count / maxCo) * 100).toFixed(1);
+          return `
+            <div class="tag-bar-row">
+              <span class="tag-bar-name">${escapeTagHtml(t.tag)}</span>
+              <div class="tag-bar-track">
+                <div class="tag-bar-fill" style="width: ${w}%; background: var(--apple-purple);"></div>
+              </div>
+              <span class="tag-bar-count">${fmtInt(t.count)} (${t.pct}%)</span>
+            </div>
+          `;
+        })
+        .join("");
+    }
   }
 
   if (crossTags) {
@@ -2186,7 +1941,7 @@ function renderAiUsageLeftPanel(activeObj) {
         const w = ((t.count / maxVal) * 100).toFixed(1);
         return `
           <div class="tag-bar-row">
-            <span class="tag-bar-name">${t.tag}</span>
+            <span class="tag-bar-name">${escapeTagHtml(t.tag)}</span>
             <div class="tag-bar-track">
               <div class="tag-bar-fill" style="width: ${w}%; background: var(--tetris-orange);"></div>
             </div>
@@ -2203,7 +1958,8 @@ function renderAiUsageLeftPanel(activeObj) {
         (ex) => `
         <div class="notable-game-item">
           <div class="notable-game-left">
-            <span class="notable-game-title">${ex.name}</span>
+            <a href="https://store.steampowered.com/app/${ex.appid}/" target="_blank" rel="noopener noreferrer" class="notable-game-title" style="text-decoration:none;color:#ffffff;">${escapeTagHtml(ex.name)} &nearr;</a>
+            <span class="notable-game-sub">${ex.score > 0 ? `${ex.score}% Positive` : "Unrated"} &bull; ${escapeTagHtml(ex.ai_tags)}</span>
           </div>
           <span class="notable-game-meta" style="color: var(--tetris-cyan);">${fmtInt(ex.reviews)} rev</span>
         </div>
@@ -2357,7 +2113,7 @@ let funFootMinScore = 0;
 
 let funVisAudTagFilter = "ALL";
 
-let funCostSelectedTags = new Set(["Action", "RPG", "Casual", "Simulation", "Indie", "Strategy", "Adventure"]);
+let globalCostReviewBucket = "ALL";
 
 let boringSelectedTags = ["Singleplayer", "Action", "Multiplayer", "Adventure", "Indie"];
 let boringTrendingSort = "growth";
@@ -2382,11 +2138,13 @@ function initFunSubnav() {
 
       if (target === "fun-foot") renderFunFoot();
       else if (target === "fun-word-ai") renderFunWordAi();
+      else if (target === "fun-disclosure-tropes") renderFunDisclosureTropes();
     });
   });
 
   initFunFootView();
   initFunWordAiView();
+  initFunDisclosureTropesView();
 }
 
 function initFunFootView() {
@@ -2478,8 +2236,9 @@ function renderFunFoot() {
       const capsuleUrl = `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${g.appid}/header.jpg`;
       const fallbackUrl = `https://cdn.akamai.steamstatic.com/steam/apps/${g.appid}/capsule_231x87.jpg`;
 
-      const tagPills = g.tags.slice(0, 4).map((t) => `<span class="game-tag-pill">${t}</span>`).join("");
+      const tagPills = g.tags.slice(0, 4).map((t) => `<span class="game-tag-pill">${escapeTagHtml(t)}</span>`).join("");
       const priceBadge = g.price === 0 ? "Free" : `$${g.price.toFixed(2)}`;
+      const safeName = escapeTagHtml(g.name);
 
       return `
         <div class="best-game-card">
@@ -2488,14 +2247,14 @@ function renderFunFoot() {
             <img 
               class="best-game-capsule" 
               src="${capsuleUrl}" 
-              alt="${g.name} Capsule Art" 
+              alt="${safeName} Capsule Art" 
               loading="lazy"
               onerror="this.onerror=null; this.src='${fallbackUrl}'; this.onerror=function(){this.parentElement.style.display='none';};"
             />
           </div>
           <div class="best-game-info">
             <a href="https://store.steampowered.com/app/${g.appid}/" target="_blank" rel="noopener noreferrer" class="best-game-title">
-              ${g.name} &nearr;
+              ${safeName} &nearr;
             </a>
             <div class="best-game-meta-row">
               <span class="game-reviews-badge">&starf; ${fmtInt(g.reviews)} reviews</span>
@@ -2503,7 +2262,7 @@ function renderFunFoot() {
               <span class="tag-count-sub">${priceBadge}</span>
             </div>
             <div class="disclosure-quote-box">
-              💬 &ldquo;${g.disclosure}&rdquo;
+              💬 &ldquo;${escapeTagHtml(g.disclosure)}&rdquo;
             </div>
             <div class="best-game-tags">
               <span class="game-ai-tag-pill game-ai-tag-pill--noai">Declares_No_Ai</span>
@@ -2568,14 +2327,14 @@ function renderFunVisAud() {
 
     container.innerHTML = top5
       .map((g, idx) => {
-        const topTag = g.tags[0] ? `<span class="game-tag-pill">${g.tags[0]}</span>` : "";
+        const topTag = g.tags[0] ? `<span class="game-tag-pill">${escapeTagHtml(g.tags[0])}</span>` : "";
         const scoreCol = g.score >= 80 ? "var(--tetris-green)" : "var(--tetris-yellow)";
         return `
           <div class="column-game-row">
             <span class="column-game-rank">${String(idx + 1).padStart(2, "0")}</span>
             <div class="column-game-info">
               <a href="https://store.steampowered.com/app/${g.appid}/" target="_blank" rel="noopener noreferrer" class="column-game-title">
-                ${g.name} &nearr;
+                ${escapeTagHtml(g.name)} &nearr;
               </a>
               <div class="column-game-meta">
                 <span>&starf; ${fmtInt(g.reviews)} rev</span>
@@ -2720,144 +2479,337 @@ function renderFunWordAi() {
   });
 }
 
-let funCostTagQuery = "";
+let selectedFunTropeId = "sorry";
 
-function initFunCostVsView() {
-  const pillsContainer = document.getElementById("fun-cost-tag-pills");
-  const searchInput = document.getElementById("fun-cost-tag-search");
-  const countBadge = document.getElementById("fun-cost-selected-count");
-  if (!pillsContainer || !window.STUDY_DATA_EXTENDED || !window.STUDY_DATA_EXTENDED.funAverageAiCost) return;
-
-  const tagList = window.STUDY_DATA_EXTENDED.funAverageAiCost.byTag;
-
-  const renderPills = () => {
-    const q = funCostTagQuery.toLowerCase();
-    const filtered = tagList.filter((t) => !q || t.tag.toLowerCase().includes(q));
-    const ordered = q
-      ? filtered
-      : [
-          ...filtered.filter((t) => funCostSelectedTags.has(t.tag)),
-          ...filtered.filter((t) => !funCostSelectedTags.has(t.tag))
-        ];
-
-    pillsContainer.innerHTML = ordered
-      .map((t) => {
-        const isAct = funCostSelectedTags.has(t.tag);
-        return `<button type="button" class="tag-toggle-pill ${isAct ? "active" : ""}" data-tag="${t.tag.replace(/"/g, "&quot;")}">${t.tag}</button>`;
-      })
-      .join("");
-
-    if (countBadge) {
-      countBadge.textContent = `${funCostSelectedTags.size} selected`;
-    }
-
-    pillsContainer.querySelectorAll(".tag-toggle-pill").forEach((pill) => {
-      pill.addEventListener("click", () => {
-        const tag = pill.getAttribute("data-tag");
-        if (funCostSelectedTags.has(tag)) {
-          if (funCostSelectedTags.size > 1) {
-            funCostSelectedTags.delete(tag);
-          }
-        } else {
-          funCostSelectedTags.add(tag);
-        }
-        renderPills();
-        renderFunCostVs();
-      });
-    });
-  };
-
-  if (searchInput) {
-    searchInput.addEventListener("input", (e) => {
-      funCostTagQuery = e.target.value.trim();
-      renderPills();
-    });
-  }
-
-  const resetBtn = document.getElementById("reset-fun-cost-tags");
-  if (resetBtn) {
-    resetBtn.addEventListener("click", () => {
-      funCostSelectedTags = new Set(["Action", "RPG", "Casual", "Simulation", "Indie", "Strategy", "Adventure"]);
-      funCostTagQuery = "";
-      if (searchInput) searchInput.value = "";
-      renderPills();
-      renderFunCostVs();
-    });
-  }
-
-  renderPills();
-  renderFunCostVs();
+function escapeTropeHtml(str) {
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }
 
-function renderFunCostVs() {
-  if (!window.STUDY_DATA_EXTENDED || !window.STUDY_DATA_EXTENDED.funAverageAiCost) return;
+function initFunDisclosureTropesView() {
+  renderFunDisclosureTropes();
+}
 
-  const data = window.STUDY_DATA_EXTENDED.funAverageAiCost;
-  const tagList = data.byTag;
+function renderFunDisclosureTropes() {
+  const grid = document.getElementById("fun-tropes-kpi-grid");
+  const barsList = document.getElementById("fun-tropes-bars-list");
+  const totalBadge = document.getElementById("fun-tropes-total-badge");
+  const data = window.STUDY_DATA_EXTENDED && window.STUDY_DATA_EXTENDED.funDisclosureTropes;
+  if (!grid || !barsList || !data || !data.items) return;
 
-  const selectedList = tagList.filter((t) => funCostSelectedTags.has(t.tag));
+  if (totalBadge) {
+    totalBadge.textContent = `${fmtInt(data.totalDisclosures)} Disclosures`;
+  }
 
-  let totalAiCostSum = 0;
-  let totalAiGamesCount = 0;
-  let totalNoAiCostSum = 0;
-  let totalNoAiGamesCount = 0;
+  const items = data.items;
+  const activeItem = items.find((it) => it.id === selectedFunTropeId) || items[0];
+  selectedFunTropeId = activeItem.id;
 
-  selectedList.forEach((t) => {
-    totalAiCostSum += t.aiPrice * t.aiGames;
-    totalAiGamesCount += t.aiGames;
-    totalNoAiCostSum += t.noAiPrice * t.noAiGames;
-    totalNoAiGamesCount += t.noAiGames;
+  grid.innerHTML = items
+    .map((item) => {
+      const isAct = item.id === selectedFunTropeId;
+      return `
+        <button type="button" class="data-kpi-card neon-${item.color} trope-kpi-card ${isAct ? "active" : ""}" data-trope-id="${item.id}">
+          <span class="data-kpi-label">${escapeTropeHtml(item.shortLabel)}</span>
+          <span class="data-kpi-val">${fmtInt(item.count)} <small>(${item.pct}%)</small></span>
+          <span class="data-kpi-sub">${escapeTropeHtml(item.subNote)}</span>
+        </button>
+      `;
+    })
+    .join("");
+
+  const sortedByCount = [...items].sort((a, b) => b.count - a.count);
+  const maxCount = Math.max(...sortedByCount.map((it) => it.count), 1);
+
+  barsList.innerHTML = sortedByCount
+    .map((item) => {
+      const widthPct = Math.max(1.5, (item.count / maxCount) * 100);
+      const isAct = item.id === selectedFunTropeId;
+      return `
+        <div class="tag-bar-row trope-bar-row ${isAct ? "active" : ""}" data-trope-id="${item.id}" role="button" tabindex="0">
+          <span class="tag-bar-name">${escapeTropeHtml(item.shortLabel)}</span>
+          <div class="tag-bar-track">
+            <div class="tag-bar-fill" style="width: ${widthPct.toFixed(1)}%;"></div>
+          </div>
+          <span class="tag-bar-count">${fmtInt(item.count)} (${item.pct}%)</span>
+        </div>
+      `;
+    })
+    .join("");
+
+  const selectTrope = (id) => {
+    selectedFunTropeId = id;
+    renderFunDisclosureTropes();
+  };
+
+  grid.querySelectorAll(".trope-kpi-card").forEach((card) => {
+    card.addEventListener("click", () => selectTrope(card.getAttribute("data-trope-id")));
   });
 
-  const avgAi = totalAiGamesCount > 0 ? totalAiCostSum / totalAiGamesCount : data.overall.aiPrice;
-  const avgNoAi = totalNoAiGamesCount > 0 ? totalNoAiCostSum / totalNoAiGamesCount : data.overall.noAiPrice;
-  const diff = avgAi - avgNoAi;
-  const diffPct = avgNoAi > 0 ? ((diff / avgNoAi) * 100).toFixed(1) : "0.0";
+  barsList.querySelectorAll(".trope-bar-row").forEach((row) => {
+    row.addEventListener("click", () => selectTrope(row.getAttribute("data-trope-id")));
+    row.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        selectTrope(row.getAttribute("data-trope-id"));
+      }
+    });
+  });
+
+  renderFunTropeInspector(activeItem, data.totalDisclosures);
+}
+
+function renderFunTropeInspector(item, totalDisclosures) {
+  const titleEl = document.getElementById("fun-trope-inspector-title");
+  const descEl = document.getElementById("fun-trope-inspector-desc");
+  const pctEl = document.getElementById("fun-trope-inspector-pct");
+  const patternEl = document.getElementById("fun-trope-inspector-pattern");
+  const listEl = document.getElementById("fun-trope-examples-list");
+  if (!titleEl || !listEl || !item) return;
+
+  titleEl.textContent = item.label;
+  if (descEl) descEl.textContent = item.description;
+  if (pctEl) pctEl.textContent = `${fmtInt(item.count)} / ${fmtInt(totalDisclosures)} (${item.pct}%)`;
+  if (patternEl) patternEl.textContent = item.patternDesc;
+
+  listEl.innerHTML = (item.examples || [])
+    .map((ex) => {
+      const scoreText = ex.reviews > 0 ? `${ex.score}% Positive` : "Unrated";
+      return `
+        <div class="trope-example-card">
+          <div class="trope-example-header">
+            <a href="https://store.steampowered.com/app/${ex.appid}/" target="_blank" rel="noopener noreferrer" class="trope-example-title">
+              ${escapeTropeHtml(ex.name)} &nearr;
+            </a>
+            <div class="trope-example-meta">
+              <span class="game-reviews-badge">&starf; ${fmtInt(ex.reviews)}</span>
+              <span class="game-score-badge">${scoreText}</span>
+            </div>
+          </div>
+          <div class="disclosure-quote-box">
+            &ldquo;${escapeTropeHtml(ex.quote)}&rdquo;
+          </div>
+        </div>
+      `;
+    })
+    .join("");
+}
+
+function initGlobalCostView() {
+  const pills = document.querySelectorAll("#cost-review-bucket-pills .mini-pill");
+  const resetBtn = document.getElementById("reset-cost-bucket-btn");
+
+  pills.forEach((pill) => {
+    pill.addEventListener("click", () => {
+      globalCostReviewBucket = pill.getAttribute("data-bucket") || "ALL";
+      pills.forEach((p) => p.classList.toggle("active", p === pill));
+      renderGlobalCost();
+    });
+  });
+
+  if (resetBtn) {
+    resetBtn.addEventListener("click", () => {
+      globalCostReviewBucket = "ALL";
+      pills.forEach((p) => p.classList.toggle("active", p.getAttribute("data-bucket") === "ALL"));
+      renderGlobalCost();
+    });
+  }
+
+  renderGlobalCost();
+}
+
+function renderGlobalCost() {
+  const root = window.STUDY_DATA_EXTENDED && window.STUDY_DATA_EXTENDED.globalCostByReview;
+  if (!root || !root.buckets) return;
+
+  const bucket = root.buckets.find((b) => b.key === globalCostReviewBucket) || root.buckets[0];
+  globalCostReviewBucket = bucket.key;
+
+  const resetBtn = document.getElementById("reset-cost-bucket-btn");
+  if (resetBtn) resetBtn.classList.toggle("hidden", bucket.key === "ALL");
+
+  document.querySelectorAll("#cost-review-bucket-pills .mini-pill").forEach((p) => {
+    p.classList.toggle("active", p.getAttribute("data-bucket") === bucket.key);
+  });
+
+  const ai = bucket.TRUE;
+  const nonAi = bucket.FALSE;
+  const diff = bucket.diff;
+  const diffPct = bucket.diffPct;
+  const sign = diff >= 0 ? "+" : "-";
+  const absDiff = Math.abs(diff).toFixed(2);
+  const absPct = Math.abs(diffPct).toFixed(1);
 
   const aiPriceEl = document.getElementById("vs-ai-price");
   const noAiPriceEl = document.getElementById("vs-non-ai-price");
   const deltaBadgeEl = document.getElementById("vs-delta-badge");
+  const deltaSubEl = document.getElementById("vs-delta-sub");
   const aiCountEl = document.getElementById("vs-ai-count");
   const noAiCountEl = document.getElementById("vs-non-ai-count");
 
-  if (aiPriceEl) aiPriceEl.textContent = `$${avgAi.toFixed(2)}`;
-  if (noAiPriceEl) noAiPriceEl.textContent = `$${avgNoAi.toFixed(2)}`;
-  if (aiCountEl) aiCountEl.textContent = `${fmtInt(totalAiGamesCount)} games in selection`;
-  if (noAiCountEl) noAiCountEl.textContent = `${fmtInt(totalNoAiGamesCount)} games in selection`;
+  if (aiPriceEl) aiPriceEl.textContent = `$${ai.mean.toFixed(2)}`;
+  if (noAiPriceEl) noAiPriceEl.textContent = `$${nonAi.mean.toFixed(2)}`;
+  if (aiCountEl) aiCountEl.textContent = `${fmtInt(ai.count)} games • Med $${ai.median.toFixed(2)}`;
+  if (noAiCountEl) noAiCountEl.textContent = `${fmtInt(nonAi.count)} games • Med $${nonAi.median.toFixed(2)}`;
 
   if (deltaBadgeEl) {
-    const sign = diff >= 0 ? "+" : "";
-    deltaBadgeEl.textContent = `${sign}$${diff.toFixed(2)} (${sign}${diffPct}%)`;
+    deltaBadgeEl.textContent = `${sign}$${absDiff} (${sign}${absPct}%)`;
     deltaBadgeEl.style.color = diff <= 0 ? "var(--tetris-green)" : "var(--tetris-red)";
   }
+  if (deltaSubEl) {
+    deltaSubEl.textContent = diff <= 0 ? "AI Games Are Cheaper" : "AI Games Cost More";
+  }
 
-  const maxBarPrice = Math.max(avgAi, avgNoAi, 0.01);
+  const maxBarPrice = Math.max(ai.mean, nonAi.mean, 0.01);
   const barAiEl = document.getElementById("vs-bar-ai");
   const barNoAiEl = document.getElementById("vs-bar-nonai");
   const barAiLbl = document.getElementById("vs-bar-ai-lbl");
   const barNoAiLbl = document.getElementById("vs-bar-nonai-lbl");
-  if (barAiEl) barAiEl.style.width = `${((avgAi / maxBarPrice) * 100).toFixed(1)}%`;
-  if (barNoAiEl) barNoAiEl.style.width = `${((avgNoAi / maxBarPrice) * 100).toFixed(1)}%`;
-  if (barAiLbl) barAiLbl.textContent = `$${avgAi.toFixed(2)}`;
-  if (barNoAiLbl) barNoAiLbl.textContent = `$${avgNoAi.toFixed(2)}`;
+  if (barAiEl) barAiEl.style.width = `${((ai.mean / maxBarPrice) * 100).toFixed(1)}%`;
+  if (barNoAiEl) barNoAiEl.style.width = `${((nonAi.mean / maxBarPrice) * 100).toFixed(1)}%`;
+  if (barAiLbl) barAiLbl.textContent = `$${ai.mean.toFixed(2)}`;
+  if (barNoAiLbl) barNoAiLbl.textContent = `$${nonAi.mean.toFixed(2)}`;
 
-  const tableBody = document.getElementById("vs-breakdown-table-body");
+  // Grouped Price Tier Distribution SVG inside selected review bucket
+  const distContainer = document.getElementById("cost-dist-chart-container");
+  if (distContainer && ai.dist && nonAi.dist) {
+    const w = 740;
+    const h = 250;
+    const padL = 52;
+    const padR = 20;
+    const padT = 28;
+    const padB = 42;
+    const plotW = w - padL - padR;
+    const plotH = h - padT - padB;
+
+    const maxPct = Math.max(
+      ...ai.dist.map((d) => d.pct),
+      ...nonAi.dist.map((d) => d.pct),
+      10
+    );
+    const niceMax = Math.min(100, Math.ceil((maxPct + 4) / 10) * 10);
+    const groupW = plotW / ai.dist.length;
+    const barW = Math.min(34, groupW * 0.28);
+    const gap = 6;
+
+    let svg = `<svg viewBox="0 0 ${w} ${h}">`;
+    for (let i = 0; i <= 4; i++) {
+      const val = Math.round((niceMax / 4) * i);
+      const y = padT + plotH - (val / niceMax) * plotH;
+      svg += `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${w - padR}" y2="${y.toFixed(1)}" stroke="rgba(255,255,255,0.08)" stroke-dasharray="3,3" />`;
+      svg += `<text x="${padL - 8}" y="${(y + 4).toFixed(1)}" fill="rgba(235,235,245,0.68)" font-family="ui-monospace, monospace" font-size="10.5" text-anchor="end">${val}%</text>`;
+    }
+    svg += `<line x1="${padL}" y1="${padT + plotH}" x2="${w - padR}" y2="${padT + plotH}" stroke="rgba(255,255,255,0.22)" />`;
+
+    ai.dist.forEach((ad, idx) => {
+      const fd = nonAi.dist[idx];
+      const cx = padL + idx * groupW + groupW / 2;
+      const hAi = Math.max(2, (ad.pct / niceMax) * plotH);
+      const hNon = Math.max(2, (fd.pct / niceMax) * plotH);
+      const xAi = cx - gap / 2 - barW;
+      const xNon = cx + gap / 2;
+      const yAi = padT + plotH - hAi;
+      const yNon = padT + plotH - hNon;
+
+      svg += `<g class="cost-dist-group" data-bucket-idx="${idx}" style="cursor:pointer;">`;
+      svg += `<rect x="${(cx - groupW * 0.44).toFixed(1)}" y="${padT - 8}" width="${(groupW * 0.88).toFixed(1)}" height="${plotH + 10}" fill="transparent" />`;
+      svg += `<rect x="${xAi.toFixed(1)}" y="${yAi.toFixed(1)}" width="${barW}" height="${hAi.toFixed(1)}" rx="4" fill="#ff9f0a" fill-opacity="0.9" />`;
+      svg += `<rect x="${xNon.toFixed(1)}" y="${yNon.toFixed(1)}" width="${barW}" height="${hNon.toFixed(1)}" rx="4" fill="#0a84ff" fill-opacity="0.9" />`;
+      svg += `<text x="${(xAi + barW / 2).toFixed(1)}" y="${(yAi - 5).toFixed(1)}" fill="#ffb340" font-family="ui-monospace, monospace" font-size="10" font-weight="600" text-anchor="middle">${ad.pct.toFixed(1)}%</text>`;
+      svg += `<text x="${(xNon + barW / 2).toFixed(1)}" y="${(yNon - 5).toFixed(1)}" fill="#64d2ff" font-family="ui-monospace, monospace" font-size="10" font-weight="600" text-anchor="middle">${fd.pct.toFixed(1)}%</text>`;
+      svg += `<text x="${cx.toFixed(1)}" y="${padT + plotH + 18}" fill="#f5f5f7" font-family="ui-monospace, monospace" font-size="10.5" font-weight="600" text-anchor="middle">${escapeTagHtml(ad.label)}</text>`;
+      svg += `</g>`;
+    });
+
+    svg += `</svg>`;
+    distContainer.innerHTML = svg;
+
+    distContainer.querySelectorAll(".cost-dist-group").forEach((grp) => {
+      const bIdx = parseInt(grp.getAttribute("data-bucket-idx"), 10);
+      const ad = ai.dist[bIdx];
+      const fd = nonAi.dist[bIdx];
+      if (!ad || !fd) return;
+      grp.addEventListener("mouseenter", (e) => {
+        const tooltip = document.getElementById("chart-tooltip");
+        if (!tooltip) return;
+        tooltip.innerHTML = `
+          <div class="tooltip-title">${escapeTagHtml(ad.label)} (${escapeTagHtml(bucket.label)})</div>
+          <div class="tooltip-row" style="color:#ff9f0a;"><span>In-Game AI Share:</span><strong>${ad.pct.toFixed(1)}% (${fmtInt(ad.count)} games)</strong></div>
+          <div class="tooltip-row" style="color:#64d2ff;"><span>Non-AI Share:</span><strong>${fd.pct.toFixed(1)}% (${fmtInt(fd.count)} games)</strong></div>
+        `;
+        tooltip.classList.remove("hidden");
+        moveTooltip(e);
+      });
+      grp.addEventListener("mousemove", (e) => moveTooltip(e));
+      grp.addEventListener("mouseleave", () => hideTooltip());
+    });
+  }
+
+  // Right Inspector
+  const titleEl = document.getElementById("cost-bucket-title");
+  const totalBadgeEl = document.getElementById("cost-bucket-total-badge");
+  const insightEl = document.getElementById("cost-bucket-insight");
+  const kpisEl = document.getElementById("cost-bucket-kpis");
+  const tableBody = document.getElementById("cost-buckets-table-body");
+
+  if (titleEl) titleEl.textContent = bucket.label;
+  if (totalBadgeEl) totalBadgeEl.textContent = `${fmtInt(bucket.totalGames)} games`;
+  if (insightEl) {
+    insightEl.innerHTML = `Within <strong>${escapeTagHtml(bucket.label)}</strong> (${bucket.aiSharePct}% In-Game AI), AI games average <strong>$${ai.mean.toFixed(2)}</strong> vs. <strong>$${nonAi.mean.toFixed(2)}</strong> for Non-AI (<strong>${sign}$${absDiff} / ${sign}${absPct}%</strong>). Paid-only averages are <strong>$${ai.paidMean.toFixed(2)}</strong> vs. <strong>$${nonAi.paidMean.toFixed(2)}</strong>.`;
+  }
+
+  if (kpisEl) {
+    kpisEl.innerHTML = `
+      <div class="kpi-card">
+        <span class="kpi-label">PAID-ONLY MEAN</span>
+        <span class="kpi-val" style="font-size:1.02rem;"><span style="color:var(--apple-orange);">$${ai.paidMean.toFixed(2)}</span> vs <span style="color:var(--apple-blue);">$${nonAi.paidMean.toFixed(2)}</span></span>
+        <span class="kpi-sub">${fmtInt(ai.paidCount)} AI / ${fmtInt(nonAi.paidCount)} Non-AI paid</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-label">MEDIAN BASE PRICE</span>
+        <span class="kpi-val" style="font-size:1.02rem;"><span style="color:var(--apple-orange);">$${ai.median.toFixed(2)}</span> vs <span style="color:var(--apple-blue);">$${nonAi.median.toFixed(2)}</span></span>
+        <span class="kpi-sub">Incl. Free-to-Play</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-label">FREE-TO-PLAY SHARE</span>
+        <span class="kpi-val" style="font-size:1.02rem;"><span style="color:var(--apple-orange);">${ai.freePct.toFixed(1)}%</span> vs <span style="color:var(--apple-blue);">${nonAi.freePct.toFixed(1)}%</span></span>
+        <span class="kpi-sub">$0.00 base price</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-label">UNDER-$5 SHARE</span>
+        <span class="kpi-val" style="font-size:1.02rem;"><span style="color:var(--apple-orange);">${ai.under5Pct.toFixed(1)}%</span> vs <span style="color:var(--apple-blue);">${nonAi.under5Pct.toFixed(1)}%</span></span>
+        <span class="kpi-sub">Free + $0.01–$4.99</span>
+      </div>
+    `;
+  }
+
   if (tableBody) {
-    tableBody.innerHTML = selectedList
-      .map((t) => {
-        const sign = t.diff >= 0 ? "+" : "";
-        const diffColor = t.diff < 0 ? "var(--tetris-green)" : "var(--tetris-red)";
+    tableBody.innerHTML = root.buckets
+      .map((b) => {
+        const isSel = b.key === bucket.key;
+        const bSign = b.diff >= 0 ? "+" : "-";
+        const diffCol = b.diff <= 0 ? "var(--tetris-green)" : "var(--tetris-red)";
         return `
-          <tr>
-            <td><strong style="color: #ffffff;">${t.tag}</strong></td>
-            <td style="font-family: ui-monospace, SFMono-Regular, monospace; color: var(--apple-orange); font-weight: 700;">$${t.aiPrice.toFixed(2)}</td>
-            <td style="font-family: ui-monospace, SFMono-Regular, monospace; color: var(--apple-blue); font-weight: 700;">$${t.noAiPrice.toFixed(2)}</td>
-            <td style="font-family: ui-monospace, SFMono-Regular, monospace; color: ${diffColor};">${sign}$${t.diff.toFixed(2)} (${sign}${t.diffPct}%)</td>
-            <td style="font-family: ui-monospace, SFMono-Regular, monospace;">${fmtInt(t.totalGames)}</td>
+          <tr class="tag-share-row${isSel ? " selected" : ""}" data-bucket="${escapeTagHtml(b.key)}">
+            <td><strong>${escapeTagHtml(b.shortLabel)}</strong></td>
+            <td style="text-align:right;font-family:ui-monospace,monospace;color:var(--apple-orange);font-weight:700;">$${b.TRUE.mean.toFixed(2)}</td>
+            <td style="text-align:right;font-family:ui-monospace,monospace;color:var(--apple-blue);font-weight:700;">$${b.FALSE.mean.toFixed(2)}</td>
+            <td style="text-align:right;font-family:ui-monospace,monospace;color:${diffCol};">${bSign}$${Math.abs(b.diff).toFixed(2)} (${bSign}${Math.abs(b.diffPct).toFixed(1)}%)</td>
+            <td style="text-align:right;font-family:ui-monospace,monospace;color:var(--text-secondary);">$${b.TRUE.median.toFixed(2)}</td>
           </tr>
         `;
       })
       .join("");
+
+    tableBody.querySelectorAll("tr.tag-share-row").forEach((row) => {
+      row.addEventListener("click", () => {
+        globalCostReviewBucket = row.getAttribute("data-bucket") || "ALL";
+        renderGlobalCost();
+      });
+    });
   }
 }
 
@@ -3780,7 +3732,6 @@ document.addEventListener("DOMContentLoaded", () => {
   renderInspector();
 
   // Extended Dashboard Subsections
-  initReviewVelocityView();
   initSimilarityView();
   initOverTimeView();
   initPriceStratifiedView();

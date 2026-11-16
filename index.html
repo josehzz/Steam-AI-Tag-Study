@@ -74,9 +74,6 @@
             <button type="button" class="subnav-btn active" data-subview="review-count" role="tab" aria-selected="true">
               Review Count
             </button>
-            <button type="button" class="subnav-btn" data-subview="review-velocity" role="tab" aria-selected="false">
-              Review Velocity
-            </button>
             <button type="button" class="subnav-btn" data-subview="similarity" role="tab" aria-selected="false">
               Similarity
             </button>
@@ -110,13 +107,16 @@
             </button>
           </div>
 
-          <!-- For Fun Sub-sections (2) -->
+          <!-- For Fun Sub-sections (3) -->
           <div class="section-subnav fun-subnav" data-for-section="for-fun" role="tablist" aria-label="For Fun Sub-sections">
             <button type="button" class="subnav-btn active" data-funsubview="fun-foot" role="tab" aria-selected="true">
               Devs shooting themselves in the foot
             </button>
             <button type="button" class="subnav-btn" data-funsubview="fun-word-ai" role="tab" aria-selected="false">
               Games with word AI
+            </button>
+            <button type="button" class="subnav-btn" data-funsubview="fun-disclosure-tropes" role="tab" aria-selected="false">
+              Disclosure confessions &amp; tropes
             </button>
           </div>
 
@@ -231,7 +231,7 @@
         <div class="tetris-panel data-left-panel">
           <div class="panel-header">
             <h2 id="data-heading">Overall Dataset Statistics</h2>
-            <p class="panel-subtitle">Public Steam releases from Jan-01-2024 to Nov-02-2026 classified across 10 AI disclosure tags.</p>
+            <p class="panel-subtitle">Public Steam releases from Jan-01-2024 to Nov-08-2026 classified across 10 AI disclosure tags.</p>
           </div>
 
           <!-- Top-level KPI Grid -->
@@ -399,7 +399,13 @@
             <li class="data-note-item neon-border-yellow">
               <span class="note-block-icon" aria-hidden="true"></span>
               <div class="note-body">
-                <p>I audited Gemini's multi-label tags against 300 randomly sampled disclosures by manually tagging them (<strong>87.7% Micro F1</strong>, <strong>77.3% exact match</strong>).</p>
+                <p>I audited Gemini's multi-label tags against 300 randomly sampled disclosures by manually tagging them (<strong>87.7% Micro F1</strong>, <strong>77.3% exact match</strong>). For languages I didn't know, I used the browser translator (2 or 3 times).</p>
+              </div>
+            </li>
+            <li class="data-note-item neon-border-purple">
+              <span class="note-block-icon" aria-hidden="true"></span>
+              <div class="note-body">
+                <p>The tool I used to manually tag the 300 random entries is available here: <a href="https://github.com/josehzz/Steam-AI-Tag-Study/tree/main/Manual%20AI%20Disclosure%20Tagging" target="_blank" rel="noopener noreferrer" class="support-link">https://github.com/josehzz/Steam-AI-Tag-Study/tree/main/Manual%20AI%20Disclosure%20Tagging</a></p>
               </div>
             </li>
             <!--li class="data-note-item neon-border-cyan">
@@ -429,7 +435,7 @@
             </li>
             <li class="data-note-item neon-border-cyan">
               <span class="note-block-icon" aria-hidden="true"></span>
-              <p>This data was collected between Nov-02-26 and Nov-08-26, so recently released games stats might vary alot.</p>
+              <p>This data was collected and consolidated between Nov-02-26 and Nov-11-26, so recently released games stats might vary alot.</p>
             </li>
             <li class="data-note-item neon-border-purple">
               <span class="note-block-icon" aria-hidden="true"></span>
@@ -757,87 +763,6 @@
               </div>
               <div class="tag-bars-list" id="inspector-tag-bars">
                 <!-- Populated by app.js -->
-              </div>
-            </div>
-          </aside>
-        </div>
-      </div>
-
-      <!-- Sub-view 2: Review Velocity -->
-      <div id="subview-review-velocity" class="relevant-subview">
-        <div class="relevant-split-layout">
-          <!-- Left: Multi-Curve Velocity Chart -->
-          <div class="chart-card tetris-panel">
-            <div class="chart-card-header">
-              <div>
-                <h2>Time vs. Milestone Achievement Velocity</h2>
-                <p class="chart-subtitle">Average days taken by games to reach 1, 10, 50, 200, and 1,000 reviews across release cohorts.</p>
-              </div>
-              <div class="chart-controls">
-                <div class="filter-group" role="group" aria-label="Filter by AI Usage">
-                  <span class="ctrl-label">Compare:</span>
-                  <div class="mini-filter-pills" id="vel-ai-filter">
-                    <button type="button" class="mini-pill active" data-ai="VS" title="Compare Non-AI (FALSE) vs In-Game AI (TRUE)">AI vs Non-AI</button>
-                    <button type="button" class="mini-pill" data-ai="ALL">ALL</button>
-                    <button type="button" class="mini-pill" data-ai="TRUE">TRUE</button>
-                    <button type="button" class="mini-pill" data-ai="FALSE">FALSE</button>
-                    <button type="button" class="mini-pill" data-ai="MAYBE">MAYBE</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Milestone Selector Pills with Color Legend Swatches -->
-            <div class="milestone-pills" id="vel-milestone-pills" role="group" aria-label="Select Milestones">
-              <button type="button" class="milestone-pill" data-milestone="all">All Milestones</button>
-              <button type="button" class="milestone-pill" data-milestone="1"><span class="m-dot" style="background:#64d2ff;"></span>1 Review</button>
-              <button type="button" class="milestone-pill active" data-milestone="10"><span class="m-dot" style="background:#30d158;"></span>10 Reviews</button>
-              <button type="button" class="milestone-pill" data-milestone="50"><span class="m-dot" style="background:#ffd60a;"></span>50 Reviews</button>
-              <button type="button" class="milestone-pill" data-milestone="200"><span class="m-dot" style="background:#ff9f0a;"></span>200 Reviews</button>
-              <button type="button" class="milestone-pill" data-milestone="1000"><span class="m-dot" style="background:#bf5af2;"></span>1,000 Reviews</button>
-            </div>
-
-            <div class="chart-inline-legend" id="vel-chart-legend"></div>
-
-            <!-- Velocity SVG Chart Container -->
-            <div class="velocity-chart-wrapper" id="velocity-chart-container">
-              <!-- Dynamically rendered SVG chart -->
-            </div>
-            <div class="x-axis-title">Release Cohort (Month) &bull; Jan 2024 to Nov 2026</div>
-          </div>
-
-          <!-- Right: Velocity Insights & Metrics Inspector -->
-          <aside class="inspector-card tetris-panel" id="velocity-inspector">
-            <div class="inspector-header">
-              <div>
-                <h3 id="vel-inspector-title">Milestone Performance</h3>
-              </div>
-            </div>
-
-            <p class="inspector-insight" id="vel-inspector-insight">
-              Games with no AI used reach the crucial 10-review threshold <strong>18% faster</strong> on average than game that used AI.<br>This dataset is a static snapshot so <strong>take this with a grain of salt</strong>, but it is consistent with the overall trend that games using AI are less likely to reach higher review counts.
-            </p>
-
-            <div class="kpi-grid" id="vel-kpis">
-              <!-- Dynamically populated -->
-            </div>
-
-            <div class="inspector-subcard">
-              <div class="subcard-title-row">
-                <h4>Discovery Threshold (10 Reviews)</h4>
-                <span class="subcard-caption">Steam Algorithm Gateway</span>
-              </div>
-              <div class="vel-comparison-bars" id="vel-thresh-comparison">
-                <!-- Dynamically populated -->
-              </div>
-            </div>
-
-            <div class="inspector-subcard">
-              <div class="subcard-title-row">
-                <h4>Fastest AI Games to 1,000+ Reviews</h4>
-              </div>
-              <div class="notable-games-list" id="vel-fastest-games">
-                <!-- Dynamically populated -->
               </div>
             </div>
           </aside>
@@ -1237,7 +1162,7 @@
           <span class="vb-yellow"></span>
           <span class="vb-orange"></span>
         </div>
-        <p class="verdict-text">Deep Dive: Best AI Games, Disclosure Taxonomy, and Genre Performance</p>
+        <p class="verdict-text">A look to the best games using generative AI, where is being used and additional price insights</p>
       </div>
 
       <!-- Sub-view 1: Best AI Games (Default) -->
@@ -1312,7 +1237,7 @@
           <div class="chart-card-header">
             <div>
               <h2>Best AI Visuals, Audio &amp; Both</h2>
-              <p class="chart-subtitle">Three rankings of at most 5 games ranked by review count featuring Visuals, Audio, and Both modalities.</p>
+              <p class="chart-subtitle">Three rankings of at most 5 games ranked by review count featuring Visuals, Audio, and Both modalities. <em>Note: Tag dropdown filtering operates on the top 50 most-reviewed games per category.</em></p>
             </div>
             <div class="chart-controls">
               <label class="filter-label" for="fun-vis-aud-tag-select" style="margin-bottom: 0; margin-right: 6px;">Tag Filter:</label>
@@ -1363,27 +1288,104 @@
         </div>
       </div>
 
-      <!-- Subview 3: Games with word AI inside title over time -->
-      
-
+      <!-- Subview 3: AI Usage Ranked Bar Chart & Per-Tag Inspector -->
       <div id="subview-more-ai-usage" class="more-subview">
         <div class="relevant-split-layout">
-          <!-- Left: Top Game Tags for Selected AI Tag -->
+          <!-- Left: Ranked Horizontal Bar Chart + Stats Table -->
+          <div class="chart-card tetris-panel">
+            <div class="chart-card-header">
+              <div>
+                <h2>AI Tag Presence Across Disclosed Games</h2>
+                <p class="chart-subtitle">How many times each of the 10 <code>ai_tag</code> labels appears across all <strong>17,014</strong> games with an AI disclosure (multi-label, totaling 28,652 mentions). Click any bar or row to inspect stats.</p>
+              </div>
+              <div class="chart-controls">
+                <div class="mode-toggle" id="ai-usage-mode-toggle" role="group" aria-label="Chart Metric">
+                  <button type="button" class="mode-btn active" data-mode="count">Game Count (#)</button>
+                  <button type="button" class="mode-btn" data-mode="pct">% of Disclosed</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Summary KPI Strip (Matches 17,014 Disclosed Games) -->
+            <div class="data-kpi-grid ai-usage-kpi-strip">
+              <div class="data-kpi-card neon-cyan">
+                <span class="data-kpi-label">Disclosed Games</span>
+                <span class="data-kpi-val">17,014 <small>(26.67%)</small></span>
+                <span class="data-kpi-sub">Out of 63,798 Steam releases</span>
+              </div>
+              <div class="data-kpi-card neon-purple">
+                <span class="data-kpi-label">Total AI Tag Mentions</span>
+                <span class="data-kpi-val">28,652</span>
+                <span class="data-kpi-sub">1.68 avg tags per disclosed game</span>
+              </div>
+              <div class="data-kpi-card neon-orange">
+                <span class="data-kpi-label">Multi-Tag Disclosures</span>
+                <span class="data-kpi-val">7,829 <small>(46.02%)</small></span>
+                <span class="data-kpi-sub">Disclosed games with 2+ AI tags</span>
+              </div>
+              <div class="data-kpi-card neon-green">
+                <span class="data-kpi-label">#1 Tag: Visual</span>
+                <span class="data-kpi-val">12,006 <small>(70.57%)</small></span>
+                <span class="data-kpi-sub">18.82% of all 63,798 games</span>
+              </div>
+            </div>
+
+            <!-- Ranked Horizontal Bar SVG Chart -->
+            <div class="time-chart-wrapper" id="ai-usage-chart-container">
+              <!-- Dynamically rendered SVG horizontal bar chart -->
+            </div>
+
+            <!-- Ranked Summary Table of All 10 AI Tags -->
+            <div class="similarity-table-wrapper" style="margin-top: 14px;">
+              <table class="similarity-table" id="ai-usage-ranked-table">
+                <thead>
+                  <tr>
+                    <th class="th-rank">#</th>
+                    <th>AI Tag</th>
+                    <th style="text-align:right;">Games</th>
+                    <th style="text-align:right;">% Disclosed</th>
+                    <th style="text-align:right;">% Catalog</th>
+                    <th style="text-align:right;">Avg Score</th>
+                    <th style="text-align:right;">Avg Price</th>
+                  </tr>
+                </thead>
+                <tbody id="ai-usage-ranked-table-body">
+                  <!-- Dynamically populated by app.js -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Right: Selected AI Tag Deep-Dive Inspector -->
           <aside class="inspector-card tetris-panel" id="ai-usage-left-panel">
             <div class="inspector-header">
               <div>
-                <h3 id="ai-usage-tag-title">Visual AI Disclosures</h3>
+                <h3 id="ai-usage-tag-title">#1 Visual</h3>
               </div>
-              <span class="usage-count-pill" id="ai-usage-count-pill">12,006 games (70.6%)</span>
+              <span class="usage-count-pill" id="ai-usage-count-pill">12,006 games (70.57%)</span>
             </div>
 
             <p class="inspector-insight" id="ai-usage-insight">
-              Visual generation is by far the most common AI disclosure on Steam. Select any slice or category bar to inspect its top associated game genres and notable titles.
+              Visual generation appears in 70.57% of all 17,014 AI disclosures (18.82% of the entire Steam catalog).
             </p>
+
+            <div class="kpi-grid" id="ai-usage-kpis">
+              <!-- Dynamically populated by app.js -->
+            </div>
 
             <div class="inspector-subcard">
               <div class="subcard-title-row">
-                <h4>Top Game Tags in this AI Category</h4>
+                <h4>Most Frequent Co-Occurring AI Tags</h4>
+                <span class="subcard-caption">Multi-label pairing</span>
+              </div>
+              <div class="tag-bars-list" id="ai-usage-co-tags">
+                <!-- Dynamically populated by app.js -->
+              </div>
+            </div>
+
+            <div class="inspector-subcard">
+              <div class="subcard-title-row">
+                <h4>Top Gameplay Tags in this AI Category</h4>
                 <span class="subcard-caption">Cross-Tag Frequency</span>
               </div>
               <div class="tag-bars-list" id="ai-usage-cross-tags">
@@ -1400,25 +1402,6 @@
               </div>
             </div>
           </aside>
-
-          <!-- Right: Interactive Pie / Donut Chart of AI Tags Occurrences -->
-          <div class="chart-card tetris-panel">
-            <div class="chart-card-header">
-              <div>
-                <h2>How Developers Use AI (Disclosure Categories)</h2>
-                <p class="chart-subtitle">Share of 28,652 AI tag mentions across 17,014 disclosed games (multi-label). Click any slice or bar below to inspect genres.</p>
-              </div>
-            </div>
-
-            <div class="pie-chart-wrapper">
-              <div class="pie-svg-container" id="ai-pie-svg-container">
-                <!-- Dynamically rendered SVG Pie Chart -->
-              </div>
-              <div class="pie-legend-grid" id="ai-pie-legend">
-                <!-- Dynamically populated legend pills -->
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -1506,7 +1489,7 @@
                 <h4>Genre Insight</h4>
               </div>
               <p class="sim-narrative">
-                Precision indie mechanics like <code>Twin Stick Shooter</code> (87.0%), <code>Precision Platformer</code> (85.6%), and <code>Rhythm</code> (85.2%) achieve the highest review scores when incorporating AI, while broad hyper-casual tags score substantially lower.
+                Focused indie and niche tags like <code>Time Manipulation</code> (90.4%), <code>Party</code> (88.7%), <code>Boxing</code> (87.7%), and <code>Twin Stick Shooter</code> (87.0%) achieve the highest review scores among AI-using games (15+ games), whereas broad online multiplayer tags like <code>MMORPG</code> (59.0%) and <code>Massively Multiplayer</code> (59.4%) score lowest.
               </p>
             </div>
           </aside>
@@ -1515,84 +1498,118 @@
 
       <div id="subview-more-cost-vs" class="more-subview">
         <div class="relevant-split-layout">
-          <!-- Left: Head-to-Head VS Card -->
+          <!-- Left: Global Head-to-Head VS Card + Price Tier Distribution -->
           <div class="chart-card tetris-panel">
             <div class="chart-card-header">
               <div>
-                <h2>Average Game Cost: AI vs. Non-AI</h2>
-                <p class="chart-subtitle">Comparing base price USD between games using AI technology and games that do not use AI.</p>
+                <h2>Global Game Cost: AI vs. Non-AI</h2>
+                <p class="chart-subtitle">Comparing base price (USD) across all 63,688 In-Game AI vs. Non-AI releases, filtered by Steam review count bucket (110 <code>MAYBE</code> games excluded).</p>
               </div>
               <div class="chart-controls">
-                <button type="button" class="chart-reset-btn" id="reset-fun-cost-tags">Reset Tags</button>
+                <button type="button" class="chart-reset-btn hidden" id="reset-cost-bucket-btn">Show All Games</button>
+              </div>
+            </div>
+
+            <!-- Review Count Bucket Filter Pills -->
+            <div class="cost-filter-bar">
+              <span class="ctrl-label">Review Bucket:</span>
+              <div class="mini-filter-pills" id="cost-review-bucket-pills" role="group" aria-label="Filter by Review Count Bucket">
+                <button type="button" class="mini-pill active" data-bucket="ALL">All Games</button>
+                <button type="button" class="mini-pill" data-bucket="0">0 Rev</button>
+                <button type="button" class="mini-pill" data-bucket="1-9">1–9 Rev</button>
+                <button type="button" class="mini-pill" data-bucket="10-49">10–49 Rev</button>
+                <button type="button" class="mini-pill" data-bucket="50-199">50–199 Rev</button>
+                <button type="button" class="mini-pill" data-bucket="200-999">200–999 Rev</button>
+                <button type="button" class="mini-pill" data-bucket="1000+">1,000+ Rev</button>
               </div>
             </div>
 
             <!-- VS Hero Arena -->
             <div class="vs-arena-card">
               <div class="vs-col vs-col-ai">
-                <span class="vs-label">AI GAMES</span>
+                <span class="vs-label">IN-GAME AI (TRUE)</span>
                 <div class="vs-price-huge" id="vs-ai-price">$6.03</div>
-                <span class="vs-meta" id="vs-ai-count">15,218 games</span>
+                <span class="vs-meta" id="vs-ai-count">15,218 games &bull; Med $4.90</span>
               </div>
 
               <div class="vs-center-badge">
                 <span class="vs-circle">VS</span>
                 <div class="vs-delta-badge" id="vs-delta-badge">-$1.87 (-23.7%)</div>
-                <span class="vs-delta-sub">AI Games Are Cheaper</span>
+                <span class="vs-delta-sub" id="vs-delta-sub">AI Games Are Cheaper</span>
               </div>
 
               <div class="vs-col vs-col-non-ai">
-                <span class="vs-label">NON-AI GAMES</span>
+                <span class="vs-label">NON-AI (FALSE)</span>
                 <div class="vs-price-huge" id="vs-non-ai-price">$7.90</div>
-                <span class="vs-meta" id="vs-non-ai-count">48,470 games</span>
+                <span class="vs-meta" id="vs-non-ai-count">48,470 games &bull; Med $4.99</span>
               </div>
             </div>
 
             <!-- Visual Price Comparison Meter -->
             <div class="vs-visual-bars" id="vs-visual-bars">
               <div class="tag-bar-row">
-                <span class="tag-bar-name">In-Game AI Avg</span>
-                <div class="tag-bar-track"><div class="tag-bar-fill" id="vs-bar-ai" style="width: 76%; background: var(--apple-orange);"></div></div>
+                <span class="tag-bar-name">In-Game AI Mean</span>
+                <div class="tag-bar-track"><div class="tag-bar-fill" id="vs-bar-ai" style="width: 76.3%; background: var(--apple-orange);"></div></div>
                 <span class="tag-bar-count" id="vs-bar-ai-lbl">$6.03</span>
               </div>
               <div class="tag-bar-row">
-                <span class="tag-bar-name">Non-AI Avg</span>
+                <span class="tag-bar-name">Non-AI Mean</span>
                 <div class="tag-bar-track"><div class="tag-bar-fill" id="vs-bar-nonai" style="width: 100%; background: var(--apple-blue);"></div></div>
                 <span class="tag-bar-count" id="vs-bar-nonai-lbl">$7.90</span>
               </div>
             </div>
 
-            <!-- Tag Breakdown Mini Table -->
-            <div class="similarity-table-wrapper" style="margin-top: 16px;">
-              <table class="similarity-table" id="vs-breakdown-table">
-                <thead>
-                  <tr>
-                    <th>Tag</th>
-                    <th>AI Avg Price</th>
-                    <th>Non-AI Avg Price</th>
-                    <th>Price Delta (&Delta;)</th>
-                    <th>Total Games</th>
-                  </tr>
-                </thead>
-                <tbody id="vs-breakdown-table-body">
-                  <!-- Dynamically populated -->
-                </tbody>
-              </table>
+            <!-- Grouped Price Distribution Chart within Selected Review Bucket -->
+            <div class="cost-dist-header">
+              <h4>Price Tier Share (%) Inside Selected Review Bucket</h4>
+              <div class="chart-inline-legend" style="margin: 0;">
+                <span class="legend-item active" style="cursor:default;"><span class="legend-swatch swatch-true"></span><span class="legend-label">In-Game AI</span></span>
+                <span class="legend-item active" style="cursor:default;"><span class="legend-swatch swatch-false"></span><span class="legend-label">Non-AI</span></span>
+              </div>
+            </div>
+            <div class="time-chart-wrapper" id="cost-dist-chart-container">
+              <!-- Dynamically populated SVG grouped bar chart -->
             </div>
           </div>
 
-          <!-- Right: Multi-Select Tag Filter Panel -->
+          <!-- Right: Bucket Inspector & All-Buckets Comparison Table -->
           <aside class="inspector-card tetris-panel" id="fun-cost-inspector">
             <div class="inspector-header">
               <div>
-                <h3>Filter by Tags</h3>
+                <h3 id="cost-bucket-title">All Games (Global)</h3>
               </div>
-              <span class="selected-tags-badge" id="fun-cost-selected-count">7 selected</span>
+              <span class="selected-tags-badge" id="cost-bucket-total-badge">63,688 games</span>
             </div>
-            <p class="chart-subtitle" style="margin-bottom: 10px;">Click to toggle any of the 429 Steam tags and recalculate average prices in real-time:</p>
-            <input type="text" id="fun-cost-tag-search" class="filter-input" placeholder="Search all 429 tags..." style="margin-bottom: 10px;" />
-            <div class="multi-tag-pills-container" id="fun-cost-tag-pills">
-              <!-- Dynamically populated tag toggles -->
+
+            <p class="inspector-insight" id="cost-bucket-insight">
+              Globally, In-Game AI releases average <strong>$6.03</strong> vs <strong>$7.90</strong> for Non-AI games (<strong>-$1.87 / -23.7%</strong>). Use the review count buckets to verify how this pricing gap behaves from 0 reviews up to 1,000+ hits.
+            </p>
+
+            <div class="kpi-grid" id="cost-bucket-kpis">
+              <!-- Dynamically populated by app.js -->
+            </div>
+
+            <div class="inspector-subcard" style="margin-top: 12px;">
+              <div class="subcard-title-row">
+                <h4>Mean Price Across All Review Buckets</h4>
+                <span class="subcard-caption">Click row to filter</span>
+              </div>
+              <div class="similarity-table-wrapper">
+                <table class="similarity-table tag-share-mini-table" id="cost-buckets-table">
+                  <thead>
+                    <tr>
+                      <th>Reviews</th>
+                      <th style="text-align:right;">AI Mean</th>
+                      <th style="text-align:right;">Non-AI</th>
+                      <th style="text-align:right;">Delta</th>
+                      <th style="text-align:right;">AI Med</th>
+                    </tr>
+                  </thead>
+                  <tbody id="cost-buckets-table-body">
+                    <!-- Dynamically populated by app.js -->
+                  </tbody>
+                </table>
+              </div>
             </div>
           </aside>
         </div>
@@ -1608,7 +1625,7 @@
           <span class="vb-green"></span>
         </div>
         <div class="verdict-content">
-          <h2 class="verdict-title">The Quirks, Ironies &amp; Wild Curves of the AI Era</h2>
+          <h2 class="verdict-title">Some interesting experiments with the data</h2>
         </div>
       </div>
 
@@ -1620,7 +1637,7 @@
             <div class="chart-card-header">
               <div>
                 <h2>Devs Shooting Themselves in the Foot</h2>
-                <p class="chart-subtitle">Top 5 games ranked by review count that declared "No AI" inside Steam's AI disclosure form.</p>
+                <p class="chart-subtitle">Top 5 games ranked by review count that declared "No AI" inside Steam's AI disclosure form. <em>Note: Search and tag dropdown filtering operate on the top 50 most-reviewed games in this category (out of 116 total).</em></p>
               </div>
               <div class="chart-controls">
                 <span class="games-count-badge" id="fun-foot-count-badge">Matching: 0</span>
@@ -1719,13 +1736,13 @@
             <div class="kpi-grid-vertical">
               <div class="kpi-box kpi-true">
                 <div class="kpi-label">TITLES WITH "AI"</div>
-                <div class="kpi-value" id="fun-word-ai-count-val">85</div>
+                <div class="kpi-value" id="fun-word-ai-count-val">87</div>
                 <div class="kpi-sub">Across 35 months (2024–2026)</div>
               </div>
               <div class="kpi-box kpi-false">
                 <div class="kpi-label">DECLARED GAME USED AI</div>
-                <div class="kpi-value" id="fun-word-ai-declared-val">55 <small>(64.7%)</small></div>
-                <div class="kpi-sub">30 games use AI as a sci-fi theme only</div>
+                <div class="kpi-value" id="fun-word-ai-declared-val">58 <small>(66.7%)</small></div>
+                <div class="kpi-sub">29 games use AI as a sci-fi theme only</div>
               </div>
             </div>
 
@@ -1746,6 +1763,64 @@
           </aside>
         </div>
       </div>
+
+      <!-- Subview 3: Disclosure Confessions & Common Tropes -->
+      <div id="subview-fun-disclosure-tropes" class="fun-subview">
+        <div class="relevant-split-layout">
+          <!-- Left: 6 KPI Cards + Comparison Bars -->
+          <div class="chart-card tetris-panel">
+            <div class="chart-card-header">
+              <div>
+                <h2>Disclosure Confessions &amp; Common Tropes</h2>
+                <p class="chart-subtitle">How often developers apologize, cite solo/small teams, or add defensive disclaimers across all 17,014 Steam AI disclosures. Click any card to inspect real examples.</p>
+              </div>
+              <div class="chart-controls">
+                <span class="games-count-badge" id="fun-tropes-total-badge">17,014 Disclosures</span>
+              </div>
+            </div>
+
+            <div class="data-kpi-grid" id="fun-tropes-kpi-grid">
+              <!-- Dynamically populated by app.js -->
+            </div>
+
+            <div class="data-subbox trope-bars-card">
+              <div class="subcard-title-row">
+                <h4>Frequency Comparison (% of 17,014 Disclosures)</h4>
+                <span class="subcard-caption">Sorted by count</span>
+              </div>
+              <div class="tag-bars-list" id="fun-tropes-bars-list">
+                <!-- Dynamically populated by app.js -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Inspector with Real Developer Quotes -->
+          <aside class="inspector-card tetris-panel" id="fun-tropes-inspector">
+            <div class="inspector-header">
+              <div>
+                <h3 id="fun-trope-inspector-title">Select a Trope</h3>
+                <p class="inspector-subtitle" id="fun-trope-inspector-desc" style="font-size: 0.82rem; color: var(--text-secondary); margin-top: 4px;"></p>
+              </div>
+            </div>
+
+            <div class="inspector-subcard" style="margin-bottom: 14px;">
+              <div class="subcard-title-row">
+                <h4>Detection Criteria</h4>
+                <span class="subcard-caption" id="fun-trope-inspector-pct"></span>
+              </div>
+              <p id="fun-trope-inspector-pattern" style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.45;"></p>
+            </div>
+
+            <div class="subcard-title-row" style="margin-bottom: 8px;">
+              <h4>Real Developer Examples</h4>
+              <span class="subcard-caption">From steam_games_ai_tagged.csv</span>
+            </div>
+            <div class="trope-examples-list" id="fun-trope-examples-list">
+              <!-- Dynamically populated by app.js -->
+            </div>
+          </aside>
+        </div>
+      </div>
     </section>
 
     <!-- 6. BORING STUFF SECTION -->
@@ -1757,7 +1832,7 @@
           <span class="vb-purple"></span>
         </div>
         <div class="verdict-content">
-          <h2 class="verdict-title">Boring Stuff Every Game Dev Is Curious About</h2>
+          <h2 class="verdict-title">Not boring but its the generic stuff every dev is curious about</h2>
         </div>
       </div>
 
@@ -1919,7 +1994,7 @@
           <span class="vb-yellow"></span>
         </div>
         <div class="verdict-content">
-          <h2 class="verdict-title">Insights &amp; Takeaways</h2>
+          <h2 class="verdict-title">TLDR</h2>
         </div>
       </div>
 
@@ -1930,7 +2005,7 @@
           <div class="conclusion-icon">📈</div>
           <h3>Can a game that disclosed its AI usage be successful?</h3>
           <p>
-            <strong>Yes (maybe).</strong> On average Non-AI games reach +10 reviews at <strong>142.1 days</strong> vs <strong>168.4</strong> for games with AI. Also the more reviews a game has the <strong>less likely it is to have an AI tag</strong>. Regardless we see successful games with <strong>+1000 reviews</strong>, with a positive score with the AI tag and many others on the far opposite side without the AI tag. I think this reflects that <strong>Steam users like to buy good quality games, just like it always has been.</strong>
+            <strong>Yes (maybe).</strong> The more reviews a game has the <strong>less likely it is to have an AI tag</strong>. Regardless we see successful games with <strong>+1000 reviews</strong>, with a positive score with the AI tag and many others on the far opposite side without the AI tag. I think this reflects that <strong>Steam users like to buy good quality games, just like it always has been.</strong>
           </p>
         </div>
 
@@ -1948,7 +2023,7 @@
           <div class="conclusion-icon">⚖️</div>
           <h3>So why does it feel like a penalty to have the AI Disclosure?</h3>
           <p>
-            The data suggest a penalty for AI usage, and sadly even though it is small for score (<strong>-4.07 on average</strong>) and review count (<strong>41.46% lower odds of reaching +10 reviews</strong>), I don&rsquo;t think is just because AI. I think this <strong>&ldquo;penalty&rdquo; is mostly because of inexperienced developers flooding the store and skewing the averages.</strong>
+            The data suggest a penalty for AI usage, and sadly even though it is small for score (<strong>-4.07 on average</strong>) and review count (<strong>41.6% lower odds of reaching +10 reviews</strong>), I don&rsquo;t think is just because AI. I think this &ldquo;penalty&rdquo; is mostly because of <strong>inexperienced developers flooding the store and skewing the averages.</strong>
           </p>
         </div>
 
@@ -1957,7 +2032,7 @@
           <div class="conclusion-icon">🧩</div>
           <h3>Why the Multiplayer tag is rarely seen linked to AI Usage?</h3>
           <p>
-            This is an interesting one where seems like <strong>developers that use AI are not making multiplayer, co-op, open world or similar tagged games</strong> when <strong>these tags are the biggest drivers of review count for Steam games</strong>. <strong>Singleplayer, Casual, Indie, Simulation and Strategy</strong> rank high on AI usage which are often popular tags for small development teams. So I wonder if this is because <strong>AI is still new and can&rsquo;t handle Multiplayer code</strong> or developers of this type of games are slow at incorporating this technology, or maybe a little bit of both.
+            This is an interesting one where seems like <strong>developers that use AI are not making multiplayer, co-op, open world or similar tagged games</strong> when <strong>these tags are the biggest drivers of review count for Steam games</strong>. Singleplayer, Casual, Indie, Simulation and Strategy rank high on AI usage which are often popular tags for small development teams. So I wonder if this is because <strong>AI is still new and can&rsquo;t handle Multiplayer code</strong> or developers of this type of games are slow at incorporating this technology, or maybe a little bit of both.
           </p>
         </div>
       </div>
@@ -1993,7 +2068,7 @@
           </div>
           <div class="advice-panel-body">
             <p>
-              AI is very relevant, using it lowers the barrier to entry but people are still the one playing the games, so bad quality/taste is not being rewarded. If you are going to use it, have it help you get to a polished MVP faster. Players that auto dislike a game because of the AI tag don't seem to be a substantially sized group, so don't worry about telling your players if you used AI. In general I think honesty is the best policy.
+              AI is <strong>very relevant</strong>, using it lowers the barrier to entry but people are still the one playing the games, so <strong>bad quality/taste is not being rewarded</strong>. If you are going to use it, have it <strong>help you get to a polished MVP faster</strong>. Players that auto dislike a game because of the AI tag don't seem to be a substantially sized group, so don't worry about telling your players if you used generative AI. In general I think <strong>honesty is the best policy</strong>.
             </p>
           </div>
         </button>
@@ -2032,7 +2107,7 @@
           </div>
 
           <!-- Tiny Footnote -->
-          <p class="hire-me-tiny">Or you can hire me!, I'm currently looking for new opportunities.</p>
+          <p class="hire-me-tiny">Or if you want to hire me, let me know!<br>I'm currently looking for new opportunities.</p>
           <p class="license-note">Project files are released under the <a href="LICENSE" target="_blank" rel="noopener noreferrer" class="support-link">MIT License</a>.</p>
         </div>
       </div>

@@ -1219,6 +1219,7 @@ h1, h2, h3, h4, .q-title, .tetris-title {
   font-family: ui-monospace, "SF Mono", monospace;
   font-size: 0.7rem;
   font-weight: 600;
+  line-height: 1;
   color: #ffffff;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
   pointer-events: none;
@@ -1647,41 +1648,8 @@ h1, h2, h3, h4, .q-title, .tetris-title {
 }
 
 /* ==========================================================================
-   Review Velocity, Temporal & SVG Charts
+   Temporal & SVG Charts
    ========================================================================== */
-.milestone-pills {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin: 10px 0 12px;
-}
-
-.milestone-pill {
-  appearance: none;
-  background: var(--bg-segmented);
-  border: none;
-  color: var(--text-secondary);
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", sans-serif;
-  font-size: 0.74rem;
-  font-weight: 500;
-  padding: 5px 12px;
-  border-radius: var(--radius-full);
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.milestone-pill:hover {
-  color: var(--text-primary);
-  background: rgba(255, 255, 255, 0.12);
-}
-
-.milestone-pill.active {
-  background: rgba(255, 255, 255, 0.22);
-  color: #ffffff;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
-}
-
-.velocity-chart-wrapper,
 .time-chart-wrapper {
   position: relative;
   width: 100%;
@@ -1693,7 +1661,6 @@ h1, h2, h3, h4, .q-title, .tetris-title {
   margin-top: 10px;
 }
 
-.velocity-chart-wrapper svg,
 .time-chart-wrapper svg {
   width: 100%;
   height: auto;
@@ -1711,22 +1678,11 @@ h1, h2, h3, h4, .q-title, .tetris-title {
   color: var(--text-secondary);
 }
 
-.m-dot {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  margin-right: 6px;
-  vertical-align: middle;
-}
-
-.vel-node,
 .time-node {
   cursor: pointer;
   transition: r 0.2s cubic-bezier(0.16, 1, 0.3, 1), stroke-width 0.2s ease;
 }
 
-.vel-node:hover,
 .time-node:hover {
   r: 6;
   stroke: #ffffff;
@@ -1777,13 +1733,6 @@ h1, h2, h3, h4, .q-title, .tetris-title {
 
 .th-rank { width: 38px; text-align: center; }
 .th-rev, .th-ai, .th-diff { font-weight: 600; }
-
-.vel-comparison-bars {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 8px;
-}
 
 .therapist-emoji {
   font-size: 1.15rem;
@@ -3704,7 +3653,6 @@ body {
   transform: translateX(2px);
 }
 
-.velocity-chart-wrapper,
 .time-chart-wrapper,
 .boring-tags-chart-wrapper,
 .cost-chart-wrapper {
@@ -4295,4 +4243,113 @@ tr.tag-share-row:hover {
 
 tr.tag-share-row.selected {
   background: rgba(255, 159, 10, 0.16);
+}
+
+/* ==========================================================================
+   For Fun: Disclosure Confessions & Tropes
+   ========================================================================== */
+.trope-kpi-card {
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  font: inherit;
+}
+
+.trope-kpi-card.active {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.28);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+.trope-bars-card {
+  padding: 16px 18px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.trope-bar-row {
+  grid-template-columns: 185px 1fr 110px;
+  cursor: pointer;
+  padding: 5px 8px;
+  border-radius: 8px;
+  transition: background 0.15s ease;
+}
+
+.trope-bar-row:hover,
+.trope-bar-row.active {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.trope-examples-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.trope-example-card {
+  background: var(--bg-subcard);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+}
+
+.trope-example-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
+.trope-example-title {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.trope-example-title:hover {
+  color: var(--apple-blue);
+  text-decoration: underline;
+}
+
+.trope-example-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+}
+
+/* ==========================================================================
+   Remade AI Usage & Global Cost by Review Bucket Layouts
+   ========================================================================== */
+.ai-usage-kpi-strip {
+  margin-top: 10px;
+  margin-bottom: 12px;
+}
+
+.cost-filter-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin-top: 8px;
+}
+
+.cost-dist-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  margin-top: 16px;
+  margin-bottom: 4px;
+}
+
+.cost-dist-header h4 {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #ffffff;
 }
