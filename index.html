@@ -107,7 +107,7 @@
             </button>
           </div>
 
-          <!-- For Fun Sub-sections (3) -->
+          <!-- For Fun Sub-sections (4) -->
           <div class="section-subnav fun-subnav" data-for-section="for-fun" role="tablist" aria-label="For Fun Sub-sections">
             <button type="button" class="subnav-btn active" data-funsubview="fun-foot" role="tab" aria-selected="true">
               Devs shooting themselves in the foot
@@ -117,6 +117,9 @@
             </button>
             <button type="button" class="subnav-btn" data-funsubview="fun-disclosure-tropes" role="tab" aria-selected="false">
               Disclosure confessions &amp; tropes
+            </button>
+            <button type="button" class="subnav-btn" data-funsubview="fun-disclosed-tools" role="tab" aria-selected="false">
+              Most disclosed AI tools
             </button>
           </div>
 
@@ -362,7 +365,7 @@
             <li class="data-note-item neon-border-orange">
               <span class="note-block-icon" aria-hidden="true"></span>
               <div class="note-body">
-                <p>To process the data inside the AI disclosure tag I used Gemini to synthetize data into 10 different tags, them I asked it to set up agents that would read the contents of each entry that has a disclosure and classify that into those tags (a single game can have multiple):</p>
+                <p>To process the data inside the AI disclosure tag I used Gemini to synthesize data into 10 different tags, then I asked it to set up agents that would read the contents of each entry that has a disclosure and classify that into those tags (a single game can have multiple):</p>
                 <ul class="data-subnotes-list">
                   <li><strong>Visual:</strong> Game has art assets made with AI</li>
                   <li><strong>Audio:</strong> Game has audio assets made with AI</li>
@@ -370,7 +373,7 @@
                   <li><strong>Code:</strong> Game has code generated with AI</li>
                   <li><strong>Prototyping:</strong> Some assets were generated as placeholder to help with production and development of the game</li>
                   <li><strong>Live_Generated:</strong> Some assets inside the game are generated while playing</li>
-                  <li><strong>Marketing:</strong> Some assets were generated with AI for marketing purposes (Capsule art, Promotional Images and Videos, Social Media Campaings, etc...)</li>
+                  <li><strong>Marketing:</strong> Some assets were generated with AI for marketing purposes (Capsule art, Promotional Images and Videos, Social Media Campaigns, etc...)</li>
                   <li><strong>External_Ai_service:</strong> Game links to an AI service (like Claude, Gemini, OpenAI)</li>
                   <li><strong>Declares_No_Ai:</strong> Game features no AI generated content</li>
                   <li><strong>Unspecified:</strong> Some disclosures say they may have AI generated content but don't specify how or where</li>
@@ -431,15 +434,15 @@
             </li>
             <li class="data-note-item neon-border-orange">
               <span class="note-block-icon" aria-hidden="true"></span>
-              <p>Some games can feature content made by players, these games often say they don't use AI assets by players might do so. This was classified as <code>Declares_No_Ai</code>.</p>
+              <p>Some games can feature content made by players, these games often say they don't use AI assets, but players might do so. This was classified as <code>Declares_No_Ai</code>.</p>
             </li>
             <li class="data-note-item neon-border-cyan">
               <span class="note-block-icon" aria-hidden="true"></span>
-              <p>This data was collected and consolidated between Nov-02-26 and Nov-11-26, so recently released games stats might vary alot.</p>
+              <p>This data was collected and consolidated between Nov-02-26 and Nov-11-26, so recently released games stats might vary a lot.</p>
             </li>
             <li class="data-note-item neon-border-purple">
               <span class="note-block-icon" aria-hidden="true"></span>
-              <p>AI Disclosures are self reported meaning that there might be games that did not disclosure their AI use, I think most developers are truthful but in practice the true amount of AI usage must be a little bit more</p>
+              <p>AI Disclosures are self reported meaning that there might be games that did not disclose their AI use, I think most developers are truthful but in practice the true amount of AI usage must be a little bit more</p>
             </li>
             <li class="data-note-item neon-border-yellow">
               <span class="note-block-icon" aria-hidden="true"></span>
@@ -1821,6 +1824,65 @@
           </aside>
         </div>
       </div>
+
+      <!-- Subview 4: Most Disclosed AI Tools -->
+      <div id="subview-fun-disclosed-tools" class="fun-subview">
+        <div class="relevant-split-layout">
+          <!-- Left: Category Filter KPI Strip + Ranked Tool Bars -->
+          <div class="chart-card tetris-panel">
+            <div class="chart-card-header">
+              <div>
+                <h2>Most Common AI Tools Disclosed by Developers</h2>
+                <p class="chart-subtitle">Only <strong>1,069 games (6.28%)</strong> explicitly name their AI tools in Steam's disclosure box (mostly voluntarily, or when declaring a live 3rd-party API). Click a category to filter or click any tool to inspect real developer quotes.</p>
+              </div>
+              <div class="chart-controls">
+                <span class="games-count-badge" id="fun-tools-total-badge">1,069 Named / 17,014 Total</span>
+              </div>
+            </div>
+
+            <div class="data-kpi-grid" id="fun-tools-category-grid">
+              <!-- Dynamically populated category filter cards -->
+            </div>
+
+            <div class="data-subbox trope-bars-card">
+              <div class="subcard-title-row">
+                <h4 id="fun-tools-list-title">Top 20 Disclosed AI Tools (Ranked by Mentions)</h4>
+                <span class="subcard-caption">Share of 1,069 tool-naming disclosures &bull; (% of all 17,014)</span>
+              </div>
+              <div class="tag-bars-list" id="fun-tools-bars-list">
+                <!-- Dynamically populated by app.js -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Inspector with Tool Breakdown & Real Developer Quotes -->
+          <aside class="inspector-card tetris-panel" id="fun-tools-inspector">
+            <div class="inspector-header">
+              <div>
+                <h3 id="fun-tool-inspector-title">Select an AI Tool</h3>
+                <p class="inspector-subtitle" id="fun-tool-inspector-desc" style="font-size: 0.82rem; color: var(--text-secondary); margin-top: 4px;"></p>
+              </div>
+            </div>
+
+            <div class="inspector-subcard" style="margin-bottom: 14px;">
+              <div class="subcard-title-row">
+                <h4 id="fun-tool-inspector-cat">Category</h4>
+                <span class="subcard-caption" id="fun-tool-inspector-pct"></span>
+              </div>
+              <p id="fun-tool-inspector-subnote" style="font-size: 0.82rem; color: #ffffff; font-weight: 600; margin-bottom: 4px;"></p>
+              <p id="fun-tool-inspector-pattern" style="font-size: 0.78rem; color: var(--text-secondary); line-height: 1.45;"></p>
+            </div>
+
+            <div class="subcard-title-row" style="margin-bottom: 8px;">
+              <h4>Most-Reviewed Games Disclosing This Tool</h4>
+              <span class="subcard-caption">From steam_games_ai_tagged.csv</span>
+            </div>
+            <div class="trope-examples-list" id="fun-tool-examples-list">
+              <!-- Dynamically populated by app.js -->
+            </div>
+          </aside>
+        </div>
+      </div>
     </section>
 
     <!-- 6. BORING STUFF SECTION -->
@@ -1892,7 +1954,7 @@
               My top picks as a <strong>solo indie dev</strong> who's mainly a programmer are:<br>
               - Best tags overall: Turn-based, Roguelike Deckbuilder and Cleaning<br>
               - Best tags niche: Sokoban, Falling Blocks, Match3<br>
-              If the game I'm making is targetting a <strong>broad audience</strong> I would make something that has the overall tags (top right), or if I'm targetting a <strong>small passionate community</strong> (top left)
+              If the game I'm making is targeting a <strong>broad audience</strong> I would make something that has the overall tags (top right), or if I'm targeting a <strong>small passionate community</strong> (top left)
             </p>
 
             <!-- Selected Tag Detail Card -->

@@ -26,19 +26,19 @@ const INTRO_QUESTIONS = [
     num: "04",
     color: "green",
     question: "How?",
-    answer: "I scrapped data from Steam and used some beautiful mathematics and graphics to understand ugly spreadsheets of data"
+    answer: "I scraped data from Steam and used some beautiful mathematics and graphics to understand ugly spreadsheets of data"
   },
   {
     num: "05",
     color: "yellow",
     question: "When?",
-    answer: "Data collected is from public games released on steam from Jan-01-2024 up to Nov-02-2026"
+    answer: "Data collected is from public games released on steam from Jan-01-2024 up to Nov-06-2026"
   },
   {
     num: "06",
     color: "red",
     question: "Why? (again)",
-    answer: "I choose that date because Steam implemented the AI disclosure tag on Jan-2024, and I'm trying to build my portfolio with a fun data visualization project"
+    answer: "I chose that date because Steam implemented the AI disclosure tag on Jan-2024, and I'm trying to build my portfolio with a fun data visualization project"
   }
 ];
 
@@ -2139,12 +2139,14 @@ function initFunSubnav() {
       if (target === "fun-foot") renderFunFoot();
       else if (target === "fun-word-ai") renderFunWordAi();
       else if (target === "fun-disclosure-tropes") renderFunDisclosureTropes();
+      else if (target === "fun-disclosed-tools") renderFunDisclosedTools();
     });
   });
 
   initFunFootView();
   initFunWordAiView();
   initFunDisclosureTropesView();
+  initFunDisclosedToolsView();
 }
 
 function initFunFootView() {
@@ -2574,6 +2576,160 @@ function renderFunTropeInspector(item, totalDisclosures) {
   if (descEl) descEl.textContent = item.description;
   if (pctEl) pctEl.textContent = `${fmtInt(item.count)} / ${fmtInt(totalDisclosures)} (${item.pct}%)`;
   if (patternEl) patternEl.textContent = item.patternDesc;
+
+  listEl.innerHTML = (item.examples || [])
+    .map((ex) => {
+      const scoreText = ex.reviews > 0 ? `${ex.score}% Positive` : "Unrated";
+      return `
+        <div class="trope-example-card">
+          <div class="trope-example-header">
+            <a href="https://store.steampowered.com/app/${ex.appid}/" target="_blank" rel="noopener noreferrer" class="trope-example-title">
+              ${escapeTropeHtml(ex.name)} &nearr;
+            </a>
+            <div class="trope-example-meta">
+              <span class="game-reviews-badge">&starf; ${fmtInt(ex.reviews)}</span>
+              <span class="game-score-badge">${scoreText}</span>
+            </div>
+          </div>
+          <div class="disclosure-quote-box">
+            &ldquo;${escapeTropeHtml(ex.quote)}&rdquo;
+          </div>
+        </div>
+      `;
+    })
+    .join("");
+}
+
+let selectedFunToolCategory = "ALL";
+let selectedFunToolId = "chatgpt-openai";
+
+function initFunDisclosedToolsView() {
+  renderFunDisclosedTools();
+}
+
+function renderFunDisclosedTools() {
+  const catGrid = document.getElementById("fun-tools-category-grid");
+  const barsList = document.getElementById("fun-tools-bars-list");
+  const listTitle = document.getElementById("fun-tools-list-title");
+  const totalBadge = document.getElementById("fun-tools-total-badge");
+  const data = window.STUDY_DATA_EXTENDED && window.STUDY_DATA_EXTENDED.funDisclosedTools;
+  if (!catGrid || !barsList || !data || !data.items) return;
+
+  if (totalBadge) {
+    totalBadge.textContent = `${fmtInt(data.namedToolDisclosures)} Named (${data.namedToolPct}%) / ${fmtInt(data.totalDisclosures)}`;
+  }
+
+  const catColors = {
+    "ALL": "cyan",
+    "LLM & Code": "blue",
+    "Music & Voice": "purple",
+    "2D Art & Images": "orange",
+    "3D & Video": "green",
+    "Translation": "yellow"
+  };
+
+  const catSubNotes = {
+    "ALL": `Out of ${fmtInt(data.totalDisclosures)} total AI disclosures`,
+    "LLM & Code": `${data.categories.find((c) => c.id === "LLM & Code")?.pctNamed || 0}% of tool-naming games`,
+    "Music & Voice": `${data.categories.find((c) => c.id === "Music & Voice")?.pctNamed || 0}% of tool-naming games`,
+    "2D Art & Images": `${data.categories.find((c) => c.id === "2D Art & Images")?.pctNamed || 0}% of tool-naming games`,
+    "3D & Video": `${data.categories.find((c) => c.id === "3D & Video")?.pctNamed || 0}% of tool-naming games`,
+    "Translation": `${data.categories.find((c) => c.id === "Translation")?.pctNamed || 0}% of tool-naming games`
+  };
+
+  catGrid.innerHTML = (data.categories || [])
+    .map((cat) => {
+      const isAct = cat.id === selectedFunToolCategory;
+      const col = catColors[cat.id] || "cyan";
+      return `
+        <button type="button" class="data-kpi-card neon-${col} trope-kpi-card ${isAct ? "active" : ""}" data-tool-cat="${escapeTropeHtml(cat.id)}">
+          <span class="data-kpi-label">${escapeTropeHtml(cat.label)}</span>
+          <span class="data-kpi-val">${fmtInt(cat.count)} <small>(${cat.pctAll}%)</small></span>
+          <span class="data-kpi-sub">${escapeTropeHtml(catSubNotes[cat.id] || "")}</span>
+        </button>
+      `;
+    })
+    .join("");
+
+  const filteredItems = selectedFunToolCategory === "ALL"
+    ? data.items
+    : data.items.filter((it) => it.category === selectedFunToolCategory);
+
+  const sortedItems = [...filteredItems].sort((a, b) => b.count - a.count);
+  const activeItem = sortedItems.find((it) => it.id === selectedFunToolId) || sortedItems[0] || data.items[0];
+  if (activeItem) selectedFunToolId = activeItem.id;
+
+  if (listTitle) {
+    listTitle.textContent = selectedFunToolCategory === "ALL"
+      ? `Top ${sortedItems.length} Disclosed AI Tools (Ranked by Mentions)`
+      : `${selectedFunToolCategory} Tools (${sortedItems.length} Tracked)`;
+  }
+
+  const maxCount = Math.max(...sortedItems.map((it) => it.count), 1);
+
+  barsList.innerHTML = sortedItems
+    .map((item, idx) => {
+      const widthPct = Math.max(2, (item.count / maxCount) * 100);
+      const isAct = item.id === selectedFunToolId;
+      return `
+        <div class="tag-bar-row trope-bar-row tool-bar-row ${isAct ? "active" : ""}" data-tool-id="${item.id}" role="button" tabindex="0">
+          <span class="tag-bar-name">
+            <span class="tool-rank-num">#${idx + 1}</span>
+            ${escapeTropeHtml(item.shortLabel)}
+            <span class="tool-cat-pill">${escapeTropeHtml(item.category)}</span>
+          </span>
+          <div class="tag-bar-track">
+            <div class="tag-bar-fill" style="width: ${widthPct.toFixed(1)}%;"></div>
+          </div>
+          <span class="tag-bar-count">${fmtInt(item.count)} &bull; ${item.pctNamed}% <small style="opacity:0.68;">(${item.pctAll}%)</small></span>
+        </div>
+      `;
+    })
+    .join("");
+
+  catGrid.querySelectorAll(".trope-kpi-card").forEach((card) => {
+    card.addEventListener("click", () => {
+      selectedFunToolCategory = card.getAttribute("data-tool-cat") || "ALL";
+      renderFunDisclosedTools();
+    });
+  });
+
+  const selectTool = (id) => {
+    selectedFunToolId = id;
+    renderFunDisclosedTools();
+  };
+
+  barsList.querySelectorAll(".tool-bar-row").forEach((row) => {
+    row.addEventListener("click", () => selectTool(row.getAttribute("data-tool-id")));
+    row.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        selectTool(row.getAttribute("data-tool-id"));
+      }
+    });
+  });
+
+  if (activeItem) {
+    renderFunToolInspector(activeItem, data.namedToolDisclosures, data.totalDisclosures);
+  }
+}
+
+function renderFunToolInspector(item, namedTotal, totalDisclosures) {
+  const titleEl = document.getElementById("fun-tool-inspector-title");
+  const descEl = document.getElementById("fun-tool-inspector-desc");
+  const catEl = document.getElementById("fun-tool-inspector-cat");
+  const pctEl = document.getElementById("fun-tool-inspector-pct");
+  const subnoteEl = document.getElementById("fun-tool-inspector-subnote");
+  const patternEl = document.getElementById("fun-tool-inspector-pattern");
+  const listEl = document.getElementById("fun-tool-examples-list");
+  if (!titleEl || !listEl || !item) return;
+
+  titleEl.textContent = item.label;
+  if (descEl) descEl.textContent = item.description;
+  if (catEl) catEl.textContent = item.category;
+  if (pctEl) pctEl.textContent = `${fmtInt(item.count)} games (${item.pctNamed}% of named • ${item.pctAll}% of all ${fmtInt(totalDisclosures)})`;
+  if (subnoteEl) subnoteEl.textContent = item.subNote || "";
+  if (patternEl) patternEl.textContent = item.patternDesc || "";
 
   listEl.innerHTML = (item.examples || [])
     .map((ex) => {
