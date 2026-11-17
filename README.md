@@ -6,6 +6,11 @@ An interactive data study analyzing the relevance and impact of the Steam AI dis
 
 Hosted via GitHub Pages at: https://josehzz.github.io/Steam-AI-Tag-Study/
 
+## Article Overview
+
+Read a full written overview of the study and key findings on Medium:
+- [Nearly Half of New Steam Releases Now Disclose AI (Medium)](https://medium.com/@josehzz112/nearly-half-of-new-steam-releases-now-disclose-ai-b25a482e7378)
+
 ## Dataset
 
 Download the full 63,798-game dataset (including Steam metadata, review metrics, disclosure text, and LLM-classified `ai_tags`) on Kaggle:
