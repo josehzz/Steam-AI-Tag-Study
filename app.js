@@ -932,7 +932,7 @@ function renderOverTimeChart() {
   const keyLineEl = document.getElementById("time-series-key-line");
   if (!container || !window.STUDY_DATA_EXTENDED) return;
 
-  const data = window.STUDY_DATA_EXTENDED.overTime;
+  const data = window.STUDY_DATA_EXTENDED.overTime.filter((d) => d.month <= "2026-10");
   const events = window.STUDY_DATA_EXTENDED.overTimeEvents || [];
 
   if (keyBarsEl) {
@@ -990,9 +990,6 @@ function renderOverTimeChart() {
       <stop offset="0%" stop-color="#ff9f0a" stop-opacity="0.95"/>
       <stop offset="100%" stop-color="#ff9f0a" stop-opacity="0.45"/>
     </linearGradient>
-    <pattern id="partialHatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="rgba(255,255,255,0.35)" stroke-width="2" />
-    </pattern>
   </defs>`;
 
   if (timeMode === "volume") {
@@ -1020,7 +1017,6 @@ function renderOverTimeChart() {
     data.forEach((d, idx) => {
       const x = padL + idx * colW + 2;
       const barWidth = Math.max(2, colW - 4);
-      const isPartial = d.month === "2026-11";
       const val = timeAiFilter === "ALL" ? d.all : d[timeAiFilter.toLowerCase()] || 0;
       const totalH = (val / maxCount) * plotH;
       const topY = padT + plotH - totalH;
@@ -1029,17 +1025,12 @@ function renderOverTimeChart() {
         const aiH = (d.true / maxCount) * plotH;
         const nonAiH = Math.max(0, totalH - aiH);
         // Non-AI top segment
-        svg += `<rect x="${x.toFixed(1)}" y="${topY.toFixed(1)}" width="${barWidth.toFixed(1)}" height="${nonAiH.toFixed(1)}" fill="url(#timeBarGrad)" rx="2" class="time-bar" data-month="${d.month}" data-all="${d.all}" data-false="${d.false}" data-true="${d.true}" data-maybe="${d.maybe}" data-pct="${d.truePct}" data-partial="${isPartial}" />`;
+        svg += `<rect x="${x.toFixed(1)}" y="${topY.toFixed(1)}" width="${barWidth.toFixed(1)}" height="${nonAiH.toFixed(1)}" fill="url(#timeBarGrad)" rx="2" class="time-bar" data-month="${d.month}" data-all="${d.all}" data-false="${d.false}" data-true="${d.true}" data-maybe="${d.maybe}" data-pct="${d.truePct}" />`;
         // AI bottom segment
-        svg += `<rect x="${x.toFixed(1)}" y="${(padT + plotH - aiH).toFixed(1)}" width="${barWidth.toFixed(1)}" height="${aiH.toFixed(1)}" fill="url(#aiBarGrad)" rx="2" class="time-bar" data-month="${d.month}" data-all="${d.all}" data-false="${d.false}" data-true="${d.true}" data-maybe="${d.maybe}" data-pct="${d.truePct}" data-partial="${isPartial}" />`;
+        svg += `<rect x="${x.toFixed(1)}" y="${(padT + plotH - aiH).toFixed(1)}" width="${barWidth.toFixed(1)}" height="${aiH.toFixed(1)}" fill="url(#aiBarGrad)" rx="2" class="time-bar" data-month="${d.month}" data-all="${d.all}" data-false="${d.false}" data-true="${d.true}" data-maybe="${d.maybe}" data-pct="${d.truePct}" />`;
       } else {
         const fillCol = timeAiFilter === "TRUE" ? "url(#aiBarGrad)" : timeAiFilter === "MAYBE" ? "#ffd60a" : "url(#timeBarGrad)";
-        svg += `<rect x="${x.toFixed(1)}" y="${topY.toFixed(1)}" width="${barWidth.toFixed(1)}" height="${totalH.toFixed(1)}" fill="${fillCol}" rx="3" class="time-bar" data-month="${d.month}" data-all="${d.all}" data-false="${d.false}" data-true="${d.true}" data-maybe="${d.maybe}" data-pct="${d.truePct}" data-partial="${isPartial}" />`;
-      }
-
-      if (isPartial) {
-        svg += `<rect x="${x.toFixed(1)}" y="${topY.toFixed(1)}" width="${barWidth.toFixed(1)}" height="${totalH.toFixed(1)}" fill="url(#partialHatch)" stroke="rgba(255,255,255,0.65)" stroke-dasharray="2,2" rx="2" style="pointer-events:none;" />`;
-        svg += `<text x="${(x + barWidth / 2).toFixed(1)}" y="${(topY - 8).toFixed(1)}" fill="rgba(235,235,245,0.75)" font-family="ui-monospace, monospace" font-size="9" text-anchor="end">Partial (to Nov 2)</text>`;
+        svg += `<rect x="${x.toFixed(1)}" y="${topY.toFixed(1)}" width="${barWidth.toFixed(1)}" height="${totalH.toFixed(1)}" fill="${fillCol}" rx="3" class="time-bar" data-month="${d.month}" data-all="${d.all}" data-false="${d.false}" data-true="${d.true}" data-maybe="${d.maybe}" data-pct="${d.truePct}" />`;
       }
     });
 
@@ -1052,7 +1043,7 @@ function renderOverTimeChart() {
       const lineD = pts.reduce((acc, pt, i) => `${acc} ${i === 0 ? "M" : "L"} ${pt.x.toFixed(1)} ${pt.y.toFixed(1)}`, "");
       svg += `<path d="${lineD}" fill="none" stroke="#ffd60a" stroke-width="2.4" />`;
       pts.forEach((pt) => {
-        svg += `<circle cx="${pt.x.toFixed(1)}" cy="${pt.y.toFixed(1)}" r="3.4" fill="#ffd60a" stroke="#1c1c1e" stroke-width="1" class="time-node" data-month="${pt.d.month}" data-all="${pt.d.all}" data-false="${pt.d.false}" data-true="${pt.d.true}" data-maybe="${pt.d.maybe}" data-pct="${pt.d.truePct}" data-partial="${pt.d.month === "2026-11"}" />`;
+        svg += `<circle cx="${pt.x.toFixed(1)}" cy="${pt.y.toFixed(1)}" r="3.4" fill="#ffd60a" stroke="#1c1c1e" stroke-width="1" class="time-node" data-month="${pt.d.month}" data-all="${pt.d.all}" data-false="${pt.d.false}" data-true="${pt.d.true}" data-maybe="${pt.d.maybe}" data-pct="${pt.d.truePct}" />`;
       });
     }
   } else {
@@ -1079,7 +1070,7 @@ function renderOverTimeChart() {
     svg += `<path d="${lineD}" fill="none" stroke="#ff9f0a" stroke-width="2.6" />`;
 
     pts.forEach((pt) => {
-      svg += `<circle cx="${pt.x.toFixed(1)}" cy="${pt.y.toFixed(1)}" r="3.8" fill="#ffd60a" stroke="#1c1c1e" stroke-width="1.4" class="time-node" data-month="${pt.d.month}" data-all="${pt.d.all}" data-false="${pt.d.false}" data-true="${pt.d.true}" data-maybe="${pt.d.maybe}" data-pct="${pt.d.truePct}" data-partial="${pt.d.month === "2026-11"}" />`;
+      svg += `<circle cx="${pt.x.toFixed(1)}" cy="${pt.y.toFixed(1)}" r="3.8" fill="#ffd60a" stroke="#1c1c1e" stroke-width="1.4" class="time-node" data-month="${pt.d.month}" data-all="${pt.d.all}" data-false="${pt.d.false}" data-true="${pt.d.true}" data-maybe="${pt.d.maybe}" data-pct="${pt.d.truePct}" />`;
     });
   }
 
@@ -1175,12 +1166,11 @@ function renderOverTimeChart() {
       const t = el.getAttribute("data-true");
       const m = el.getAttribute("data-maybe");
       const pct = el.getAttribute("data-pct");
-      const isPartial = el.getAttribute("data-partial") === "true";
 
       const tooltip = document.getElementById("chart-tooltip");
       if (!tooltip) return;
       tooltip.innerHTML = `
-        <div class="tooltip-title">${month}${isPartial ? " (Partial: to Nov 2)" : ""}</div>
+        <div class="tooltip-title">${month}</div>
         <div class="tooltip-row"><span>Total Releases:</span><strong>${fmtInt(all)}</strong></div>
         <div class="tooltip-row" style="color:#ff9f0a;"><span>AI Used (TRUE):</span><strong>${fmtInt(t)} (${pct}%)</strong></div>
         <div class="tooltip-row" style="color:#64d2ff;"><span>Non-AI (FALSE):</span><strong>${fmtInt(f)}</strong></div>
