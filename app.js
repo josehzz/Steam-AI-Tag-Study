@@ -952,7 +952,12 @@ function renderOverTimeChart() {
     }
   }
   if (keyLineEl) {
-    keyLineEl.style.display = (timeMode === "rate" || timeAiFilter === "ALL" || timeAiFilter === "TRUE") ? "inline-flex" : "none";
+    const showLine = timeMode === "rate" || timeAiFilter === "ALL" || timeAiFilter === "TRUE";
+    keyLineEl.style.display = showLine ? "inline-flex" : "none";
+    if (showLine) {
+      const swatchClass = timeMode === "rate" ? "series-line-swatch rate-mode" : "series-line-swatch";
+      keyLineEl.innerHTML = `<span class="${swatchClass}"></span> AI Share %`;
+    }
   }
 
   const w = 780;
