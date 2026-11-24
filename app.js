@@ -293,9 +293,330 @@ const fmtInt = (n) => Number(n).toLocaleString("en-US");
 const fmtPct = (n) => `${n.toFixed(2)}%`;
 
 /* =========================================================
-   1. TOPBAR NAVIGATION + UNFOLDING SUBNAV BAR
+   1. URL ROUTING + TOPBAR NAVIGATION + UNFOLDING SUBNAV BAR
    ========================================================= */
-function updateTopbarSubnavDrawer(sectionName) {
+const BASE_DOCUMENT_TITLE = "AI Steam Tag Study — Jose Hernandez";
+const INTRO_QUESTION_SLUGS = ["what", "who", "why", "how", "when", "why-again"];
+
+const ROUTE_CONFIG = {
+  intro: {
+    label: "Intro",
+    subnavAttr: null,
+    subviewSelector: null,
+    defaultTarget: null,
+    subtabs: {}
+  },
+  data: {
+    label: "Data",
+    subnavAttr: "data-datasubview",
+    subviewSelector: "#section-data .data-subview",
+    defaultTarget: "data-overview",
+    subtabs: {
+      "data-overview": { slug: "overview", label: "Overall Statistics", aliases: ["data-overview", "overall-statistics"] },
+      "data-built": { slug: "how-this-was-built", label: "How This Was Built", aliases: ["built", "data-built"] },
+      "data-limitations": { slug: "limitations", label: "Limitations", aliases: ["data-limitations"] },
+      "data-validation": { slug: "validation", label: "Validation & Accuracy", aliases: ["data-validation", "validation-accuracy"] }
+    }
+  },
+  relevant: {
+    label: "Is it Relevant?",
+    subnavAttr: "data-subview",
+    subviewSelector: "#section-relevant .relevant-subview",
+    defaultTarget: "review-count",
+    subtabs: {
+      "review-count": { slug: "review-count", label: "Review Count", aliases: [] },
+      similarity: { slug: "similarity", label: "Similarity", aliases: [] },
+      "over-time": { slug: "over-time", label: "Over Time", aliases: [] },
+      "price-stratified": { slug: "price-stratified", label: "Price-Stratified", aliases: [] },
+      "tag-ai-share": { slug: "tag-ai-share", label: "Tag AI Share", aliases: [] }
+    }
+  },
+  "more-info": {
+    label: "More Info",
+    subnavAttr: "data-moresubview",
+    subviewSelector: "#section-more-info .more-subview",
+    defaultTarget: "more-best-ai",
+    subtabs: {
+      "more-best-ai": { slug: "best-ai", label: "Best AI Games", aliases: ["more-best-ai", "best-ai-games"] },
+      "more-vis-aud": { slug: "visuals-audio", label: "Best AI Visuals and Audio", aliases: ["vis-aud", "more-vis-aud"] },
+      "more-ai-usage": { slug: "ai-usage", label: "AI Usage", aliases: ["more-ai-usage"] },
+      "more-best-tags": { slug: "best-tags", label: "Best Performing Tags for AI", aliases: ["more-best-tags"] },
+      "more-cost-vs": { slug: "average-cost", label: "Average AI Cost", aliases: ["cost-vs", "more-cost-vs", "cost"] }
+    }
+  },
+  "for-fun": {
+    label: "For Fun",
+    subnavAttr: "data-funsubview",
+    subviewSelector: "#section-for-fun .fun-subview",
+    defaultTarget: "fun-foot",
+    subtabs: {
+      "fun-foot": { slug: "shooting-in-the-foot", label: "Devs Shooting Themselves in the Foot", aliases: ["foot", "fun-foot"] },
+      "fun-word-ai": { slug: "word-ai", label: "Games with Word AI", aliases: ["fun-word-ai"] },
+      "fun-disclosure-tropes": { slug: "disclosure-tropes", label: "Disclosure Confessions & Tropes", aliases: ["fun-disclosure-tropes", "tropes"] },
+      "fun-disclosed-tools": { slug: "disclosed-tools", label: "Most Disclosed AI Tools", aliases: ["fun-disclosed-tools", "tools"] }
+    }
+  },
+  "boring-stuff": {
+    label: "Boring Stuff",
+    subnavAttr: "data-boringsubview",
+    subviewSelector: "#section-boring-stuff .boring-subview",
+    defaultTarget: "boring-best-tags",
+    subtabs: {
+      "boring-best-tags": { slug: "best-tags", label: "Best Tags by Review Count", aliases: ["boring-best-tags"] },
+      "boring-trending": { slug: "trending", label: "Trending Tags", aliases: ["boring-trending"] },
+      "boring-cost": { slug: "average-cost", label: "Cost of the Average Game", aliases: ["cost", "boring-cost"] }
+    }
+  },
+  conclusions: {
+    label: "Conclusions",
+    subnavAttr: null,
+    subviewSelector: null,
+    defaultTarget: null,
+    subtabs: {}
+  },
+  contact: {
+    label: "Contact",
+    subnavAttr: null,
+    subviewSelector: null,
+    defaultTarget: null,
+    subtabs: {}
+  }
+};
+
+let currentRouteState = null;
+
+function safeDecodeSegment(str) {
+  try {
+    return decodeURIComponent(str);
+  } catch (_err) {
+    return str;
+  }
+}
+
+function getActiveSubtarget(sectionName) {
+  const config = ROUTE_CONFIG[sectionName];
+  if (!config || !config.subnavAttr) return null;
+
+  const activeBtn = document.querySelector(
+    `#topbar-subnav-drawer .section-subnav[data-for-section="${sectionName}"] .subnav-btn.active`
+  );
+  const target = activeBtn ? activeBtn.getAttribute(config.subnavAttr) : null;
+  return target && config.subtabs[target] ? target : config.defaultTarget;
+}
+
+function setActiveSubtab(sectionName, subTarget) {
+  const config = ROUTE_CONFIG[sectionName];
+  if (!config || !config.subnavAttr || !config.subviewSelector) return null;
+
+  const resolved = subTarget && config.subtabs[subTarget] ? subTarget : config.defaultTarget;
+  const subBtns = document.querySelectorAll(
+    `#topbar-subnav-drawer .section-subnav[data-for-section="${sectionName}"] .subnav-btn`
+  );
+  const subviews = document.querySelectorAll(config.subviewSelector);
+
+  subBtns.forEach((btn) => {
+    const active = btn.getAttribute(config.subnavAttr) === resolved;
+    btn.classList.toggle("active", active);
+    btn.setAttribute("aria-selected", active ? "true" : "false");
+  });
+
+  subviews.forEach((sv) => {
+    sv.classList.toggle("active", sv.id === `subview-${resolved}`);
+  });
+
+  return resolved;
+}
+
+function renderSectionView(sectionName, subTarget) {
+  if (sectionName === "relevant") {
+    if (subTarget === "similarity") initSimilarityView();
+    else if (subTarget === "over-time") renderOverTimeChart();
+    else if (subTarget === "price-stratified") renderPriceStratified();
+    else if (subTarget === "tag-ai-share") renderTagAiShare();
+    else renderStackedBarChart();
+  } else if (sectionName === "more-info") {
+    if (subTarget === "more-vis-aud") renderFunVisAud();
+    else if (subTarget === "more-ai-usage") renderAiUsage();
+    else if (subTarget === "more-best-tags") renderBestPerformingTags();
+    else if (subTarget === "more-cost-vs") renderGlobalCost();
+    else renderBestAiGames();
+  } else if (sectionName === "for-fun") {
+    if (subTarget === "fun-word-ai") renderFunWordAi();
+    else if (subTarget === "fun-disclosure-tropes") renderFunDisclosureTropes();
+    else if (subTarget === "fun-disclosed-tools") renderFunDisclosedTools();
+    else renderFunFoot();
+  } else if (sectionName === "boring-stuff") {
+    if (subTarget === "boring-trending") renderBoringTrending();
+    else if (subTarget === "boring-cost") renderBoringCost();
+    else renderBoringBestTags();
+  }
+}
+
+function resolveIntroQuestionSlug(rawSlug) {
+  if (!rawSlug) return 0;
+  const slug = rawSlug.toLowerCase();
+  const idx = INTRO_QUESTION_SLUGS.indexOf(slug);
+  if (idx !== -1) return idx;
+  const num = parseInt(slug, 10);
+  if (!Number.isNaN(num) && num >= 1 && num <= INTRO_QUESTIONS.length) {
+    return num - 1;
+  }
+  return 0;
+}
+
+function resolveSubtargetFromSlug(sectionName, rawSlug) {
+  const config = ROUTE_CONFIG[sectionName];
+  if (!config || !config.subnavAttr) return null;
+  if (!rawSlug) return config.defaultTarget;
+
+  const slug = rawSlug.toLowerCase().replace(/^subview-/, "");
+  if (config.subtabs[slug]) return slug;
+
+  for (const [targetKey, meta] of Object.entries(config.subtabs)) {
+    if (meta.slug === slug || (meta.aliases && meta.aliases.includes(slug))) {
+      return targetKey;
+    }
+  }
+  return config.defaultTarget;
+}
+
+function buildRouteHash(sectionName, subTargetOrQuestionIdx) {
+  if (sectionName === "intro") {
+    const qIdx = typeof subTargetOrQuestionIdx === "number" ? subTargetOrQuestionIdx : activeQuestionIndex;
+    return qIdx > 0 && INTRO_QUESTION_SLUGS[qIdx] ? `intro/${INTRO_QUESTION_SLUGS[qIdx]}` : "intro";
+  }
+
+  const config = ROUTE_CONFIG[sectionName];
+  if (!config) return "intro";
+
+  if (config.subnavAttr) {
+    const target = subTargetOrQuestionIdx || config.defaultTarget;
+    const meta = config.subtabs[target];
+    return meta ? `${sectionName}/${meta.slug}` : sectionName;
+  }
+
+  return sectionName;
+}
+
+function updateDocumentTitle(sectionName, subTargetOrQuestionIdx) {
+  if (sectionName === "intro") {
+    const qIdx = typeof subTargetOrQuestionIdx === "number" ? subTargetOrQuestionIdx : activeQuestionIndex;
+    if (qIdx > 0 && INTRO_QUESTIONS[qIdx]) {
+      document.title = `${INTRO_QUESTIONS[qIdx].question} — AI Steam Tag Study`;
+    } else {
+      document.title = BASE_DOCUMENT_TITLE;
+    }
+    return;
+  }
+
+  const config = ROUTE_CONFIG[sectionName];
+  if (!config) {
+    document.title = BASE_DOCUMENT_TITLE;
+    return;
+  }
+
+  const meta = subTargetOrQuestionIdx && config.subtabs ? config.subtabs[subTargetOrQuestionIdx] : null;
+  document.title = meta
+    ? `${meta.label} — AI Steam Tag Study`
+    : `${config.label} — AI Steam Tag Study`;
+}
+
+function updateUrlHash(routeHash, mode = "push") {
+  if (mode === "none") return;
+
+  const nextHash = routeHash ? `#${routeHash}` : "";
+  if (window.location.hash === nextHash) return;
+
+  const base = `${window.location.pathname}${window.location.search}`;
+  const targetUrl = nextHash ? `${base}${nextHash}` : base;
+
+  try {
+    if (mode === "replace") {
+      window.history.replaceState(null, "", targetUrl);
+    } else {
+      window.history.pushState(null, "", targetUrl);
+    }
+  } catch (_err) {
+    if (nextHash) {
+      window.location.hash = nextHash;
+    }
+  }
+}
+
+function parseRouteFromUrl() {
+  const rawHash = window.location.hash || "";
+  const cleanedHash = rawHash.replace(/^#/, "").replace(/^\/+|\/+$/g, "").trim();
+
+  let rawSection = "";
+  let rawSub = "";
+  let fromQuery = false;
+
+  if (cleanedHash) {
+    const parts = cleanedHash
+      .split("/")
+      .map((part) => safeDecodeSegment(part).trim())
+      .filter(Boolean);
+    rawSection = parts[0] || "";
+    rawSub = parts[1] || "";
+  } else {
+    const params = new URLSearchParams(window.location.search);
+    if (params.has("section") || params.has("tab")) {
+      rawSection = (params.get("section") || "").trim();
+      rawSub = (params.get("tab") || params.get("q") || "").trim();
+      fromQuery = true;
+    }
+  }
+
+  if (!rawSection && !rawSub) {
+    return {
+      section: "intro",
+      subTarget: null,
+      questionIndex: 0,
+      isEmpty: true,
+      isValid: true,
+      needsNormalize: false
+    };
+  }
+
+  const normalizedSection = rawSection.toLowerCase().replace(/^section-/, "");
+  if (!ROUTE_CONFIG[normalizedSection]) {
+    return {
+      section: "intro",
+      subTarget: null,
+      questionIndex: 0,
+      isEmpty: false,
+      isValid: false,
+      needsNormalize: false
+    };
+  }
+
+  if (normalizedSection === "intro") {
+    const qIdx = resolveIntroQuestionSlug(rawSub);
+    const canonicalHash = buildRouteHash("intro", qIdx);
+    return {
+      section: "intro",
+      subTarget: null,
+      questionIndex: qIdx,
+      isEmpty: false,
+      isValid: true,
+      needsNormalize: !fromQuery && cleanedHash !== canonicalHash
+    };
+  }
+
+  const subTarget = resolveSubtargetFromSlug(normalizedSection, rawSub);
+  const canonicalHash = buildRouteHash(normalizedSection, subTarget);
+
+  return {
+    section: normalizedSection,
+    subTarget,
+    questionIndex: 0,
+    isEmpty: false,
+    isValid: true,
+    needsNormalize: !fromQuery && cleanedHash !== canonicalHash
+  };
+}
+
+function updateTopbarSubnavDrawer(sectionName, { animate = true } = {}) {
   const drawer = document.getElementById("topbar-subnav-drawer");
   if (!drawer) return;
 
@@ -307,9 +628,11 @@ function updateTopbarSubnavDrawer(sectionName) {
     nav.classList.toggle("active", isMatch);
     if (isMatch) {
       hasSubnav = true;
-      nav.classList.remove("is-animating");
-      void nav.offsetWidth;
-      nav.classList.add("is-animating");
+      if (animate) {
+        nav.classList.remove("is-animating");
+        void nav.offsetWidth;
+        nav.classList.add("is-animating");
+      }
     }
   });
 
@@ -317,55 +640,126 @@ function updateTopbarSubnavDrawer(sectionName) {
   drawer.setAttribute("aria-hidden", hasSubnav ? "false" : "true");
 }
 
-function initTopbarNavigation() {
+function navigateTo(sectionName, options = {}) {
+  const {
+    subTarget = null,
+    questionIndex = null,
+    historyMode = "push",
+    scrollTop = true,
+    animateIntro = false
+  } = options;
+
+  const targetSection = ROUTE_CONFIG[sectionName] ? sectionName : "intro";
+  const config = ROUTE_CONFIG[targetSection];
+  const prevSection = currentRouteState ? currentRouteState.section : null;
+  const sectionChanged = prevSection !== targetSection;
+
   const navButtons = document.querySelectorAll(".topbar-nav .nav-btn");
   const sections = document.querySelectorAll(".tab-section");
 
+  navButtons.forEach((b) => {
+    b.classList.toggle("active", b.getAttribute("data-section") === targetSection);
+  });
+  sections.forEach((sec) => {
+    sec.classList.toggle("active", sec.id === `section-${targetSection}`);
+  });
+
+  updateTopbarSubnavDrawer(targetSection, { animate: sectionChanged });
+
+  if (scrollTop && window.scrollY > 40) {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  let resolvedSubTarget = null;
+  let resolvedQuestionIndex = 0;
+
+  if (targetSection === "intro") {
+    resolvedQuestionIndex = questionIndex !== null ? questionIndex : 0;
+    selectIntroQuestion(resolvedQuestionIndex, animateIntro);
+  } else if (config.subnavAttr) {
+    resolvedSubTarget = setActiveSubtab(
+      targetSection,
+      subTarget || getActiveSubtarget(targetSection) || config.defaultTarget
+    );
+    renderSectionView(targetSection, resolvedSubTarget);
+  }
+
+  const routeKey = targetSection === "intro" ? resolvedQuestionIndex : resolvedSubTarget;
+  const canonicalHash = buildRouteHash(targetSection, routeKey);
+
+  currentRouteState = {
+    section: targetSection,
+    subTarget: resolvedSubTarget,
+    questionIndex: resolvedQuestionIndex,
+    hash: canonicalHash
+  };
+
+  updateDocumentTitle(targetSection, routeKey);
+  updateUrlHash(canonicalHash, historyMode);
+}
+
+function applyRouteFromUrl({ isInitial = false } = {}) {
+  const parsed = parseRouteFromUrl();
+
+  if (isInitial && parsed.isEmpty) {
+    currentRouteState = {
+      section: "intro",
+      subTarget: null,
+      questionIndex: activeQuestionIndex,
+      hash: "intro"
+    };
+    updateDocumentTitle("intro", activeQuestionIndex);
+    return;
+  }
+
+  if (
+    !isInitial &&
+    currentRouteState &&
+    currentRouteState.section === parsed.section &&
+    currentRouteState.subTarget === parsed.subTarget &&
+    currentRouteState.questionIndex === parsed.questionIndex
+  ) {
+    if (parsed.needsNormalize) {
+      updateUrlHash(buildRouteHash(parsed.section, parsed.section === "intro" ? parsed.questionIndex : parsed.subTarget), "replace");
+    }
+    return;
+  }
+
+  navigateTo(parsed.section, {
+    subTarget: parsed.subTarget,
+    questionIndex: parsed.questionIndex,
+    historyMode: parsed.needsNormalize ? "replace" : "none",
+    scrollTop: false,
+    animateIntro: false
+  });
+}
+
+function initUrlRouting() {
+  applyRouteFromUrl({ isInitial: true });
+
+  window.addEventListener("hashchange", () => {
+    applyRouteFromUrl({ isInitial: false });
+  });
+
+  window.addEventListener("popstate", () => {
+    applyRouteFromUrl({ isInitial: false });
+  });
+}
+
+function initTopbarNavigation() {
+  const navButtons = document.querySelectorAll(".topbar-nav .nav-btn");
   const initialBtn = document.querySelector(".topbar-nav .nav-btn.active");
-  updateTopbarSubnavDrawer(initialBtn ? initialBtn.getAttribute("data-section") : "intro");
+  updateTopbarSubnavDrawer(initialBtn ? initialBtn.getAttribute("data-section") : "intro", { animate: false });
 
   navButtons.forEach((btn) => {
     btn.addEventListener("click", () => {
       const target = btn.getAttribute("data-section");
-
-      navButtons.forEach((b) => b.classList.toggle("active", b === btn));
-      sections.forEach((sec) => {
-        sec.classList.toggle("active", sec.id === `section-${target}`);
+      navigateTo(target, {
+        questionIndex: target === "intro" ? 0 : null,
+        historyMode: "push",
+        scrollTop: true,
+        animateIntro: false
       });
-
-      updateTopbarSubnavDrawer(target);
-
-      if (window.scrollY > 40) {
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      }
-
-      if (target === "intro") {
-        selectIntroQuestion(0, false); // Don't trigger drop when merely switching tabs
-      } else if (target === "relevant") {
-        const activeSub = document.querySelector("#section-relevant .relevant-subview.active");
-        if (activeSub && activeSub.id === "subview-similarity") initSimilarityView();
-        else if (activeSub && activeSub.id === "subview-over-time") renderOverTimeChart();
-        else if (activeSub && activeSub.id === "subview-price-stratified") renderPriceStratified();
-        else if (activeSub && activeSub.id === "subview-tag-ai-share") renderTagAiShare();
-        else renderStackedBarChart();
-      } else if (target === "more-info") {
-        const activeSub = document.querySelector("#section-more-info .more-subview.active");
-        if (activeSub && activeSub.id === "subview-more-vis-aud") renderFunVisAud();
-        else if (activeSub && activeSub.id === "subview-more-ai-usage") renderAiUsage();
-        else if (activeSub && activeSub.id === "subview-more-best-tags") renderBestPerformingTags();
-        else if (activeSub && activeSub.id === "subview-more-cost-vs") renderGlobalCost();
-        else renderBestAiGames();
-      } else if (target === "for-fun") {
-        const activeSub = document.querySelector("#section-for-fun .fun-subview.active");
-        if (activeSub && activeSub.id === "subview-fun-word-ai") renderFunWordAi();
-        else if (activeSub && activeSub.id === "subview-fun-disclosure-tropes") renderFunDisclosureTropes();
-        else renderFunFoot();
-      } else if (target === "boring-stuff") {
-        const activeSub = document.querySelector("#section-boring-stuff .boring-subview.active");
-        if (activeSub && activeSub.id === "subview-boring-trending") renderBoringTrending();
-        else if (activeSub && activeSub.id === "subview-boring-cost") renderBoringCost();
-        else renderBoringBestTags();
-      }
     });
   });
 }
@@ -424,14 +818,25 @@ function initIntroQuestions() {
   buttons.forEach((btn) => {
     btn.addEventListener("click", () => {
       const idx = parseInt(btn.getAttribute("data-q-index"), 10) || 0;
-      selectIntroQuestion(idx, true);
+      const shouldPush = idx !== activeQuestionIndex || window.location.hash !== "";
+      navigateTo("intro", {
+        questionIndex: idx,
+        historyMode: shouldPush ? "push" : "none",
+        scrollTop: false,
+        animateIntro: true
+      });
     });
     btn.addEventListener("keydown", (e) => {
       if (e.key === "ArrowDown" || e.key === "ArrowUp") {
         e.preventDefault();
         const dir = e.key === "ArrowDown" ? 1 : -1;
         const nextIdx = (activeQuestionIndex + dir + INTRO_QUESTIONS.length) % INTRO_QUESTIONS.length;
-        selectIntroQuestion(nextIdx, true);
+        navigateTo("intro", {
+          questionIndex: nextIdx,
+          historyMode: "replace",
+          scrollTop: false,
+          animateIntro: true
+        });
         if (buttons[nextIdx]) buttons[nextIdx].focus();
       }
     });
@@ -473,20 +878,11 @@ function renderDataTabStats() {
    ========================================================= */
 function initDataSubnav() {
   const subBtns = document.querySelectorAll('#topbar-subnav-drawer .section-subnav[data-for-section="data"] .subnav-btn');
-  const subviews = document.querySelectorAll("#section-data .data-subview");
 
   subBtns.forEach((btn) => {
     btn.addEventListener("click", () => {
       const target = btn.getAttribute("data-datasubview");
-      subBtns.forEach((b) => {
-        const active = b === btn;
-        b.classList.toggle("active", active);
-        b.setAttribute("aria-selected", active ? "true" : "false");
-      });
-      subviews.forEach((sv) => {
-        sv.classList.toggle("active", sv.id === `subview-${target}`);
-      });
-      if (window.scrollY > 40) window.scrollTo({ top: 0, behavior: "smooth" });
+      navigateTo("data", { subTarget: target, historyMode: "push", scrollTop: true });
     });
   });
 }
@@ -496,26 +892,11 @@ function initDataSubnav() {
    ========================================================= */
 function initRelevantSubnav() {
   const subBtns = document.querySelectorAll('#topbar-subnav-drawer .section-subnav[data-for-section="relevant"] .subnav-btn');
-  const subviews = document.querySelectorAll("#section-relevant .relevant-subview");
 
   subBtns.forEach((btn) => {
     btn.addEventListener("click", () => {
       const target = btn.getAttribute("data-subview");
-      subBtns.forEach((b) => {
-        const active = b === btn;
-        b.classList.toggle("active", active);
-        b.setAttribute("aria-selected", active ? "true" : "false");
-      });
-      subviews.forEach((sv) => {
-        sv.classList.toggle("active", sv.id === `subview-${target}`);
-      });
-      if (window.scrollY > 40) window.scrollTo({ top: 0, behavior: "smooth" });
-
-      if (target === "review-count") renderStackedBarChart();
-      else if (target === "similarity") initSimilarityView();
-      else if (target === "over-time") renderOverTimeChart();
-      else if (target === "price-stratified") renderPriceStratified();
-      else if (target === "tag-ai-share") renderTagAiShare();
+      navigateTo("relevant", { subTarget: target, historyMode: "push", scrollTop: true });
     });
   });
 }
@@ -1502,26 +1883,11 @@ let tagMinGames = 15;
 
 function initMoreInfoSubnav() {
   const subBtns = document.querySelectorAll('#topbar-subnav-drawer .section-subnav[data-for-section="more-info"] .subnav-btn');
-  const subviews = document.querySelectorAll(".more-subview");
 
   subBtns.forEach((btn) => {
     btn.addEventListener("click", () => {
       const target = btn.getAttribute("data-moresubview");
-      subBtns.forEach((b) => {
-        const active = b === btn;
-        b.classList.toggle("active", active);
-        b.setAttribute("aria-selected", active ? "true" : "false");
-      });
-      subviews.forEach((sv) => {
-        sv.classList.toggle("active", sv.id === `subview-${target}`);
-      });
-      if (window.scrollY > 40) window.scrollTo({ top: 0, behavior: "smooth" });
-
-      if (target === "more-best-ai") renderBestAiGames();
-      else if (target === "more-vis-aud") renderFunVisAud();
-      else if (target === "more-ai-usage") renderAiUsage();
-      else if (target === "more-best-tags") renderBestPerformingTags();
-      else if (target === "more-cost-vs") renderGlobalCost();
+      navigateTo("more-info", { subTarget: target, historyMode: "push", scrollTop: true });
     });
   });
 
@@ -2116,25 +2482,11 @@ let boringCostViewMode = "buckets";
 
 function initFunSubnav() {
   const subBtns = document.querySelectorAll('#topbar-subnav-drawer .section-subnav[data-for-section="for-fun"] .subnav-btn');
-  const subviews = document.querySelectorAll("#section-for-fun .fun-subview");
 
   subBtns.forEach((btn) => {
     btn.addEventListener("click", () => {
       const target = btn.getAttribute("data-funsubview");
-      subBtns.forEach((b) => {
-        const active = b === btn;
-        b.classList.toggle("active", active);
-        b.setAttribute("aria-selected", active ? "true" : "false");
-      });
-      subviews.forEach((sv) => {
-        sv.classList.toggle("active", sv.id === `subview-${target}`);
-      });
-      if (window.scrollY > 40) window.scrollTo({ top: 0, behavior: "smooth" });
-
-      if (target === "fun-foot") renderFunFoot();
-      else if (target === "fun-word-ai") renderFunWordAi();
-      else if (target === "fun-disclosure-tropes") renderFunDisclosureTropes();
-      else if (target === "fun-disclosed-tools") renderFunDisclosedTools();
+      navigateTo("for-fun", { subTarget: target, historyMode: "push", scrollTop: true });
     });
   });
 
@@ -3288,24 +3640,11 @@ function renderPriceStratifiedInspector(subset) {
    ========================================================= */
 function initBoringSubnav() {
   const subBtns = document.querySelectorAll('#topbar-subnav-drawer .section-subnav[data-for-section="boring-stuff"] .subnav-btn');
-  const subviews = document.querySelectorAll("#section-boring-stuff .boring-subview");
 
   subBtns.forEach((btn) => {
     btn.addEventListener("click", () => {
       const target = btn.getAttribute("data-boringsubview");
-      subBtns.forEach((b) => {
-        const active = b === btn;
-        b.classList.toggle("active", active);
-        b.setAttribute("aria-selected", active ? "true" : "false");
-      });
-      subviews.forEach((sv) => {
-        sv.classList.toggle("active", sv.id === `subview-${target}`);
-      });
-      if (window.scrollY > 40) window.scrollTo({ top: 0, behavior: "smooth" });
-
-      if (target === "boring-best-tags") renderBoringBestTags();
-      else if (target === "boring-trending") renderBoringTrending();
-      else if (target === "boring-cost") renderBoringCost();
+      navigateTo("boring-stuff", { subTarget: target, historyMode: "push", scrollTop: true });
     });
   });
 
@@ -3891,4 +4230,5 @@ document.addEventListener("DOMContentLoaded", () => {
   initFunSubnav();
   initBoringSubnav();
   initAdvicePanels();
+  initUrlRouting();
 });
